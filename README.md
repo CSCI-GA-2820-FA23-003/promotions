@@ -81,7 +81,6 @@ Delete(id: String)
     OR
     Return {String(“Promotion unable to delete <error>”)}
 
-
 ```
 
 
