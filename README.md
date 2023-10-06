@@ -55,6 +55,36 @@ tests/              - test cases package
 └── test_routes.py  - test suite for service routes
 ```
 
+## Spint 1 
+
+```
+Index
+    Return all the records (based on the permission)
+
+Get(id: String) 
+    Return the record with the specific ID 
+    OR
+    Return promotion does not exist <error>
+
+Create(promo_code: String, description: String, start_date: DATE_TIME, data_expire:DATE_TIME, whole_store:BOOLEAN, type: INTEGER, type: INTEGER, value: DOUBLE)
+    Return {String(“Promotion Created”+promo_code: String+id:INTEGER)} 
+    OR
+    Return {String(“Promotion unable to create <error>”)}
+
+Update(id: String, updated information)
+    Return {String(“Promotion Updated” + id:INTEGER)} 
+    OR
+    Return {String(“Promotion unable to update <error>”)}
+
+Delete(id: String)
+    Return the deleted mode {promo_code: string, id: int}
+    OR
+    Return {String(“Promotion unable to delete <error>”)}
+
+
+```
+
+
 ## License
 
 Copyright (c) John Rofrano. All rights reserved.
