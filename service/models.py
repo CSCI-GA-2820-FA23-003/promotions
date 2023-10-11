@@ -14,15 +14,15 @@ db = SQLAlchemy()
 
 # Function to initialize the database
 def init_db(app):
-    """ Initializes the SQLAlchemy app """
-    YourResourceModel.init_db(app)
+    """Initializes the SQLAlchemy app"""
+    Promotion.init_db(app)
 
 
 class DataValidationError(Exception):
-    """ Used for an data validation errors when deserializing """
+    """Used for an data validation errors when deserializing"""
 
 
-class YourResourceModel(db.Model):
+class Promotion(db.Model):
     """
     Class that represents a YourResourceModel
     """
@@ -31,7 +31,20 @@ class YourResourceModel(db.Model):
 
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(36), unique=True, nullable=False)
     name = db.Column(db.String(63))
+    start = db.Column(db.Date)
+    expired = db.Column(db.Date)
+    whole_store = db.Column(db.Boolean)
+    promo_type = db.Column(db.Integer, nullable=False)
+    value = db.Column(db.Double)
+    created_at = db.Column(db.Date, nullable=False, default=db.func.current_timestamp())
+    updated_at = db.Column(
+        db.Date,
+        nullable=False,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp(),
+    )
 
     def __repr__(self):
         return f"<YourResourceModel {self.name} id=[{self.id}]>"
@@ -53,13 +66,13 @@ class YourResourceModel(db.Model):
         db.session.commit()
 
     def delete(self):
-        """ Removes a YourResourceModel from the data store """
+        """Removes a YourResourceModel from the data store"""
         logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
 
     def serialize(self):
-        """ Serializes a YourResourceModel into a dictionary """
+        """Serializes a YourResourceModel into a dictionary"""
         return {"id": self.id, "name": self.name}
 
     def deserialize(self, data):
@@ -84,7 +97,7 @@ class YourResourceModel(db.Model):
 
     @classmethod
     def init_db(cls, app):
-        """ Initializes the database session """
+        """Initializes the database session"""
         logger.info("Initializing database")
         cls.app = app
         # This is where we initialize SQLAlchemy from the Flask app
@@ -94,13 +107,13 @@ class YourResourceModel(db.Model):
 
     @classmethod
     def all(cls):
-        """ Returns all of the YourResourceModels in the database """
+        """Returns all of the YourResourceModels in the database"""
         logger.info("Processing all YourResourceModels")
         return cls.query.all()
 
     @classmethod
     def find(cls, by_id):
-        """ Finds a YourResourceModel by it's ID """
+        """Finds a YourResourceModel by it's ID"""
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)
 
