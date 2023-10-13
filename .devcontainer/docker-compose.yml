@@ -17,7 +17,7 @@ services:
       FLASK_APP: service:app
       FLASK_DEBUG: "True"
       PORT: 8000
-      DATABASE_URI: postgresql://postgres:postgres@postgres:5432/postgres
+      DATABASE_URI: postgresql://promotion:postgres@postgres:5432/promotion
     networks:
       - dev
     depends_on:
@@ -26,15 +26,16 @@ services:
   postgres:
     image: postgres:alpine
     # Uncomment ports to access database from your computer (optional)
-    # ports:
-    #   - 5432:5432
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: promotion
+      POSTGRES_DB: promotion
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
       - dev
-
 volumes:
   postgres:
 
