@@ -20,9 +20,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        DATABASE_URI = os.getenv(
-            "DATABASE_URI", "postgresql://promotion:postgres@localhost:5432/promotion"
-        )
+        DATABASE_URI = os.getenv("DATABASE_URI")
 
         """This runs once before the entire test suite"""
         app = Flask(__name__)
