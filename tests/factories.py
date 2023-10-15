@@ -21,5 +21,9 @@ class PromotionFactory(factory.Factory):
     start = FuzzyDate(date.today() - timedelta(days=30))
     expired = FuzzyDate(date.today(), date.today() + timedelta(days=30))
     whole_store = FuzzyChoice(choices=[True, False])
-    promo_type = factory.Sequence(lambda n: n % 5)  # assuming 5 types of promotions
-    value = FuzzyDecimal(0.1, 100.0) # assuming value ranges from 0.1 to 100
+    promo_type = FuzzyChoice(choices=[
+                                    "B2G1",
+                                    "50%OFF",
+                                    "30%OFF",
+                                    ])
+    value = FuzzyDecimal(0.1, 100.0)

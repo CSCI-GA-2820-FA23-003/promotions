@@ -9,7 +9,7 @@ import unittest
 
 from flask import Flask
 from service.models import Promotion, DataValidationError, db
-from tests.factory import PromotionFactory
+from tests.factories import PromotionFactory
 
 
 ######################################################################
