@@ -26,6 +26,6 @@ class PromotionFactory(factory.Factory):
                                     "B2G1",
                                     "50%OFF",
                                     "30%OFF",
-                                    "B150%OFF2ND"
+                                    "B1G50%OFF2ND"
                                     ])
     value = FuzzyDecimal(0.1, 100.0)
