@@ -15,7 +15,6 @@ class PromotionFactory(factory.Factory):
         """Maps factory to data model"""
         model = Promotion
 
-    id = factory.Sequence(lambda n: n)
     name = factory.Faker("catch_phrase")
     code = factory.Faker("uuid4")
     start = FuzzyDate(date.today() - timedelta(days=30))
