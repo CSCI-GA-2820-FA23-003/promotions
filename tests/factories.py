@@ -22,8 +22,10 @@ class PromotionFactory(factory.Factory):
     expired = FuzzyDate(date.today(), date.today() + timedelta(days=30))
     whole_store = FuzzyChoice(choices=[True, False])
     promo_type = FuzzyChoice(choices=[
+                                    "B1G1",
                                     "B2G1",
                                     "50%OFF",
                                     "30%OFF",
+                                    "B150%OFF2ND"
                                     ])
     value = FuzzyDecimal(0.1, 100.0)
