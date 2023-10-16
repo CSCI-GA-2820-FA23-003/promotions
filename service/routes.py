@@ -63,6 +63,7 @@ def not_found(error):
 def method_not_allowed(error):
     """Handle 405 Method Not Allowed error with a JSON response."""
     return jsonify({"error": "Method Not Allowed", "message": str(error)}), 405
+
 ######################################################################
 # LIST ALL PROMOTIONS
 ######################################################################

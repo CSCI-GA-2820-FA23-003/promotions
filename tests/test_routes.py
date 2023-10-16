@@ -40,7 +40,6 @@ class TestPromotionService(TestCase):
 
     def setUp(self):
         """This runs before each test"""
-        """This runs before each test"""
         self.client = app.test_client()
         db.session.query(Promotion).delete()
         db.session.commit()
@@ -72,12 +71,6 @@ class TestPromotionService(TestCase):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
-    def test_404_not_found(self):
-        response = self.client.get("/nonexistent_route")
-        self.assertEqual(response.status_code, 404)
-        data = response.get_json()
-        self.assertEqual(data["error"], "Not Found")
 
     def test_404_not_found(self):
         response = self.client.get("/nonexistent_route")
