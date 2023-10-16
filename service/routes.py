@@ -83,27 +83,27 @@ def list_promotions():
     return jsonify(results), status.HTTP_200_OK
 
 
-######################################################################
-# ADD A NEW PROMOTION
-######################################################################
-@app.route("/promotions", methods=["POST"])
-def create_promotions():
-    """
-    Creates a promotion
-    This endpoint will create a promotion based the data in the body that is posted
-    """
-    app.logger.info("Request to create a promotion")
-    check_content_type("application/json")
-    promotion = Promotion()
-    promotion.deserialize(request.get_json())
-    promotion.create()
-    message = promotion.serialize()
-    location_url = url_for(
-        "create_promotions", promotion_id=promotion.id, _external=True
-    )
+# ######################################################################
+# # ADD A NEW PROMOTION
+# ######################################################################
+# @app.route("/promotions", methods=["POST"])
+# def create_promotions():
+#     """
+#     Creates a promotion
+#     This endpoint will create a promotion based the data in the body that is posted
+#     """
+#     app.logger.info("Request to create a promotion")
+#     check_content_type("application/json")
+#     promotion = Promotion()
+#     promotion.deserialize(request.get_json())
+#     promotion.create()
+#     message = promotion.serialize()
+#     location_url = url_for(
+#         "create_promotions", promotion_id=promotion.id, _external=True
+#     )
 
-    app.logger.info("promotion with ID [%s] created.", promotion.id)
-    return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+#     app.logger.info("promotion with ID [%s] created.", promotion.id)
+#     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
 ######################################################################
