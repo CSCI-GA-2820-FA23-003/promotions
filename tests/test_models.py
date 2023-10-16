@@ -67,10 +67,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         """It should List all Wishlists in the database"""
         promitions = Promotion.all()
         self.assertEqual(promitions, [])
-        # Create 5 Pets
+        # Create 5 Promotions
         for _ in range(5):
             promotion = PromotionFactory()
             promotion.create()
-        # See if we get back 5 pets
-        pets = Promotion.all()
-        self.assertEqual(len(pets), 5)
+        # See if we get back 5 promotions
+        promotions = Promotion.all()
+        self.assertEqual(len(promotions), 5)

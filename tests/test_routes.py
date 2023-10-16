@@ -26,10 +26,7 @@ class TestPromotionService(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        DATABASE_URI = os.getenv("DATABASE_URI")
-
         """This runs once before the entire test suite"""
-        app = Flask(__name__)
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
@@ -77,6 +74,11 @@ class TestPromotionService(TestCase):
 
     def test_get_promotion_list(self):
         """It should Get a list of promotions"""
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 0)
+
         self._create_promotions(5)
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -28,6 +28,7 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
+
 # Place your REST API code here ...
 ######################################################################
 # LIST ALL PROMOTIONS
@@ -47,8 +48,9 @@ def list_promotions():
     app.logger.info("Returning %d promotions", len(results))
     return jsonify(results), status.HTTP_200_OK
 
+
 ######################################################################
-# ADD A NEW promotion
+# ADD A NEW PROMOTION
 ######################################################################
 @app.route("/promotions", methods=["POST"])
 def create_promotions():
@@ -62,10 +64,13 @@ def create_promotions():
     promotion.deserialize(request.get_json())
     promotion.create()
     message = promotion.serialize()
-    location_url = url_for("create_promotions", promotion_id=promotion.id, _external=True)
+    location_url = url_for(
+        "create_promotions", promotion_id=promotion.id, _external=True
+    )
 
     app.logger.info("promotion with ID [%s] created.", promotion.id)
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
