@@ -65,21 +65,12 @@ class TestPromotionResourceModel(unittest.TestCase):
     # TODO: Please define the rest cases here (delete, update etc.)
     def test_list_all_promotions(self):
         """It should List all Wishlists in the database"""
-        promotions = Promotion.all()
-        self.assertEqual(promotions, [])
-        
+        promitions = Promotion.all()
+        self.assertEqual(promitions, [])
+        # Create 5 Pets
         for _ in range(5):
-            promotion = Promotion(
-                code="TestCode",
-                name="TestPromo",
-                start=datetime.date(2020, 1, 1),
-                expired=datetime.date(2020, 1, 1),
-                whole_store=True,
-                promo_type=1,
-                value=1,
-            )
+            promotion = PromotionFactory()
             promotion.create()
-
-        # Assert that there are now 5 promotions in the database
-        promotions = Promotion.all()
-        self.assertEqual(len(promotions), 5)
+        # See if we get back 5 pets
+        pets = Promotion.all()
+        self.assertEqual(len(pets), 5)
