@@ -5,6 +5,8 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from service.exceptions import ConfirmationRequiredError
+
 
 logger = logging.getLogger("flask.app")
 
@@ -65,8 +67,11 @@ class Promotion(db.Model):
         logger.info("Saving %s", self.name)
         db.session.commit()
 
-    def delete(self):
+    def delete(self, confirm=False):
         """Removes a PromotionModel from the data store"""
+        if not confirm:
+            raise ConfirmationRequiredError("Please confirm deletion")
+
         logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
@@ -74,7 +79,7 @@ class Promotion(db.Model):
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         return {
-            "id": self.id, 
+            "id": self.id,
             "name": self.name,
             "code": self.code,
             "start": self.start,
@@ -101,7 +106,7 @@ class Promotion(db.Model):
             self.whole_store = data["whole_store"]
             self.promo_type = data["promo_type"]
             self.value = data["value"]
-        
+
             if data["created_at"]:
                 self.created_at = data["created_at"]
             else:
