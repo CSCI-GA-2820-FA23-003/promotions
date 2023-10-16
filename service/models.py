@@ -58,12 +58,6 @@ class Promotion(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    # def update(self):
-    #     """
-    #     Updates a PromotionModel to the database
-    #     """
-    #     logger.info("Saving %s", self.name)
-    #     db.session.commit()
     def update(self):
         if not self.id or not db.session.get(
             Promotion, self.id
@@ -149,6 +143,7 @@ class Promotion(db.Model):
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)
 
+
     @classmethod
     def find_by_name(cls, name):
         """Returns all PromotionModels with the given name
@@ -157,4 +152,4 @@ class Promotion(db.Model):
             name (string): the name of the PromotionModels you want to match
         """
         logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        return cls.query.filter(cls.name == name).all()

@@ -160,3 +160,84 @@ class TestPromotionResourceModel(unittest.TestCase):
             DataValidationError
         ):  # Assuming update throws an error if the record doesn't exist
             promotion.update()
+
+    def test_update_with_deserialize(self):
+        promotion = PromotionFactory()
+        promotion.create()
+
+        update_data = {
+            "created_at": None,
+            "updated_at": None,
+            "name": 12345,
+            "code": "NEWCODE",
+            "start": datetime.date(2022, 1, 1),
+            "expired": datetime.date(2022, 2, 1),
+            "whole_store": False,
+            "promo_type": 2,
+            "value": 50.0,
+        }
+
+        promotion.deserialize(update_data)
+
+        promotion.update()
+
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertIsNotNone(fetched_promotion.created_at)
+
+    def test_update_reflected_in_all_promotions(self):
+        """Test that an updated promotion reflects the changes when fetched using the all method"""
+
+        promotion1 = PromotionFactory()
+        promotion2 = PromotionFactory()
+        db.session.add(promotion1)
+        db.session.add(promotion2)
+        db.session.commit()
+
+        original_name = promotion2.name
+
+        new_name = "UpdatedName"
+        promotion2.name = new_name
+        promotion2.update()
+
+        promotions = Promotion.all()
+
+        updated_promotion = next(
+            (promo for promo in promotions if promo.id == promotion2.id), None
+        )
+        self.assertIsNotNone(
+            updated_promotion,
+            "Updated promotion not found in the list fetched by all method.",
+        )
+        self.assertEqual(
+            updated_promotion.name,
+            new_name,
+            "Updated promotion name doesn't match the expected name.",
+        )
+
+        unchanged_promotion = next(
+            (promo for promo in promotions if promo.id == promotion1.id), None
+        )
+        self.assertIsNotNone(
+            unchanged_promotion,
+            "Original promotion not found in the list fetched by all method.",
+        )
+        self.assertNotEqual(
+            unchanged_promotion.name,
+            original_name,
+            "Original promotion name seems to have changed, which is unexpected.",
+        )
+
+    def test_update_name_and_retrieve(self):
+        """After updating the name of a promotion, it should be retrievable by the new name"""
+
+        promotion = PromotionFactory(name="OriginalName")
+        db.session.add(promotion)
+        db.session.commit()
+
+        promotion.name = "UpdatedName"
+        promotion.update()
+
+        # Validation
+        retrieved_promotions = Promotion.find_by_name("UpdatedName")
+        self.assertEqual(len(retrieved_promotions), 1)
+        self.assertEqual(retrieved_promotions[0].id, promotion.id)

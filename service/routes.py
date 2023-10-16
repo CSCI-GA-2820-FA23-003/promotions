@@ -6,11 +6,12 @@ Describe what your service does here
 
 from flask import jsonify, request, url_for, abort
 from service.common import status  # HTTP Status Codes
-from service.models import Promotion
+from service.models import Promotion, DataValidationError
 from flask import make_response
 
 # Import Flask application
 from . import app
+from datetime import datetime
 
 
 ######################################################################
@@ -31,22 +32,59 @@ def index():
 
 
 # Place your REST API code here ...
+
+
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
-    """Updates a promotion's attributes"""
-
+    # Main logic of the update_promotion function
     promotion = Promotion.find(promotion_id)
     if promotion is None:
         abort(
             status.HTTP_404_NOT_FOUND,
-            "Promotion with id {} was not found.".format(promotion_id),
+            f"Promotion with id {promotion_id} was not found.",
+        )
+
+    if datetime.now().date() > promotion.expired:
+        app.logger.warning("Received request to update an expired promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Updating expired promotions is not supported",
         )
 
     app.logger.info("Updating promotion with id %s", promotion_id)
-
     data = request.get_json()
-    promotion.deserialize(data)
+
+    try:
+        promotion.deserialize(data)
+    except DataValidationError as e:
+        app.logger.warning("Bad request data: %s", str(e))
+        abort(status.HTTP_400_BAD_REQUEST, str(e))
+
+    if not request.is_json:
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            "Unsupported media type: Request is not JSON",
+        )
+
+    # # Assuming you already have this from the provided code:
+    # data = request.get_json()
+    # new_name = data.get("name")
+
+    # # Check if there's another promotion with the same code
+    # conflicts = Promotion.find_by_name(new_name)
+
+    # if conflicts:
+    #     message = "Another promotion with the same code already exists."
+    #     app.logger.warning(message)
+    #     return (
+    #         jsonify(
+    #             status=status.HTTP_409_CONFLICT,
+    #             error="Conflict",
+    #             message=message,
+    #         ),
+    #         status.HTTP_409_CONFLICT,
+    #     )
+
     promotion.id = promotion_id
     promotion.update()
-
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
