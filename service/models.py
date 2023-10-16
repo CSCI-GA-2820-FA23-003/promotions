@@ -58,11 +58,17 @@ class Promotion(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    # def update(self):
+    #     """
+    #     Updates a PromotionModel to the database
+    #     """
+    #     logger.info("Saving %s", self.name)
+    #     db.session.commit()
     def update(self):
-        """
-        Updates a PromotionModel to the database
-        """
-        logger.info("Saving %s", self.name)
+        if not self.id or not db.session.get(
+            Promotion, self.id
+        ):  # Using the updated session.get() method
+            raise DataValidationError("Promotion with ID {} not found.".format(self.id))
         db.session.commit()
 
     def delete(self):
@@ -74,7 +80,7 @@ class Promotion(db.Model):
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         return {
-            "id": self.id, 
+            "id": self.id,
             "name": self.name,
             "code": self.code,
             "start": self.start,
@@ -101,7 +107,7 @@ class Promotion(db.Model):
             self.whole_store = data["whole_store"]
             self.promo_type = data["promo_type"]
             self.value = data["value"]
-        
+
             if data["created_at"]:
                 self.created_at = data["created_at"]
             else:

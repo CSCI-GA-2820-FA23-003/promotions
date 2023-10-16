@@ -62,4 +62,101 @@ class TestPromotionResourceModel(unittest.TestCase):
             value=1,
         )
 
-    # TODO: Please define the rest cases here (delete, update etc.)
+    def test_update_promotion(self):
+        """Update a Promotion's attributes"""
+        # Create a promotion using the factory
+        promotion = PromotionFactory()
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+
+        # Update the promotion
+        updated_name = "UpdatedTestPromotion"
+        promotion.name = updated_name
+        promotion.update()
+
+        # Fetch the updated promotion and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertIsNotNone(fetched_promotion)
+        self.assertEqual(fetched_promotion.name, updated_name)
+
+    def test_update_promotion_multiple_attributes(self):
+        """Update multiple attributes of a Promotion using the factory"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Update multiple attributes
+        updated_data = {"name": "UpdatedName", "whole_store": False, "value": 50}
+        for key, value in updated_data.items():
+            setattr(promotion, key, value)
+        promotion.update()
+
+        # Fetch and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        for key, value in updated_data.items():
+            self.assertEqual(getattr(fetched_promotion, key), value)
+
+    def test_update_promotion_subset_fields_factory(self):
+        """Update a subset of a Promotion's attributes using factory"""
+        promotion = PromotionFactory(whole_store=True, value=10)
+        promotion.create()
+
+        # Update subset of attributes
+        updated_data = {"name": "UpdatedSubsetField", "value": 20}
+        for key, value in updated_data.items():
+            setattr(promotion, key, value)
+        promotion.update()
+
+        # Fetch and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        for key, value in updated_data.items():
+            self.assertEqual(getattr(fetched_promotion, key), value)
+
+        # Ensure other fields are not affected
+        self.assertTrue(fetched_promotion.whole_store)
+
+    def test_concurrent_updates(self):
+        promotion1 = PromotionFactory()
+        promotion1.create()
+
+        promotion2 = Promotion.find(promotion1.id)
+
+        promotion1.name = "NameFromFirstProcess"
+        promotion2.name = "NameFromSecondProcess"
+
+        promotion1.update()
+        promotion2.update()
+
+        fetched_promotion = Promotion.find(promotion1.id)
+        self.assertNotEqual(
+            fetched_promotion.name, "NameFromFirstProcess"
+        )  # Due to race condition, the second process overwrites the first one
+
+    def test_update_with_special_characters(self):
+        promotion = PromotionFactory(name="InitialName")
+        promotion.create()
+
+        special_name = "NameWithSpecialChars@#^&*()"
+        promotion.name = special_name
+        promotion.update()
+
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, special_name)
+
+    def test_update_after_delete(self):
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Check if promotion exists after creation
+        fetched_promotion = Promotion.find(promotion.id)
+        print(f"Promotion after creation: {fetched_promotion}")
+
+        promotion.delete()
+
+        # Check if promotion exists after deletion
+        fetched_promotion = Promotion.find(promotion.id)
+        print(f"Promotion after deletion: {fetched_promotion}")
+
+        with self.assertRaises(
+            DataValidationError
+        ):  # Assuming update throws an error if the record doesn't exist
+            promotion.update()
