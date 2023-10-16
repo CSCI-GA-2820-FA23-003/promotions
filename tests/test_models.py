@@ -10,6 +10,8 @@ import unittest
 from flask import Flask
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
+from tests.factories import PromotionFactory
+
 
 
 ######################################################################
