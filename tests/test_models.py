@@ -9,7 +9,9 @@ import unittest
 
 from flask import Flask
 from service.models import Promotion, DataValidationError, db
+from service.exceptions import ConfirmationRequiredError
 from tests.factories import PromotionFactory
+
 
 
 ######################################################################
@@ -74,3 +76,32 @@ class TestPromotionResourceModel(unittest.TestCase):
         # See if we get back 5 promotions
         promotions = Promotion.all()
         self.assertEqual(len(promotions), 5)
+
+    def test_delete_with_confirmation(self):
+        """Ensure a promotion cannot be deleted without confirmation"""
+        promotion = Promotion(
+            code="TestCode",
+            name="TestName",
+            start=datetime.date(2022, 1, 1),
+            expired=datetime.date(2022, 12, 31),
+            whole_store=True,
+            promo_type=1,
+            value=10,
+        )
+        promotion.create()
+
+        # Ensure promotion is added
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Attempt to delete without confirmation and expect an error
+        with self.assertRaises(ConfirmationRequiredError):
+            promotion.delete(confirm=False)
+
+        # Ensure promotion is still present after failed delete
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Delete with confirmation
+        promotion.delete(confirm=True)
+
+        # Ensure promotion is permanently removed from the system
+        self.assertEqual(len(Promotion.all()), 0)
