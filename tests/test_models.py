@@ -74,6 +74,19 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertAlmostEqual(
             float(promotion.value), float(fake_promotion.value), places=2
         )
+    
+    def test_create_promotion_with_missing_data(self):
+        """Test creating a promotion with missing data."""
+        fake_promotion = PromotionFactory()
+        promotion = Promotion(
+            name=fake_promotion.name,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
     def test_concurrent_creates(self):
         # Test concurrent creation of promotions
@@ -146,6 +159,9 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertTrue(fetched_promotion.whole_store)
         self.assertEqual(fetched_promotion.promo_type, 1)
         self.assertEqual(fetched_promotion.value, 10.0)
+        self.assertIsNotNone(fetched_promotion.id)
+        self.assertIsNotNone(fetched_promotion.created_at)
+        self.assertIsNotNone(fetched_promotion.updated_at)
 
     def test_delete_with_confirmation(self):
         """Ensure a promotion cannot be deleted without confirmation"""

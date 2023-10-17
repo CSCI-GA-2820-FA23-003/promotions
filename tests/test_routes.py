@@ -139,3 +139,8 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 404)
         data = response.get_json()
         self.assertEqual(data["error"], "Not Found")
+
+    def test_not_allow_method(self):
+        """It should return a 405 error when calling a nonexistent method"""
+        response = self.client.post("/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

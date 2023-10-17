@@ -34,12 +34,12 @@ class Promotion(db.Model):
     # Table Schema
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(36), unique=True, nullable=False)
-    name = db.Column(db.String(63))
-    start = db.Column(db.Date)
+    name = db.Column(db.String(63), nullable=False)
+    start = db.Column(db.Date, nullable=False)
     expired = db.Column(db.Date)
-    whole_store = db.Column(db.Boolean)
+    whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
-    value = db.Column(db.Double)
+    value = db.Column(db.Double, nullable=True)
     created_at = db.Column(db.Date, nullable=False, default=db.func.current_timestamp())
     updated_at = db.Column(
         db.Date,
@@ -57,6 +57,19 @@ class Promotion(db.Model):
         """
         app.logger.info("Creating %s", self.name)
         self.id = None  # pylint: disable=invalid-name
+        # validation
+        if self.code is None:
+            raise DataValidationError("code attribute is not set")
+        if self.name is None:
+            raise DataValidationError("name attribute is not set")
+        if self.start is None:
+            raise DataValidationError("start attribute is not set")
+        if self.whole_store is None:
+            self.whole_store = False
+        if self.promo_type is None:
+            raise DataValidationError("promo_type attribute is not set")
+        if self.value is None:
+            raise DataValidationError("value attribute is not set")    
         db.session.add(self)
         db.session.commit()
 
