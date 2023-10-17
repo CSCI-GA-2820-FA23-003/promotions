@@ -38,10 +38,8 @@ class TestYourResourceServer(TestCase):
     @classmethod
     def tearDownClass(cls):
         """This runs once after the entire test suite"""
-        """This runs once after the entire test suite"""
 
     def setUp(self):
-        """This runs before each test"""
         """This runs before each test"""
         self.client = app.test_client()
 
@@ -69,7 +67,6 @@ class TestYourResourceServer(TestCase):
     ######################################################################
 
     def test_index(self):
-        """It should call the home page"""
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -187,3 +184,12 @@ class TestYourResourceServer(TestCase):
 
     #     # Check the response status code
     #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+        resp = self.client.get("/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_404_not_found(self):
+        response = self.client.get("/nonexistent_route")
+        self.assertEqual(response.status_code, 404)
+        data = response.get_json()
+        self.assertEqual(data["error"], "Not Found")

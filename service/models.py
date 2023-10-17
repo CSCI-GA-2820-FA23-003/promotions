@@ -6,6 +6,8 @@ All of the models are stored in this module
 import logging
 from datetime import date
 from flask_sqlalchemy import SQLAlchemy
+from service.exceptions import ConfirmationRequiredError
+
 
 logger = logging.getLogger("flask.app")
 
@@ -80,8 +82,11 @@ class Promotion(db.Model):
         logger.info("Saving %s", self.name)
         db.session.commit()
 
-    def delete(self):
+    def delete(self, confirm=False):
         """Removes a PromotionModel from the data store"""
+        if not confirm:
+            raise ConfirmationRequiredError("Please confirm deletion")
+
         logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()

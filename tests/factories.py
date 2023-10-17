@@ -13,7 +13,6 @@ class PromotionFactory(factory.Factory):
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Maps factory to data model"""
-
         model = Promotion
 
     name = factory.Faker("catch_phrase")
