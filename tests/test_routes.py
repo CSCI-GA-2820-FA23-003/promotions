@@ -7,18 +7,14 @@ Test cases can be run with the following:
 """
 import os
 import json
-import json
 import logging
 
 from flask import Flask, jsonify
 from dateutil.parser import parse
 from unittest import TestCase
 from service import app
-from decimal import Decimal
-from decimal import Decimal
 from service.models import db
 from service.common import status
-from tests.factories import PromotionFactory
 from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory
 from service.models import Promotion
@@ -41,7 +37,6 @@ class TestYourResourceServer(TestCase):
         """This runs once after the entire test suite"""
 
     def setUp(self):
-        """This runs before each test"""
         """This runs before each test"""
         self.client = app.test_client()
 
@@ -69,7 +64,6 @@ class TestYourResourceServer(TestCase):
     ######################################################################
 
     def test_index(self):
-        """It should call the home page"""
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -121,6 +115,9 @@ class TestYourResourceServer(TestCase):
             "/promotions", data="hello", content_type="text/html"
         )
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+        # resp = self.client.get("/")
+        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_404_not_found(self):
         response = self.client.get("/nonexistent_route")

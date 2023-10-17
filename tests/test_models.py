@@ -75,4 +75,55 @@ class TestPromotionResourceModel(unittest.TestCase):
             float(promotion.value), float(fake_promotion.value), places=2
         )
 
+    def test_create_promotion_with_existing_code(self):
+        # Test creating a promotion with an existing code should raise a DataValidationError.
+        existing_promotion = PromotionFactory()
+        promotion_data = {
+            "name": "NewPromotion",
+            "code": existing_promotion.code,
+            "start": datetime.date(2021, 1, 1),
+            "expired": datetime.date(2021, 12, 31),
+            "whole_store": False,
+            "promo_type": 8,
+            "value": 10.0,
+        }
+        promotion = Promotion()
+        try:
+            promotion.deserialize(promotion_data)
+            promotion.create()
+        except DataValidationError as e:
+            print(f"DataValidationError: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
+
     # TODO: Please define the rest cases here (delete, update etc.)
+
+    def test_delete_with_confirmation(self):
+        """Ensure a promotion cannot be deleted without confirmation"""
+        promotion = Promotion(
+            code="TestCode",
+            name="TestName",
+            start=datetime.date(2022, 1, 1),
+            expired=datetime.date(2022, 12, 31),
+            whole_store=True,
+            promo_type=1,
+            value=10,
+        )
+        promotion.create()
+
+        # Ensure promotion is added
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Attempt to delete without confirmation and expect an error
+        with self.assertRaises(ConfirmationRequiredError):
+            promotion.delete(confirm=False)
+
+        # Ensure promotion is still present after failed delete
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Delete with confirmation
+        promotion.delete(confirm=True)
+
+        # Ensure promotion is permanently removed from the system
+        self.assertEqual(len(Promotion.all()), 0)

@@ -86,6 +86,14 @@ def check_content_type(content_type):
     )
 
 
+# Place your REST API code here ...
+
+
+# -----------------------------------------------------------
+# Create promotions
+# -----------------------------------------------------------
+
+
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
     """Delete a promotion and requires confirmation"""
