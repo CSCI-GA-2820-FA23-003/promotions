@@ -4,6 +4,7 @@ Models for PromotionModel
 All of the models are stored in this module
 """
 import logging
+from datetime import date
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger("flask.app")
@@ -20,6 +21,20 @@ def init_db(app):
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
+
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        super().__init__()
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv["message"] = self.message
+        return rv
 
 
 class Promotion(db.Model):
@@ -74,14 +89,14 @@ class Promotion(db.Model):
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         return {
-            "id": self.id, 
+            "id": self.id,
             "name": self.name,
             "code": self.code,
-            "start": self.start,
-            "expired": self.expired,
+            "start": self.start.isoformat(),
+            "expired": self.expired.isoformat(),
             "whole_store": self.whole_store,
             "promo_type": self.promo_type,
-            "value": self.value,
+            "value": float(self.value),
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -101,12 +116,19 @@ class Promotion(db.Model):
             self.whole_store = data["whole_store"]
             self.promo_type = data["promo_type"]
             self.value = data["value"]
-        
-            if data["created_at"]:
+
+            # if isinstance(data["value"], float):
+            #     self.value = data["value"]
+            # else:
+            #     raise DataValidationError(
+            #         "Invalid type for date [value]: " + str(type(data["value"]))
+            #     )
+
+            if "created_at" in data:
                 self.created_at = data["created_at"]
             else:
                 self.created_at = db.func.current_timestamp()
-            if data["updated_at"]:
+            if "updated_at" in data:
                 self.updated_at = data["updated_at"]
             else:
                 self.updated_at = db.func.current_timestamp()

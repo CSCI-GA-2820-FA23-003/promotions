@@ -8,6 +8,7 @@ import logging
 import unittest
 
 from flask import Flask
+from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
 
 
@@ -48,17 +49,26 @@ class TestPromotionResourceModel(unittest.TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create(self):
-        """It should always be true"""
-        # create a promotion and assert that it exists
+    def test_create_promotion_with_valid_data(self):
+        """Test creating a promotion with valid data."""
+        fake_promotion = PromotionFactory()
         promotion = Promotion(
-            code="TestCode",
-            name="TestCode",
-            start=datetime.date(2020, 1, 1),
-            expired=datetime.date(2020, 1, 1),
-            whole_store=True,
-            promo_type=1,
-            value=1,
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
         )
-
-    # TODO: Please define the rest cases here (delete, update etc.)
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+        self.assertEqual(promotion.name, fake_promotion.name)
+        self.assertEqual(promotion.code, fake_promotion.code)
+        self.assertEqual(promotion.start, fake_promotion.start)
+        self.assertEqual(promotion.expired, fake_promotion.expired)
+        self.assertEqual(promotion.whole_store, fake_promotion.whole_store)
+        self.assertEqual(promotion.promo_type, fake_promotion.promo_type)
+        self.assertAlmostEqual(
+            float(promotion.value), float(fake_promotion.value), places=2
+        )
