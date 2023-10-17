@@ -22,6 +22,9 @@ def init_db(app):
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
+    
+class ResourceConflictError(Exception):
+    """Used for the resource already exist"""
 
 
 class Promotion(db.Model):
@@ -60,6 +63,11 @@ class Promotion(db.Model):
         # validation
         if self.code is None:
             raise DataValidationError("code attribute is not set")
+        
+        # find if code is already exist
+        if Promotion.find_by_code(self.code).count() > 0:
+            raise ResourceConflictError("code already exist")
+        
         if self.name is None:
             raise DataValidationError("name attribute is not set")
         if self.start is None:
@@ -69,7 +77,7 @@ class Promotion(db.Model):
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
         if self.value is None:
-            raise DataValidationError("value attribute is not set")    
+            raise DataValidationError("value attribute is not set")   
         db.session.add(self)
         db.session.commit()
 
@@ -172,3 +180,13 @@ class Promotion(db.Model):
         """
         app.logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+    
+    @classmethod
+    def find_by_code(cls, code):
+        """Returns all PromotionModels with the given code
+
+        Args:
+            code (string): the code of the PromotionModels you want to match
+        """
+        app.logger.info("Processing name query for %s ...", code)
+        return cls.query.filter(cls.code == code)

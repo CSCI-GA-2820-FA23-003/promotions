@@ -102,6 +102,20 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.post("/promotions", json={})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_duplicated_promotion(self):
+        promo = PromotionFactory()
+        data_orig = promo.serialize()
+
+        resp = self.client.post(
+            "/promotions", data=json.dumps(data_orig), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        resp = self.client.post(
+            "/promotions", data=json.dumps(data_orig), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
+    
+    
     def test_create_promotion_no_content_type(self):
         """It should not Create a Promotion with no content type"""
         response = self.client.post("/promotions")

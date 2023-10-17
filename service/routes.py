@@ -54,12 +54,9 @@ def create_promotion():
     data = request.get_json()
 
     # Create a new Promotion with the data
-    try:
-        promotion = Promotion()
-        promotion.deserialize(data)
-        promotion.create()
-    except DataValidationError as error:
-        return (jsonify({"error": str(error)}), 400)
+    promotion = Promotion()
+    promotion.deserialize(data)
+    promotion.create()
 
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
