@@ -4,7 +4,6 @@ Models for PromotionModel
 All of the models are stored in this module
 """
 import logging
-from datetime import date
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger("flask.app")
@@ -129,11 +128,11 @@ class Promotion(db.Model):
 
         except KeyError as error:
             raise DataValidationError(
-                "Invalid Promotion: missing " + error.args[0]
+                "Invalid PromotionModel: missing " + error.args[0]
             ) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Promotion: body of request contained bad or no data - "
+                "Invalid PromotionModel: body of request contained bad or no data - "
                 "Error message: " + error.args[0]
             ) from error
         except ValueError as error:
