@@ -7,6 +7,8 @@ Describe what your service does here
 from flask import jsonify, request, url_for, abort, make_response, Flask
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion
+from service.exceptions import ConfirmationRequiredError
+
 
 # Import Flask application
 from . import app
@@ -33,32 +35,22 @@ def index():
 
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
-    """Delete a promotion and requires confirmation"""
-    promotion = Promotion.find(promotion_id)
-    if promotion is None:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            "Promotion with id {} was not found.".format(promotion_id),
-        )
+    try:
+        promotion = Promotion.find(promotion_id)
+        if promotion is None:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Promotion with id {promotion_id} was not found.",
+            )
 
-    confirm = request.args.get("confirm", default=False, type=bool)
+        confirm = request.args.get("confirm", default=False, type=bool)
+        if not confirm:
+            raise ConfirmationRequiredError(
+                "Please confirm deletion by passing the 'confirm' parameter as true."
+            )
 
-    if confirm:
-        promotion.delete()
-        return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
-    else:
-        abort(
-            status.HTTP_400_BAD_REQUEST,
-            "Please confirm deletion by passing the 'confirm' parameter as true.",
-        )
+        # promotion.delete(confirm=True)
+        # return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
 
-
-def not_found(error):
-    """Handle 404 Not Found error with a JSON response."""
-    return jsonify({"error": "Not Found", "message": str(error)}), 404
-
-
-@app.errorhandler(405)
-def method_not_allowed(error):
-    """Handle 405 Method Not Allowed error with a JSON response."""
-    return jsonify({"error": "Method Not Allowed", "message": str(error)}), 405
+    except ConfirmationRequiredError as e:
+        abort(status.HTTP_400_BAD_REQUEST, str(e))

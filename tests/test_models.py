@@ -11,7 +11,7 @@ from flask import Flask
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
 from tests.factories import PromotionFactory
-
+from service.models import Promotion, DataValidationError
 
 
 ######################################################################
@@ -68,15 +68,10 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def test_delete_with_confirmation(self):
         """Ensure a promotion cannot be deleted without confirmation"""
-        promotion = Promotion(
-            code="TestCode",
-            name="TestName",
-            start=datetime.date(2022, 1, 1),
-            expired=datetime.date(2022, 12, 31),
-            whole_store=True,
-            promo_type=1,
-            value=10,
-        )
+
+        # Instantiate promotion using the factory
+        promotion = PromotionFactory()
+
         promotion.create()
 
         # Ensure promotion is added
@@ -94,3 +89,65 @@ class TestPromotionResourceModel(unittest.TestCase):
 
         # Ensure promotion is permanently removed from the system
         self.assertEqual(len(Promotion.all()), 0)
+
+    def test_serialize_a_promotion(self):
+        """It should serialize a Promotion"""
+        promotion = PromotionFactory()
+        data = promotion.serialize()
+
+        self.assertNotEqual(data, None)
+
+        self.assertIn("id", data)
+        self.assertEqual(data["id"], promotion.id)
+
+        self.assertIn("code", data)
+        self.assertEqual(data["code"], promotion.code)
+
+        self.assertIn("name", data)
+        self.assertEqual(data["name"], promotion.name)
+        self.assertIn("start", data)
+        self.assertEqual(data["start"], promotion.start)
+
+        self.assertIn("expired", data)
+        self.assertEqual(data["expired"], promotion.expired)
+
+        self.assertIn("whole_store", data)
+        self.assertEqual(data["whole_store"], promotion.whole_store)
+
+        self.assertIn("promo_type", data)
+        self.assertEqual(data["promo_type"], promotion.promo_type)
+
+        self.assertIn("value", data)
+        self.assertEqual(data["value"], promotion.value)
+
+        self.assertIn("created_at", data)
+        self.assertEqual(data["created_at"], promotion.created_at)
+
+        self.assertIn("updated_at", data)
+        self.assertEqual(data["updated_at"], promotion.updated_at)
+
+    def test_deserialize_a_promotion(self):
+        """It should de-serialize a Promotion"""
+        data = PromotionFactory().serialize()
+        promotion = Promotion()
+        promotion.deserialize(data)
+
+        self.assertNotEqual(promotion, None)
+        self.assertEqual(promotion.id, None)
+        self.assertEqual(data["code"], promotion.code)
+        self.assertEqual(data["name"], promotion.name)
+        self.assertEqual(data["start"], promotion.start)
+        self.assertEqual(data["expired"], promotion.expired)
+        self.assertEqual(data["whole_store"], promotion.whole_store)
+        self.assertEqual(data["promo_type"], promotion.promo_type)
+        self.assertEqual(data["value"], promotion.value)
+
+    def test_find_promotion_by_id(self):
+        """It should Find a Promotion by its ID"""
+        promotions = PromotionFactory.create_batch(10)
+        for promotion in promotions:
+            promotion.create()
+        promotion_id = promotions[0].id
+        found = Promotion.find(promotion_id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.id, promotion_id)
