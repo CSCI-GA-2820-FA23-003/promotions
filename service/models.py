@@ -6,7 +6,7 @@ All of the models are stored in this module
 import logging
 from flask_sqlalchemy import SQLAlchemy
 from service.exceptions import ConfirmationRequiredError
-
+from . import app
 
 logger = logging.getLogger("flask.app")
 
@@ -22,20 +22,6 @@ def init_db(app):
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
-
-    status_code = 400
-
-    def __init__(self, message, status_code=None, payload=None):
-        super().__init__()
-        self.message = message
-        if status_code is not None:
-            self.status_code = status_code
-        self.payload = payload
-
-    def to_dict(self):
-        rv = dict(self.payload or ())
-        rv["message"] = self.message
-        return rv
 
 
 class Promotion(db.Model):
@@ -69,7 +55,7 @@ class Promotion(db.Model):
         """
         Creates a PromotionModel to the database
         """
-        logger.info("Creating %s", self.name)
+        app.logger.info("Creating %s", self.name)
         self.id = None  # pylint: disable=invalid-name
         db.session.add(self)
         db.session.commit()
@@ -78,7 +64,7 @@ class Promotion(db.Model):
         """
         Updates a PromotionModel to the database
         """
-        logger.info("Saving %s", self.name)
+        app.logger.info("Saving %s", self.name)
         db.session.commit()
 
     def delete(self, confirm=False):
@@ -86,7 +72,7 @@ class Promotion(db.Model):
         if not confirm:
             raise ConfirmationRequiredError("Please confirm deletion")
 
-        logger.info("Deleting %s", self.name)
+        app.logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
 
@@ -145,7 +131,7 @@ class Promotion(db.Model):
     @classmethod
     def init_db(cls, app):
         """Initializes the database session"""
-        logger.info("Initializing database")
+        app.logger.info("Initializing database")
         cls.app = app
         # This is where we initialize SQLAlchemy from the Flask app
         db.init_app(app)
@@ -155,13 +141,13 @@ class Promotion(db.Model):
     @classmethod
     def all(cls):
         """Returns all of the PromotionModels in the database"""
-        logger.info("Processing all PromotionModels")
+        app.logger.info("Processing all PromotionModels")
         return cls.query.all()
 
     @classmethod
     def find(cls, by_id):
         """Finds a PromotionModel by it's ID"""
-        logger.info("Processing lookup for id %s ...", by_id)
+        app.logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)
 
     @classmethod
@@ -171,5 +157,5 @@ class Promotion(db.Model):
         Args:
             name (string): the name of the PromotionModels you want to match
         """
-        logger.info("Processing name query for %s ...", name)
+        app.logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)

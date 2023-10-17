@@ -1,5 +1,5 @@
 """
-TestYourResourceModel API Service Test Suite
+TestPromotionResourceModel API Service Test Suite
 
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
@@ -8,6 +8,7 @@ Test cases can be run with the following:
 import os
 import json
 import logging
+import datetime
 
 from flask import Flask, jsonify
 from dateutil.parser import parse
@@ -19,12 +20,14 @@ from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory
 from service.models import Promotion
 
+BASE_URL = "/promotions"
+
 
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceServer(TestCase):
+class TestPromotionResourceModel(TestCase):
     """REST API Server Tests"""
 
     @classmethod
@@ -33,7 +36,6 @@ class TestYourResourceServer(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """This runs once after the entire test suite"""
         """This runs once after the entire test suite"""
 
     def setUp(self):
@@ -80,7 +82,7 @@ class TestYourResourceServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         response_json = resp.get_json()
 
-        # remove all auto created entries
+        # remove all auto created entries in the DB
         if "id" in response_json:
             del response_json["id"]
             del data_orig["id"]
@@ -94,10 +96,6 @@ class TestYourResourceServer(TestCase):
             del data_orig["updated_at"]
 
         self.assertEqual(response_json, data_orig)
-
-    ######################################################################
-    #  T E S T   S A D   P A T H S
-    ######################################################################
 
     def test_create_promotion_no_data(self):
         """It should not Create a Promotion with missing data"""
@@ -116,8 +114,25 @@ class TestYourResourceServer(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-        # resp = self.client.get("/")
-        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+    def test_create_invalid_promotion_data(self):
+        # Create a promotion with incomplete or invalid data
+        invalid_promotion_data = {
+            "name": "Invalid Promotion",
+            "code": "INVALIDPROMO",
+            "start": "2023-10-01",  # Invalid date format
+            "expired": "2023-10-10",
+            "whole_store": True,
+            "promo_type": "Discount",  # Should be an integer
+            "value": "Fifteen",  # Should be a numeric value
+        }
+
+        response = self.client.post(
+            "/promotions",
+            data=invalid_promotion_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
 
     def test_404_not_found(self):
         response = self.client.get("/nonexistent_route")

@@ -75,29 +75,77 @@ class TestPromotionResourceModel(unittest.TestCase):
             float(promotion.value), float(fake_promotion.value), places=2
         )
 
-    def test_create_promotion_with_existing_code(self):
-        # Test creating a promotion with an existing code should raise a DataValidationError.
-        existing_promotion = PromotionFactory()
-        promotion_data = {
+    def test_concurrent_creates(self):
+        # Test concurrent creation of promotions
+        promotion1 = PromotionFactory()
+        promotion2 = PromotionFactory()
+
+        # Create promotions concurrently
+        promotion1.create()
+        promotion2.create()
+
+        # Check if both promotions were created successfully
+        self.assertIsNotNone(promotion1.id)
+        self.assertIsNotNone(promotion2.id)
+
+    def test_create_with_special_characters(self):
+        # Test creating a promotion with special characters in the name
+        special_name = "NameWithSpecialChars@#^&*()"
+        promotion = PromotionFactory(name=special_name)
+
+        promotion.create()
+
+        # Check if the promotion was created with the special name
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, special_name)
+
+    # def test_create_after_delete(self):
+    #     # Test creating a promotion after deletion
+    #     promotion = PromotionFactory()
+    #     promotion.create()
+
+    #     # Check if the promotion exists after creation
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNotNone(fetched_promotion)
+
+    #     promotion.delete()
+
+    #     # Check if the promotion does not exist after deletion
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNone(fetched_promotion)
+
+    #     # Attempt to create the promotion again
+    #     promotion.create()
+
+    #     # Check if the promotion was created again
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNotNone(fetched_promotion)
+
+    def test_create_with_deserialize(self):
+        # Test creating a promotion using the deserialize method
+        create_data = {
             "name": "NewPromotion",
-            "code": existing_promotion.code,
-            "start": datetime.date(2021, 1, 1),
-            "expired": datetime.date(2021, 12, 31),
-            "whole_store": False,
-            "promo_type": 8,
+            "code": "CODE123",
+            "start": "2023-01-01",
+            "expired": "2023-02-01",
+            "whole_store": True,
+            "promo_type": 1,
             "value": 10.0,
         }
-        promotion = Promotion()
-        try:
-            promotion.deserialize(promotion_data)
-            promotion.create()
-        except DataValidationError as e:
-            print(f"DataValidationError: {e}")
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            raise
 
-    # TODO: Please define the rest cases here (delete, update etc.)
+        promotion = PromotionFactory()
+        promotion.deserialize(create_data)
+        promotion.create()
+
+        # Check if the promotion was created with the provided data
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, create_data["name"])
+        self.assertEqual(fetched_promotion.code, create_data["code"])
+        self.assertEqual(fetched_promotion.start, datetime.date(2023, 1, 1))
+        self.assertEqual(fetched_promotion.expired, datetime.date(2023, 2, 1))
+        self.assertTrue(fetched_promotion.whole_store)
+        self.assertEqual(fetched_promotion.promo_type, 1)
+        self.assertEqual(fetched_promotion.value, 10.0)
 
     def test_delete_with_confirmation(self):
         """Ensure a promotion cannot be deleted without confirmation"""

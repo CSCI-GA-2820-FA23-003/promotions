@@ -37,13 +37,18 @@ def index():
 @app.route("/promotions", methods=["POST"])
 def create_promotion():
     """
-    Creates a Promotion
-    This endpoint will create a Promotion based on the data in the request body.
+    Create a new promotion.
+
+    This endpoint creates a new promotion based on the JSON data provided in the request body.
+
+    Returns:
+        JSON: The created promotion as JSON.
     """
+    app.logger.info("Request to create a promotion")
 
     # Ensure the request contains JSON data
-    app.logger.info("Request to create a promotion")
-    check_content_type("application/json")
+    if not request.is_json:
+        return (jsonify({"error": "Unsupported media type: Request is not JSON"}), 415)
 
     # Get the JSON data from the request
     data = request.get_json()
@@ -54,44 +59,12 @@ def create_promotion():
         promotion.deserialize(data)
         promotion.create()
     except DataValidationError as error:
-        return jsonify({"error": str(error)}), status.HTTP_400_BAD_REQUEST
+        return (jsonify({"error": str(error)}), 400)
 
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED)
-
-
-######################################################################
-#  U T I L I T Y   F U N C T I O N S
-######################################################################
-
-
-def check_content_type(content_type):
-    """Checks that the media type is correct"""
-    if "Content-Type" not in request.headers:
-        app.logger.error("No Content-Type specified.")
-        abort(
-            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            f"Content-Type must be {content_type}",
-        )
-
-    if request.headers["Content-Type"] == content_type:
-        return
-
-    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
-    abort(
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        f"Content-Type must be {content_type}",
-    )
-
-
-# Place your REST API code here ...
-
-
-# -----------------------------------------------------------
-# Create promotions
-# -----------------------------------------------------------
+    return (jsonify(promotion.serialize()), 201)
 
 
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
@@ -114,14 +87,3 @@ def delete_promotion(promotion_id):
             status.HTTP_400_BAD_REQUEST,
             "Please confirm deletion by passing the 'confirm' parameter as true.",
         )
-
-
-def not_found(error):
-    """Handle 404 Not Found error with a JSON response."""
-    return jsonify({"error": "Not Found", "message": str(error)}), 404
-
-
-@app.errorhandler(405)
-def method_not_allowed(error):
-    """Handle 405 Method Not Allowed error with a JSON response."""
-    return jsonify({"error": "Method Not Allowed", "message": str(error)}), 405
