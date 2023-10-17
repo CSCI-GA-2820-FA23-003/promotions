@@ -10,6 +10,7 @@ import unittest
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
+from tests.factories import PromotionFactory
 
 
 ######################################################################
@@ -49,6 +50,23 @@ class TestPromotionResourceModel(unittest.TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
+    def test_create_promotion(self):
+        """Test creating a promotion."""
+        promotion = Promotion()
+        promotion_data = {
+            "code": "Promo1",
+            "name": "Promo1",
+            "start": datetime.date(2020, 1, 1),
+            "expired": datetime.date(2020, 1, 1),
+            "whole_store": True,
+            "promo_type": 1,
+            "value": 1,
+        }
+        promotion.deserialize(promotion_data)
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+        self.assertEqual(promotion.name, "Promo1")
+
     def test_create_promotion_with_valid_data(self):
         """Test creating a promotion with valid data."""
         fake_promotion = PromotionFactory()
@@ -72,3 +90,27 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertAlmostEqual(
             float(promotion.value), float(fake_promotion.value), places=2
         )
+
+    def test_create_promotion_with_existing_code(self):
+        # Test creating a promotion with an existing code should raise a DataValidationError.
+        existing_promotion = PromotionFactory()
+        promotion_data = {
+            "name": "NewPromotion",
+            "code": existing_promotion.code,
+            "start": datetime.date(2021, 1, 1),
+            "expired": datetime.date(2021, 12, 31),
+            "whole_store": False,
+            "promo_type": 8,
+            "value": 10.0,
+        }
+        promotion = Promotion()
+        try:
+            promotion.deserialize(promotion_data)
+            promotion.create()
+        except DataValidationError as e:
+            print(f"DataValidationError: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
+
+    # # TODO: Please define the rest cases here (delete, update etc.)

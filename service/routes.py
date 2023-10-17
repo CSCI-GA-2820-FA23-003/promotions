@@ -93,3 +93,27 @@ def check_content_type(content_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {content_type}",
     )
+
+
+# Place your REST API code here ...
+
+
+# -----------------------------------------------------------
+# Create promotions
+# -----------------------------------------------------------
+@app.route("/promotion", methods=["POST"])
+def create_promotions():
+    """Creates a new promotion and stores it in the database"""
+    app.logger.info(f"Request to Create a promotion")
+
+    # Create a new Promotion instances
+    promo = Promotion()
+
+    # Deserialize the request data and create the promotion
+    json_data = request.get_json()
+    promo.deserialize(json_data)
+    promo.create()
+
+    # Return the created promotion as a JSON response with a 201 status code
+    result = promo.serialize()
+    return jsonify(result), status.HTTP_201_CREATED

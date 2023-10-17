@@ -117,30 +117,29 @@ class Promotion(db.Model):
             self.promo_type = data["promo_type"]
             self.value = data["value"]
 
-            # if isinstance(data["value"], float):
-            #     self.value = data["value"]
-            # else:
-            #     raise DataValidationError(
-            #         "Invalid type for date [value]: " + str(type(data["value"]))
-            #     )
-
             if "created_at" in data:
                 self.created_at = data["created_at"]
             else:
                 self.created_at = db.func.current_timestamp()
+
             if "updated_at" in data:
                 self.updated_at = data["updated_at"]
             else:
                 self.updated_at = db.func.current_timestamp()
+
         except KeyError as error:
             raise DataValidationError(
-                "Invalid PromotionModel: missing " + error.args[0]
+                "Invalid Promotion: missing " + error.args[0]
             ) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid PromotionModel: body of request contained bad or no data - "
-                "Error message: " + error
+                "Invalid Promotion: body of request contained bad or no data - "
+                "Error message: " + error.args[0]
             ) from error
+        except ValueError as error:
+            raise DataValidationError("Invalid value: " + error.args[0]) from error
+        except AttributeError as error:
+            raise DataValidationError("Invalid attribute " + error.args[0]) from error
         return self
 
     @classmethod
