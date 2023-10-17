@@ -5,6 +5,8 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from service.exceptions import ConfirmationRequiredError
+
 
 logger = logging.getLogger("flask.app")
 
@@ -65,8 +67,11 @@ class Promotion(db.Model):
         logger.info("Saving %s", self.name)
         db.session.commit()
 
-    def delete(self):
+    def delete(self, confirm=False):
         """Removes a PromotionModel from the data store"""
+        if not confirm:
+            raise ConfirmationRequiredError("Please confirm deletion")
+
         logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
@@ -102,29 +107,23 @@ class Promotion(db.Model):
             self.promo_type = data["promo_type"]
             self.value = data["value"]
 
-            if "created_at" not in data or data["created_at"] is None:
-                self.created_at = db.func.current_timestamp()
-            else:
+            if data["created_at"]:
                 self.created_at = data["created_at"]
-
-            if "updated_at" not in data or data["updated_at"] is None:
-                self.updated_at = db.func.current_timestamp()
             else:
+                self.created_at = db.func.current_timestamp()
+            if data["updated_at"]:
                 self.updated_at = data["updated_at"]
-
+            else:
+                self.updated_at = db.func.current_timestamp()
         except KeyError as error:
             raise DataValidationError(
-                "Invalid Promotion: missing " + error.args[0]
+                "Invalid PromotionModel: missing " + error.args[0]
             ) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Promotion: body of request contained bad or no data - "
-                "Error message: " + error.args[0]
+                "Invalid PromotionModel: body of request contained bad or no data - "
+                "Error message: " + error
             ) from error
-        except ValueError as error:
-            raise DataValidationError("Invalid value: " + error.args[0]) from error
-        except AttributeError as error:
-            raise DataValidationError("Invalid attribute " + error.args[0]) from error
         return self
 
     @classmethod

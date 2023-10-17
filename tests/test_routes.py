@@ -97,3 +97,9 @@ class TestYourResourceServer(TestCase):
 
     #     # Check the response status code
     #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_not_found(self):
+        response = self.client.get("/nonexistent_route")
+        self.assertEqual(response.status_code, 404)
+        data = response.get_json()
+        self.assertEqual(data["error"], "Not Found")
