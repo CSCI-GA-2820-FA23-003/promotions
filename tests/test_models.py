@@ -16,6 +16,7 @@ from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError
 
 
+
 ######################################################################
 #  PromotionModel   M O D E L   T E S T   C A S E S
 ######################################################################
@@ -52,6 +53,25 @@ class TestPromotionResourceModel(unittest.TestCase):
     ######################################################################
     #  T E S T   C A S E S
     ######################################################################
+    def test_repr(self):
+        """Test the string representation of the PromotionModel."""
+        promotion = Promotion(name="SamplePromotion")
+        promotion.id = 123  # Assuming id is set separately, if not adjust accordingly
+
+        expected_repr = "<PromotionModel SamplePromotion id=[123]>"
+        self.assertEqual(repr(promotion), expected_repr)
+
+    def test_list_all_promotions(self):
+        """It should List all Wishlists in the database"""
+        promitions = Promotion.all()
+        self.assertEqual(promitions, [])
+        # Create 5 Promotions
+        for _ in range(5):
+            promotion = PromotionFactory()
+            promotion.create()
+        # See if we get back 5 promotions
+        promotions = Promotion.all()
+        self.assertEqual(len(promotions), 5)
 
     def test_create_promotion_with_valid_data(self):
         """Test creating a promotion with valid data."""
@@ -296,27 +316,72 @@ class TestPromotionResourceModel(unittest.TestCase):
         fetched_promotion = Promotion.find(promotion.id)
         self.assertEqual(fetched_promotion.name, special_name)
 
-    # def test_create_after_delete(self):
-    #     # Test creating a promotion after deletion
-    #     promotion = PromotionFactory()
-    #     promotion.create()
+    def test_create_promotion_without_name(self):
+        """Test creating a promotion without a name."""
+        fake_promotion = PromotionFactory(name=None)
+        promotion = Promotion(
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
-    #     # Check if the promotion exists after creation
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNotNone(fetched_promotion)
+    def test_create_promotion_without_start(self):
+        """Test creating a promotion without a start date."""
+        fake_promotion = PromotionFactory(start=None)
+        promotion = Promotion(
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
-    #     promotion.delete()
+    def test_create_promotion_without_whole_store(self):
+        """Test creating a promotion without specifying whole_store. It should default to False."""
+        fake_promotion = PromotionFactory(whole_store=None)
+        promotion = Promotion(
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
+        )
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+        self.assertFalse(promotion.whole_store)  # Assert default value
 
-    #     # Check if the promotion does not exist after deletion
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNone(fetched_promotion)
+    def test_create_promotion_without_promo_type(self):
+        """Test creating a promotion without a promo_type."""
+        fake_promotion = PromotionFactory(promo_type=None)
+        promotion = Promotion(
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            value=fake_promotion.value,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
-    #     # Attempt to create the promotion again
-    #     promotion.create()
-
-    #     # Check if the promotion was created again
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNotNone(fetched_promotion)
+    def test_create_promotion_without_value(self):
+        """Test creating a promotion without a value."""
+        fake_promotion = PromotionFactory(value=None)
+        promotion = Promotion(
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
     def test_create_with_deserialize(self):
         # Test creating a promotion using the deserialize method
@@ -422,6 +487,19 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["whole_store"], promotion.whole_store)
         self.assertEqual(data["promo_type"], promotion.promo_type)
         self.assertEqual(data["value"], promotion.value)
+
+    def test_deserialize_bad_data(self):
+        """It should raise a DataValidationError when deserializing bad data."""
+
+        bad_data = "this is not a dictionary"
+        promotion = Promotion()
+        with self.assertRaises(DataValidationError) as context:
+            promotion.deserialize(bad_data)
+
+        self.assertIn(
+            "Invalid PromotionModel: body of request contained bad or no data",
+            str(context.exception),
+        )
 
     def test_find_promotion_by_id(self):
         """It should Find a Promotion by its ID"""

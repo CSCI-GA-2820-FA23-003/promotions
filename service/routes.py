@@ -29,12 +29,9 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-
 ######################################################################
-# Create promotions
+# CREATE A PROMOTIONS
 ######################################################################
-
-
 @app.route("/promotions", methods=["POST"])
 def create_promotion():
     """
@@ -65,6 +62,9 @@ def create_promotion():
     return (jsonify(promotion.serialize()), 201)
 
 
+######################################################################
+# DELETE A PROMOTION
+######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
     try:
@@ -118,3 +118,17 @@ def update_promotion(promotion_id):
     promotion.id = promotion_id
     promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
+# LIST ALL PROMOTIONS
+######################################################################
+@app.route("/promotions", methods=["GET"])
+def list_promotions():
+    """Returns all of the Promotions"""
+    app.logger.info("Request for promotion list")
+    promotions = Promotion.all()
+
+    results = [p.serialize() for p in promotions]
+    app.logger.info("Returning %d promotions", len(results))
+    return jsonify(results), status.HTTP_200_OK
