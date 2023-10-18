@@ -56,6 +56,15 @@ Example Response:
     "paths": "<URL for listing promotions>"
 }
 ```
+=======
+
+### 1. Root URL
+
+- **Endpoint**: `/`
+- **Method**: `GET`
+- **Description**: A basic endpoint to check if the service is up and running.
+- **Response**:
+  - `200 OK`: Reminder: return some useful information in json format about the service here.
 
 ---
 
