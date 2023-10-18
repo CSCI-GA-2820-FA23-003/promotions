@@ -74,7 +74,7 @@ class Promotion(db.Model):
             raise DataValidationError("start attribute is not set")
         if self.whole_store is None:
             self.whole_store = False
-        if self.promo_type is None or self.promo_type not in [1,2,3,5,6]:
+        if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
         if self.value is None:
             self.value = 0.0  
