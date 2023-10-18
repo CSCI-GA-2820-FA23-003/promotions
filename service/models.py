@@ -128,16 +128,6 @@ class Promotion(db.Model):
             self.promo_type = data["promo_type"]
             self.value = data["value"]
 
-            if "created_at" in data:
-                self.created_at = data["created_at"]
-            else:
-                self.created_at = db.func.current_timestamp()
-
-            if "updated_at" in data:
-                self.updated_at = data["updated_at"]
-            else:
-                self.updated_at = db.func.current_timestamp()
-
         except KeyError as error:
             raise DataValidationError(
                 "Invalid PromotionModel: missing " + error.args[0]
