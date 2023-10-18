@@ -86,6 +86,17 @@ class Promotion(db.Model):
             Promotion, self.id
         ):  # Using the updated session.get() method
             raise DataValidationError("Promotion with ID {} not found.".format(self.id))
+        
+        if self.name is None or self.name == "":
+            raise DataValidationError("name attribute is not set")
+        if self.start is None:
+            raise DataValidationError("start attribute is not set")
+        if self.whole_store is None:
+            self.whole_store = False
+        if self.promo_type is None:
+            raise DataValidationError("promo_type attribute is not set")
+        if self.value is None:
+            self.value = 0.0
         db.session.commit()
 
     def delete(self, confirm=False):
