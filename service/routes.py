@@ -31,9 +31,9 @@ def index():
 ######################################################################
 
 
-# Place your REST API code here ...
-
-
+######################################################################
+# Update promotions
+######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
     promotion = Promotion.find(promotion_id)
