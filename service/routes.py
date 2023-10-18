@@ -6,6 +6,7 @@ Describe what your service does here
 
 from flask import jsonify, request, url_for, abort, make_response, Flask
 from service.common import status  # HTTP Status Codes
+from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError
 
 # Import Flask application
@@ -66,21 +67,23 @@ def create_promotion():
 
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
-    """Delete a promotion and requires confirmation"""
-    promotion = Promotion.find(promotion_id)
-    if promotion is None:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            "Promotion with id {} was not found.".format(promotion_id),
-        )
+    try:
+        promotion = Promotion.find(promotion_id)
+        if promotion is None:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Promotion with id {promotion_id} was not found.",
+            )
 
-    confirm = request.args.get("confirm", default=False, type=bool)
+        confirm = request.args.get("confirm", default=False, type=bool)
+        if not confirm:
+            raise ConfirmationRequiredError(
+                "Please confirm deletion by passing the 'confirm' parameter as true."
+            )
 
-    if confirm:
-        promotion.delete()
-        return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
-    else:
-        abort(
-            status.HTTP_400_BAD_REQUEST,
-            "Please confirm deletion by passing the 'confirm' parameter as true.",
-        )
+         promotion.delete(confirm=True)
+         return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
+
+    except ConfirmationRequiredError as e:
+        abort(status.HTTP_400_BAD_REQUEST, str(e))
+

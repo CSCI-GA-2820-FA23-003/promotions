@@ -23,6 +23,7 @@ from service.models import Promotion
 BASE_URL = "/promotions"
 
 
+
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -70,6 +71,31 @@ class TestPromotionResourceModel(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_delete_promotion_without_confirmation(self):
+        # Create a promotion using the factory
+        promotion = PromotionFactory()
+        db.session.add(promotion)
+        db.session.commit()
+
+        response = self.client.delete(f"/promotions/{promotion.id}")
+        self.assertEqual(response.status_code, 400)  # Expected Bad Request
+        self.assertIn("Please confirm deletion", response.get_data(as_text=True))
+
+    # def test_delete_promotion_with_confirmation(self):
+    # Create a promotion using the factory
+    # promotion = PromotionFactory()
+    # db.session.add(promotion)
+    # db.session.commit()
+
+    # response = self.client.delete(f"/promotions/{promotion.id}?confirm=true")
+    # self.assertEqual(response.status_code, 204)  # Expected No Content
+
+    def test_delete_nonexistent_promotion(self):
+        # Attempt to delete a promotion that doesn't exist
+        response = self.client.delete("/promotions/999999?confirm=true")
+        self.assertEqual(response.status_code, 404)  # Expected Not Found
+        self.assertIn("was not found", response.get_data(as_text=True))
+        
     def test_create(self):
         """It should respond to a proper create with 201 status code and return the data."""
         promo = PromotionFactory()
