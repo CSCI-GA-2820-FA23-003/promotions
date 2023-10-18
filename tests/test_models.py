@@ -376,10 +376,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion = Promotion(
             name=fake_promotion.name,
             code=fake_promotion.code,
-            start=fake_promotion.start,
             expired=fake_promotion.expired,
             whole_store=fake_promotion.whole_store,
             promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
         )
         self.assertRaises(DataValidationError, promotion.create)
 
