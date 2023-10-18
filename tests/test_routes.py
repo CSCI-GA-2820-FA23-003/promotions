@@ -170,14 +170,36 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)  # Expected Bad Request
         self.assertIn("Please confirm deletion", response.get_data(as_text=True))
 
-    # def test_delete_promotion_with_confirmation(self):
-    # Create a promotion using the factory
-    # promotion = PromotionFactory()
-    # db.session.add(promotion)
-    # db.session.commit()
+    def test_delete_promotion_success(self):
+        # Assuming we have a method to create a test promotion and return its ID
+        promotion_id = self._create_promotions(1)[0].id
 
-    # response = self.client.delete(f"/promotions/{promotion.id}?confirm=true")
-    # self.assertEqual(response.status_code, 204)  # Expected No Content
+        # Delete the promotion
+        response = self.client.delete(f'/promotions/{promotion_id}?confirm=true')
+
+        # Check if promotion was successfully deleted
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, b"")
+
+        # Check if the promotion no longer exists
+        promotion = Promotion.find(promotion_id)
+        self.assertIsNone(promotion)
+    
+    def test_delete_promotion_no_confirm(self):
+        # Assuming we have a method to create a test promotion and return its ID
+        promotion_id = self._create_promotions(1)[0].id
+
+        # Try to delete the promotion without confirmation
+        response = self.client.delete(f'/promotions/{promotion_id}?confirm=false')
+
+        # Check if deletion was prevented and a BadRequest was returned
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Please confirm deletion", response.get_data(as_text=True))
+
+        # Check that the promotion still exists in the database
+        promotion = Promotion.find(promotion_id)
+        self.assertIsNotNone(promotion)
+
 
     def test_delete_nonexistent_promotion(self):
         # Attempt to delete a promotion that doesn't exist
@@ -281,7 +303,25 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
+
     def test_not_allow_method(self):
         """It should return a 405 error when calling a nonexistent method"""
         response = self.client.post("/")
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_get_promotion(self):
+        """It should Get a single Promotion"""
+        # get the id of a promotion
+        test_promotion = self._create_promotions(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_promotion.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], test_promotion.name)
+
+    def test_get_promotion_not_found(self):
+        """It should not Get a Promotion thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
