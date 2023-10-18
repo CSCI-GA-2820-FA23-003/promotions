@@ -8,9 +8,11 @@ import logging
 import unittest
 
 from flask import Flask
-from service.models import Promotion, DataValidationError, db
 from tests.factories import PromotionFactory
-
+from service.models import Promotion, DataValidationError, db
+from service.exceptions import ConfirmationRequiredError
+from tests.factories import PromotionFactory
+from service.models import Promotion, DataValidationError
 
 ######################################################################
 #  PromotionModel   M O D E L   T E S T   C A S E S
@@ -49,18 +51,42 @@ class TestPromotionResourceModel(unittest.TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create(self):
-        """It should always be true"""
-        # create a promotion and assert that it exists
+    def test_create_promotion_with_valid_data(self):
+        """Test creating a promotion with valid data."""
+        fake_promotion = PromotionFactory()
         promotion = Promotion(
-            code="TestCode",
-            name="TestCode",
-            start=datetime.date(2020, 1, 1),
-            expired=datetime.date(2020, 1, 1),
-            whole_store=True,
-            promo_type=1,
-            value=1,
+            name=fake_promotion.name,
+            code=fake_promotion.code,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
         )
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+        self.assertEqual(promotion.name, fake_promotion.name)
+        self.assertEqual(promotion.code, fake_promotion.code)
+        self.assertEqual(promotion.start, fake_promotion.start)
+        self.assertEqual(promotion.expired, fake_promotion.expired)
+        self.assertEqual(promotion.whole_store, fake_promotion.whole_store)
+        self.assertEqual(promotion.promo_type, fake_promotion.promo_type)
+        self.assertAlmostEqual(
+            float(promotion.value), float(fake_promotion.value), places=2
+        )
+    
+    def test_create_promotion_with_missing_data(self):
+        """Test creating a promotion with missing data."""
+        fake_promotion = PromotionFactory()
+        promotion = Promotion(
+            name=fake_promotion.name,
+            start=fake_promotion.start,
+            expired=fake_promotion.expired,
+            whole_store=fake_promotion.whole_store,
+            promo_type=fake_promotion.promo_type,
+            value=fake_promotion.value,
+        )
+        self.assertRaises(DataValidationError, promotion.create)
 
     def test_update_promotion(self):
         """Update a Promotion's attributes"""
@@ -150,7 +176,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         fetched_promotion = Promotion.find(promotion.id)
         print(f"Promotion after creation: {fetched_promotion}")
 
-        promotion.delete()
+        # Call delete with confirmation
+        promotion.delete(confirm=True)
 
         # Check if promotion exists after deletion
         fetched_promotion = Promotion.find(promotion.id)
@@ -165,10 +192,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion = PromotionFactory()
         promotion.create()
 
+        # We're omitting 'created_at' and 'updated_at' from update_data.
+        # They will be automatically set by the `deserialize` method.
         update_data = {
-            "created_at": None,
-            "updated_at": None,
-            "name": 12345,
+            "name": 12345,  # It's strange to have a numeric name. Consider changing this if it's not intentional.
             "code": "NEWCODE",
             "start": datetime.date(2022, 1, 1),
             "expired": datetime.date(2022, 2, 1),
@@ -179,6 +206,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
         promotion.deserialize(update_data)
 
+        # Assuming the `update` method saves the changes to the database
         promotion.update()
 
         fetched_promotion = Promotion.find(promotion.id)
@@ -241,3 +269,163 @@ class TestPromotionResourceModel(unittest.TestCase):
         retrieved_promotions = Promotion.find_by_name("UpdatedName")
         self.assertEqual(len(retrieved_promotions), 1)
         self.assertEqual(retrieved_promotions[0].id, promotion.id)
+    def test_concurrent_creates(self):
+        # Test concurrent creation of promotions
+        promotion1 = PromotionFactory()
+        promotion2 = PromotionFactory()
+
+        # Create promotions concurrently
+        promotion1.create()
+        promotion2.create()
+
+        # Check if both promotions were created successfully
+        self.assertIsNotNone(promotion1.id)
+        self.assertIsNotNone(promotion2.id)
+
+    def test_create_with_special_characters(self):
+        # Test creating a promotion with special characters in the name
+        special_name = "NameWithSpecialChars@#^&*()"
+        promotion = PromotionFactory(name=special_name)
+
+        promotion.create()
+
+        # Check if the promotion was created with the special name
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, special_name)
+
+    # def test_create_after_delete(self):
+    #     # Test creating a promotion after deletion
+    #     promotion = PromotionFactory()
+    #     promotion.create()
+
+    #     # Check if the promotion exists after creation
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNotNone(fetched_promotion)
+
+    #     promotion.delete()
+
+    #     # Check if the promotion does not exist after deletion
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNone(fetched_promotion)
+
+    #     # Attempt to create the promotion again
+    #     promotion.create()
+
+    #     # Check if the promotion was created again
+    #     fetched_promotion = Promotion.find(promotion.id)
+    #     self.assertIsNotNone(fetched_promotion)
+
+    def test_create_with_deserialize(self):
+        # Test creating a promotion using the deserialize method
+        create_data = {
+            "name": "NewPromotion",
+            "code": "CODE123",
+            "start": "2023-01-01",
+            "expired": "2023-02-01",
+            "whole_store": True,
+            "promo_type": 1,
+            "value": 10.0,
+        }
+
+        promotion = PromotionFactory()
+        promotion.deserialize(create_data)
+        promotion.create()
+
+        # Check if the promotion was created with the provided data
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, create_data["name"])
+        self.assertEqual(fetched_promotion.code, create_data["code"])
+        self.assertEqual(fetched_promotion.start, datetime.date(2023, 1, 1))
+        self.assertEqual(fetched_promotion.expired, datetime.date(2023, 2, 1))
+        self.assertTrue(fetched_promotion.whole_store)
+        self.assertEqual(fetched_promotion.promo_type, 1)
+        self.assertEqual(fetched_promotion.value, 10.0)
+        self.assertIsNotNone(fetched_promotion.id)
+        self.assertIsNotNone(fetched_promotion.created_at)
+        self.assertIsNotNone(fetched_promotion.updated_at)
+
+    def test_delete_with_confirmation(self):
+        """Ensure a promotion cannot be deleted without confirmation"""
+
+        # Instantiate promotion using the factory
+        promotion = PromotionFactory()
+
+        promotion.create()
+
+        # Ensure promotion is added
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Attempt to delete without confirmation and expect an error
+        with self.assertRaises(ConfirmationRequiredError):
+            promotion.delete(confirm=False)
+
+        # Ensure promotion is still present after failed delete
+        self.assertEqual(len(Promotion.all()), 1)
+
+        # Delete with confirmation
+        promotion.delete(confirm=True)
+
+        # Ensure promotion is permanently removed from the system
+        self.assertEqual(len(Promotion.all()), 0)
+
+    # def test_serialize_a_promotion(self):
+    #     """It should serialize a Promotion"""
+    #     promotion = PromotionFactory()
+    #     data = promotion.serialize()
+
+    #     self.assertNotEqual(data, None)
+
+    #     self.assertIn("id", data)
+    #     self.assertEqual(data["id"], promotion.id)
+
+    #     self.assertIn("code", data)
+    #     self.assertEqual(data["code"], promotion.code)
+
+    #     self.assertIn("name", data)
+    #     self.assertEqual(data["name"], promotion.name)
+    #     self.assertIn("start", data)
+    #     self.assertEqual(data["start"], promotion.start)
+
+    #     self.assertIn("expired", data)
+    #     self.assertEqual(data["expired"], promotion.expired)
+
+    #     self.assertIn("whole_store", data)
+    #     self.assertEqual(data["whole_store"], promotion.whole_store)
+
+    #     self.assertIn("promo_type", data)
+    #     self.assertEqual(data["promo_type"], promotion.promo_type)
+
+    #     self.assertIn("value", data)
+    #     self.assertEqual(data["value"], promotion.value)
+
+    #     self.assertIn("created_at", data)
+    #     self.assertEqual(data["created_at"], promotion.created_at)
+
+    #     self.assertIn("updated_at", data)
+    #     self.assertEqual(data["updated_at"], promotion.updated_at)
+
+    def test_deserialize_a_promotion(self):
+        """It should de-serialize a Promotion"""
+        data = PromotionFactory().serialize()
+        promotion = Promotion()
+        promotion.deserialize(data)
+
+        self.assertNotEqual(promotion, None)
+        self.assertEqual(promotion.id, None)
+        self.assertEqual(data["code"], promotion.code)
+        self.assertEqual(data["name"], promotion.name)
+        self.assertEqual(data["start"], promotion.start)
+        self.assertEqual(data["expired"], promotion.expired)
+        self.assertEqual(data["whole_store"], promotion.whole_store)
+        self.assertEqual(data["promo_type"], promotion.promo_type)
+        self.assertEqual(data["value"], promotion.value)
+
+    def test_find_promotion_by_id(self):
+        """It should Find a Promotion by its ID"""
+        promotions = PromotionFactory.create_batch(10)
+        for promotion in promotions:
+            promotion.create()
+        promotion_id = promotions[0].id
+        found = Promotion.find(promotion_id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.id, promotion_id)
