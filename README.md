@@ -57,31 +57,86 @@ tests/              - test cases package
 
 ## Spint 1 
 
-```
-Index
-    Return all the records (based on the permission)
+## Description
+This service is designed to manage promotions. It offers endpoints to create, retrieve, update, and delete promotions.
 
-Get(id: String) 
-    Return the record with the specific ID 
-    OR
-    Return promotion does not exist <error>
+---
 
-Create(promo_code: String, description: String, start_date: DATE_TIME, data_expire:DATE_TIME, whole_store:BOOLEAN, type: INTEGER, type: INTEGER, value: DOUBLE)
-    Return {String(“Promotion Created”+promo_code: String+id:INTEGER)} 
-    OR
-    Return {String(“Promotion unable to create <error>”)}
+## API Endpoints
 
-Update(id: String, updated information)
-    Return {String(“Promotion Updated” + id:INTEGER)} 
-    OR
-    Return {String(“Promotion unable to update <error>”)}
+### 1. Root URL
 
-Delete(id: String)
-    Return the deleted mode {promo_code: string, id: int}
-    OR
-    Return {String(“Promotion unable to delete <error>”)}
+- **Endpoint**: `/`
+- **Method**: `GET`
+- **Description**: A basic endpoint to check if the service is up and running.
+- **Response**:
+  - `200 OK`: Reminder: return some useful information in json format about the service here.
 
-```
+---
+
+### 2. Create Promotion
+
+- **Endpoint**: `/promotions`
+- **Method**: `POST`
+- **Description**: Create a new promotion using the data provided.
+- **Request Body**:
+  - JSON containing the promotion data.
+- **Response**:
+  - `201 Created`: Returns the created promotion as JSON.
+  - `415 Unsupported Media Type`: If the request is not JSON.
+
+---
+
+### 3. Delete Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `DELETE`
+- **Description**: Delete a specific promotion by its ID.
+- **Response**:
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+  - `400 Bad Request`: If the confirmation parameter is missing or false.
+
+---
+
+### 4. Update Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `PUT`
+- **Description**: Update the information of a specific promotion using its ID.
+- **Request Body**:
+  - JSON containing the updated promotion data.
+- **Response**:
+  - `200 OK`: Returns the updated promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+  - `405 Method Not Allowed`: If the promotion is already expired.
+  - `415 Unsupported Media Type`: If the request is not JSON.
+  - `400 Bad Request`: For data validation errors.
+
+---
+
+### 5. List All Promotions
+
+- **Endpoint**: `/promotions`
+- **Method**: `GET`
+- **Description**: Retrieves a list of all promotions.
+- **Response**:
+  - `200 OK`: Returns a list of all promotions as JSON.
+
+---
+
+### 6. Retrieve a Specific Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `GET`
+- **Description**: Retrieves the details of a specific promotion using its ID.
+- **Response**:
+  - `200 OK`: Returns the requested promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+
+---
+
+
+
 
 
 ## License
