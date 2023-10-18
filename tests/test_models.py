@@ -199,28 +199,6 @@ class TestPromotionResourceModel(unittest.TestCase):
         )
         self.assertRaises(DataValidationError, promotion.create)
 
-    # def test_create_after_delete(self):
-    #     # Test creating a promotion after deletion
-    #     promotion = PromotionFactory()
-    #     promotion.create()
-
-    #     # Check if the promotion exists after creation
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNotNone(fetched_promotion)
-
-    #     promotion.delete()
-
-    #     # Check if the promotion does not exist after deletion
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNone(fetched_promotion)
-
-    #     # Attempt to create the promotion again
-    #     promotion.create()
-
-    #     # Check if the promotion was created again
-    #     fetched_promotion = Promotion.find(promotion.id)
-    #     self.assertIsNotNone(fetched_promotion)
-
     def test_create_with_deserialize(self):
         # Test creating a promotion using the deserialize method
         create_data = {

@@ -29,13 +29,9 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-
-
 ######################################################################
-# Create promotions
+# CREATE A PROMOTIONS
 ######################################################################
-
-
 @app.route("/promotions", methods=["POST"])
 def create_promotion():
     """
@@ -66,6 +62,9 @@ def create_promotion():
     return (jsonify(promotion.serialize()), 201)
 
 
+######################################################################
+# DELETE A PROMOTION
+######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
     try:
