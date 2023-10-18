@@ -65,26 +65,6 @@ def update_promotion(promotion_id):
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             "Unsupported media type: Request is not JSON",
         )
-
-    # # Assuming you already have this from the provided code:
-    # data = request.get_json()
-    # new_name = data.get("name")
-
-    # # Check if there's another promotion with the same code
-    # conflicts = Promotion.find_by_name(new_name)
-
-    # if conflicts:
-    #     message = "Another promotion with the same code already exists."
-    #     app.logger.warning(message)
-    #     return (
-    #         jsonify(
-    #             status=status.HTTP_409_CONFLICT,
-    #             error="Conflict",
-    #             message=message,
-    #         ),
-    #         status.HTTP_409_CONFLICT,
-    #     )
-
     promotion.id = promotion_id
     promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)

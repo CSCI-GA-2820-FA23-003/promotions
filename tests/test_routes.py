@@ -114,38 +114,3 @@ class TestYourResourceServer(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
-
-    # def test_promotion_conflict(self):
-    #     promotion1 = PromotionFactory()
-    #     promotion1.create()
-
-    #     promotion2 = PromotionFactory()
-    #     promotion2.create()
-
-    #     # Assuming a scenario where two promotions cannot have the same 'code'.
-    #     # We'll try to update the 'code' of promotion2 to match that of promotion1,
-    #     # triggering a conflict.
-    #     updated_data = {
-    #         "name": promotion1.name,
-    #         "code": "some code",  # This should create a conflict
-    #         "start": str(datetime.utcnow()),
-    #         "expired": str(datetime.utcnow() + timedelta(days=1)),
-    #         "whole_store": False,
-    #         "promo_type": 1,  # Use a valid integer value for promo_type
-    #         "value": 10.0,
-    #         "created_at": str(datetime.utcnow()),  # Include 'created_at' field
-    #         "updated_at": str(datetime.utcnow()),  # Include 'created_at' field
-    #     }
-
-    #     response = self.client.put(
-    #         f"/promotions/{promotion2.id}",
-    #         data=json.dumps(updated_data),
-    #         content_type="application/json",
-    #     )
-
-    #     self.assertEqual(response.status_code, 409)
-    #     response_data = json.loads(response.data)
-    #     self.assertEqual(response_data["error"], "Conflict")
-    #     self.assertEqual(
-    #         response_data["message"], "The description of the conflict scenario"
-    #     )
