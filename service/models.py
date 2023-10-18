@@ -38,14 +38,14 @@ class Promotion(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(36), unique=True, nullable=False)
     name = db.Column(db.String(63), nullable=False)
-    start = db.Column(db.Date, nullable=False)
-    expired = db.Column(db.Date)
+    start = db.Column(db.DateTime, nullable=False)
+    expired = db.Column(db.DateTime)
     whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
     value = db.Column(db.Double, nullable=True)
-    created_at = db.Column(db.Date, nullable=False, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     updated_at = db.Column(
-        db.Date,
+        db.DateTime,
         nullable=False,
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp(),
@@ -76,8 +76,6 @@ class Promotion(db.Model):
             self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
-        if self.value is None:
-            self.value = 0.0  
         db.session.add(self)
         db.session.commit()
 
@@ -95,8 +93,6 @@ class Promotion(db.Model):
             self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
-        if self.value is None:
-            self.value = 0.0
         db.session.commit()
 
     def delete(self, confirm=False):
