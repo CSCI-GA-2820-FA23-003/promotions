@@ -175,7 +175,7 @@ class TestPromotionResourceModel(TestCase):
         promotion_id = self._create_promotions(1)[0].id
 
         # Delete the promotion
-        response = self.client.delete(f'/promotions/{promotion_id}?confirm=True')
+        response = self.client.delete(f'/promotions/{promotion_id}?confirm=true')
 
         # Check if promotion was successfully deleted
         self.assertEqual(response.status_code, 204)
@@ -184,6 +184,22 @@ class TestPromotionResourceModel(TestCase):
         # Check if the promotion no longer exists
         promotion = Promotion.find(promotion_id)
         self.assertIsNone(promotion)
+    
+    def test_delete_promotion_no_confirm(self):
+        # Assuming we have a method to create a test promotion and return its ID
+        promotion_id = self._create_promotions(1)[0].id
+
+        # Try to delete the promotion without confirmation
+        response = self.client.delete(f'/promotions/{promotion_id}?confirm=false')
+
+        # Check if deletion was prevented and a BadRequest was returned
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Please confirm deletion", response.get_data(as_text=True))
+
+        # Check that the promotion still exists in the database
+        promotion = Promotion.find(promotion_id)
+        self.assertIsNotNone(promotion)
+
 
     def test_delete_nonexistent_promotion(self):
         # Attempt to delete a promotion that doesn't exist
