@@ -7,12 +7,14 @@ import os
 import logging
 import unittest
 
+from decimal import Decimal
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError
+
 
 
 ######################################################################
@@ -107,6 +109,188 @@ class TestPromotionResourceModel(unittest.TestCase):
             value=fake_promotion.value,
         )
         self.assertRaises(DataValidationError, promotion.create)
+
+    def test_update_promotion(self):
+        """Update a Promotion's attributes"""
+        # Create a promotion using the factory
+        promotion = PromotionFactory()
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+
+        # Update the promotion
+        updated_name = "UpdatedTestPromotion"
+        promotion.name = updated_name
+        promotion.update()
+
+        # Fetch the updated promotion and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertIsNotNone(fetched_promotion)
+        self.assertEqual(fetched_promotion.name, updated_name)
+
+    def test_update_promotion_multiple_attributes(self):
+        """Update multiple attributes of a Promotion using the factory"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Update multiple attributes
+        updated_data = {"name": "UpdatedName", "whole_store": False, "value": 50}
+        for key, value in updated_data.items():
+            setattr(promotion, key, value)
+        promotion.update()
+
+        # Fetch and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        for key, value in updated_data.items():
+            self.assertEqual(getattr(fetched_promotion, key), value)
+
+    def test_update_promotion_subset_fields_factory(self):
+        """Update a subset of a Promotion's attributes using factory"""
+        promotion = PromotionFactory(whole_store=True, value=10)
+        promotion.create()
+
+        # Update subset of attributes
+        updated_data = {"name": "UpdatedSubsetField", "value": 20}
+        for key, value in updated_data.items():
+            setattr(promotion, key, value)
+        promotion.update()
+
+        # Fetch and verify
+        fetched_promotion = Promotion.find(promotion.id)
+        for key, value in updated_data.items():
+            self.assertEqual(getattr(fetched_promotion, key), value)
+
+        # Ensure other fields are not affected
+        self.assertTrue(fetched_promotion.whole_store)
+
+    def test_concurrent_updates(self):
+        promotion1 = PromotionFactory()
+        promotion1.create()
+
+        promotion2 = Promotion.find(promotion1.id)
+
+        promotion1.name = "NameFromFirstProcess"
+        promotion2.name = "NameFromSecondProcess"
+
+        promotion1.update()
+        promotion2.update()
+
+        fetched_promotion = Promotion.find(promotion1.id)
+        self.assertNotEqual(
+            fetched_promotion.name, "NameFromFirstProcess"
+        )  # Due to race condition, the second process overwrites the first one
+
+    def test_update_with_special_characters(self):
+        promotion = PromotionFactory(name="InitialName")
+        promotion.create()
+
+        special_name = "NameWithSpecialChars@#^&*()"
+        promotion.name = special_name
+        promotion.update()
+
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertEqual(fetched_promotion.name, special_name)
+
+    def test_update_after_delete(self):
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Check if promotion exists after creation
+        fetched_promotion = Promotion.find(promotion.id)
+        print(f"Promotion after creation: {fetched_promotion}")
+
+        # Call delete with confirmation
+        promotion.delete(confirm=True)
+
+        # Check if promotion exists after deletion
+        fetched_promotion = Promotion.find(promotion.id)
+        print(f"Promotion after deletion: {fetched_promotion}")
+
+        with self.assertRaises(
+            DataValidationError
+        ):  # Assuming update throws an error if the record doesn't exist
+            promotion.update()
+
+    def test_update_with_deserialize(self):
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # We're omitting 'created_at' and 'updated_at' from update_data.
+        # They will be automatically set by the `deserialize` method.
+        update_data = {
+            "name": 12345,  # It's strange to have a numeric name. Consider changing this if it's not intentional.
+            "code": "NEWCODE",
+            "start": datetime.date(2022, 1, 1),
+            "expired": datetime.date(2022, 2, 1),
+            "whole_store": False,
+            "promo_type": 2,
+            "value": 50.0,
+        }
+
+        promotion.deserialize(update_data)
+
+        # Assuming the `update` method saves the changes to the database
+        promotion.update()
+
+        fetched_promotion = Promotion.find(promotion.id)
+        self.assertIsNotNone(fetched_promotion.created_at)
+
+    def test_update_reflected_in_all_promotions(self):
+        """Test that an updated promotion reflects the changes when fetched using the all method"""
+
+        promotion1 = PromotionFactory()
+        promotion2 = PromotionFactory()
+        db.session.add(promotion1)
+        db.session.add(promotion2)
+        db.session.commit()
+
+        original_name = promotion2.name
+
+        new_name = "UpdatedName"
+        promotion2.name = new_name
+        promotion2.update()
+
+        promotions = Promotion.all()
+
+        updated_promotion = next(
+            (promo for promo in promotions if promo.id == promotion2.id), None
+        )
+        self.assertIsNotNone(
+            updated_promotion,
+            "Updated promotion not found in the list fetched by all method.",
+        )
+        self.assertEqual(
+            updated_promotion.name,
+            new_name,
+            "Updated promotion name doesn't match the expected name.",
+        )
+
+        unchanged_promotion = next(
+            (promo for promo in promotions if promo.id == promotion1.id), None
+        )
+        self.assertIsNotNone(
+            unchanged_promotion,
+            "Original promotion not found in the list fetched by all method.",
+        )
+        self.assertNotEqual(
+            unchanged_promotion.name,
+            original_name,
+            "Original promotion name seems to have changed, which is unexpected.",
+        )
+
+    def test_update_name_and_retrieve(self):
+        """After updating the name of a promotion, it should be retrievable by the new name"""
+
+        promotion = PromotionFactory(name="OriginalName")
+        db.session.add(promotion)
+        db.session.commit()
+
+        promotion.name = "UpdatedName"
+        promotion.update()
+
+        # Validation
+        retrieved_promotions = Promotion.find_by_name("UpdatedName")
+        self.assertEqual(len(retrieved_promotions), 1)
+        self.assertEqual(retrieved_promotions[0].id, promotion.id)
 
     def test_concurrent_creates(self):
         # Test concurrent creation of promotions
@@ -271,7 +455,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%d"))
 
         self.assertIn("expired", data)
-        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%d"))
+        self.assertEqual(data["expired"], promotion.expired.strftime("%Y-%m-%d"))
 
         self.assertIn("whole_store", data)
         self.assertEqual(data["whole_store"], promotion.whole_store)
@@ -280,7 +464,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["promo_type"], promotion.promo_type)
 
         self.assertIn("value", data)
-        self.assertEqual(data["value"], float(promotion.value))
+        self.assertEqual(float(data["value"]), float(promotion.value))
 
         self.assertIn("created_at", data)
         self.assertEqual(data["created_at"], promotion.created_at)
