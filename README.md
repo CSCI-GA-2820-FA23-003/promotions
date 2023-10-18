@@ -21,7 +21,6 @@ service/                   - service python package
 ├── models.py              - module with business models
 ├── routes.py              - module with service routes
 └── common                 - common code package
-    ├── __init__.py        - package initializer
     ├── error_handlers.py  - HTTP error handling code
     ├── log_handlers.py    - logging setup code
     └── status.py          - HTTP status constants
@@ -35,31 +34,9 @@ tests/              - test cases package
 ## Spint 1 
 
 ## Description
-
 This service is designed to manage promotions. It offers endpoints to create, retrieve, update, and delete promotions.
 
 ---
-
-## Promotion Schema
-| Field    | Type  | Des    |
-| ------- | ------- | -------- |
-| id | int | The promotion id |
-| code | str | The Promotion code |
-| name | str | The Promotion label (description) |
-| start | date | Active date |
-| expired | date | Expired date |
-| whole_store | bool | Whether is whole store promotion|
-| promo_type | int | The Promotion type |
-| value | double | Promotion value according to the type |
-| created_at | str | The Promotion code |
-| updated_at | Date | Model lasted updated timestamp |
-
-> **Note**: promotion_type is an integer value that represents the type of promotion. The value can be one of the following:
-> - 1: Percentage
-> - 2: Fixed Amount
-> - 3: Buy X Get Y Free
-> - 4: Buy X Get Y at Z% Off
-> - 5: Buy X Get Y at Z% Off (same product)
 
 ## API Endpoints
 
@@ -87,30 +64,10 @@ Example Response:
 - **Endpoint**: `/promotions`
 - **Method**: `POST`
 - **Description**: Create a new promotion using the data provided.
-- **Request Body**: `JSON`
-    > | Field    | Type  | Required  | Des    |
-    > | ------- | ------- | -------- | -------- |
-    > | code | str | True | The Promotion code |
-    > | name | str | True | The Promotion label (description) |
-    > | start | date | True | Active date |
-    > | expired | date | True | Expired date |
-    > | whole_store | bool | False (Default to False) | Whether is whole store promotion|
-    > | promo_type | int | True | The Promotion type |
-    > | value | double | False (Default to 0.0) | Promotion value according to the type |
+- **Request Body**:
+  - JSON containing the promotion data.
 - **Response**:
-  - `201 Created`: Returns the created promotion `JSON`.
-    > | Field    | Type  | Des    |
-    > | ------- | ------- | -------- |
-    > | id | int | The promotion id |
-    > | code | str | The Promotion code |
-    > | name | str | The Promotion label (description) |
-    > | start | date | Active date |
-    > | expired | date | Expired date |
-    > | whole_store | bool | Whether is whole store promotion|
-    > | promo_type | int | The Promotion type |
-    > | value | Date | Promotion value according to the type |
-    > | created_at | str | The Promotion code |
-    > | updated_at | Date | Model lasted updated timestamp |
+  - `201 Created`: Returns the created promotion as JSON.
   - `415 Unsupported Media Type`: If the request is not JSON.
 
 ---
@@ -131,30 +88,10 @@ Example Response:
 - **Endpoint**: `/promotions/<int:promotion_id>`
 - **Method**: `PUT`
 - **Description**: Update the information of a specific promotion using its ID.
-- **Request Body**: `JSON`
-    > | Field    | Type  | Required  | Des    |
-    > | ------- | ------- | -------- | -------- |
-    > | code | str | True | The Promotion code |
-    > | name | str | True | The Promotion label (description) |
-    > | start | date | True | Active date |
-    > | expired | date | True | Expired date |
-    > | whole_store | bool | False (Default to False) | Whether is whole store promotion|
-    > | promo_type | int | True | The Promotion type |
-    > | value | double | False (Default to 0.0) | Promotion value according to the type |
+- **Request Body**:
+  - JSON containing the updated promotion data.
 - **Response**:
-  - `200 OK`: Returns the updated promotion `JSON`.
-    > | Field    | Type  | Des    |
-    > | ------- | ------- | -------- |
-    > | id | int | The promotion id |
-    > | code | str | The Promotion code |
-    > | name | str | The Promotion label (description) |
-    > | start | date | Active date |
-    > | expired | date | Expired date |
-    > | whole_store | bool | Whether is whole store promotion|
-    > | promo_type | int | The Promotion type |
-    > | value | Date | Promotion value according to the type |
-    > | created_at | str | The Promotion code |
-    > | updated_at | Date | Model lasted updated timestamp |
+  - `200 OK`: Returns the updated promotion as JSON.
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
   - `405 Method Not Allowed`: If the promotion is already expired.
   - `415 Unsupported Media Type`: If the request is not JSON.
@@ -182,6 +119,8 @@ Example Response:
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---
+
+
 
 ## License
 
