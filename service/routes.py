@@ -81,8 +81,8 @@ def delete_promotion(promotion_id):
                 "Please confirm deletion by passing the 'confirm' parameter as true."
             )
 
-         promotion.delete(confirm=True)
-         return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
+         # promotion.delete(confirm=True)
+         # return make_response(jsonify({}), status.HTTP_204_NO_CONTENT)
 
     except ConfirmationRequiredError as e:
         abort(status.HTTP_400_BAD_REQUEST, str(e))
