@@ -170,14 +170,20 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)  # Expected Bad Request
         self.assertIn("Please confirm deletion", response.get_data(as_text=True))
 
-    # def test_delete_promotion_with_confirmation(self):
-    # Create a promotion using the factory
-    # promotion = PromotionFactory()
-    # db.session.add(promotion)
-    # db.session.commit()
+    def test_delete_promotion_success(self):
+        # Assuming we have a method to create a test promotion and return its ID
+        promotion_id = self._create_promotions(1)[0].id
 
-    # response = self.client.delete(f"/promotions/{promotion.id}?confirm=true")
-    # self.assertEqual(response.status_code, 204)  # Expected No Content
+        # Delete the promotion
+        response = self.client.delete(f'/promotions/{promotion_id}?confirm=True')
+
+        # Check if promotion was successfully deleted
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, b"")
+
+        # Check if the promotion no longer exists
+        promotion = Promotion.find(promotion_id)
+        self.assertIsNone(promotion)
 
     def test_delete_nonexistent_promotion(self):
         # Attempt to delete a promotion that doesn't exist
