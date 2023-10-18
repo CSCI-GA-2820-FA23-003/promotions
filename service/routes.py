@@ -80,8 +80,8 @@ def delete_promotion(promotion_id):
                 f"Promotion with id {promotion_id} was not found.",
             )
 
-        confirm = request.args.get("confirm", default=False, type=bool)
-        if not confirm:
+        confirm = request.args.get("confirm", default="false")
+        if confirm != "true":
             raise ConfirmationRequiredError(
                 "Please confirm deletion by passing the 'confirm' parameter as true."
             )
