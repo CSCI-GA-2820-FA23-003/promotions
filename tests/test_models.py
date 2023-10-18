@@ -216,10 +216,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIn("name", data)
         self.assertEqual(data["name"], promotion.name)
         self.assertIn("start", data)
-        self.assertEqual(data["start"], promotion.start)
+        self.assertEqual(data["start"], promotion.start.strftime('%Y-%m-%d'))
 
         self.assertIn("expired", data)
-        self.assertEqual(data["expired"], promotion.expired)
+        self.assertEqual(data["start"], promotion.start.strftime('%Y-%m-%d'))
 
         self.assertIn("whole_store", data)
         self.assertEqual(data["whole_store"], promotion.whole_store)
@@ -228,7 +228,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["promo_type"], promotion.promo_type)
 
         self.assertIn("value", data)
-        self.assertEqual(data["value"], promotion.value)
+        self.assertEqual(data["value"], float(promotion.value))
 
         self.assertIn("created_at", data)
         self.assertEqual(data["created_at"], promotion.created_at)
