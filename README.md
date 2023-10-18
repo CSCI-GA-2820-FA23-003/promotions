@@ -1,31 +1,7 @@
-# NYU DevOps Project Template
+# NYU DevOps Project - Promotions
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
-
-This is a skeleton you can use to start your projects
-
-## Overview
-
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
-
-## Automatic Setup
-
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
-
-## Manual Setup
-
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
-
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
-
-These should be copied using a bash shell as follows:
-
-```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
-```
 
 ## Contents
 
@@ -57,31 +33,93 @@ tests/              - test cases package
 
 ## Spint 1 
 
+## Description
+This service is designed to manage promotions. It offers endpoints to create, retrieve, update, and delete promotions.
+
+---
+
+## API Endpoints
+
+### 1. Root URL
+
+- **Endpoint**: `/`
+- **Method**: `GET`
+- **Description**: A basic endpoint that provides information about the Promotion Demo REST API Service.
+- **Response**:
+  - `200 OK`: Returns the service name, version, and the URL for listing promotions.
+
+Example Response:
+```json
+{
+    "name": "Promotion Demo REST API Service",
+    "version": "1.0",
+    "paths": "<URL for listing promotions>"
+}
 ```
-Index
-    Return all the records (based on the permission)
 
-Get(id: String) 
-    Return the record with the specific ID 
-    OR
-    Return promotion does not exist <error>
+---
 
-Create(promo_code: String, description: String, start_date: DATE_TIME, data_expire:DATE_TIME, whole_store:BOOLEAN, type: INTEGER, type: INTEGER, value: DOUBLE)
-    Return {String(“Promotion Created”+promo_code: String+id:INTEGER)} 
-    OR
-    Return {String(“Promotion unable to create <error>”)}
+### 2. Create Promotion
 
-Update(id: String, updated information)
-    Return {String(“Promotion Updated” + id:INTEGER)} 
-    OR
-    Return {String(“Promotion unable to update <error>”)}
+- **Endpoint**: `/promotions`
+- **Method**: `POST`
+- **Description**: Create a new promotion using the data provided.
+- **Request Body**:
+  - JSON containing the promotion data.
+- **Response**:
+  - `201 Created`: Returns the created promotion as JSON.
+  - `415 Unsupported Media Type`: If the request is not JSON.
 
-Delete(id: String)
-    Return the deleted mode {promo_code: string, id: int}
-    OR
-    Return {String(“Promotion unable to delete <error>”)}
+---
 
-```
+### 3. Delete Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `DELETE`
+- **Description**: Delete a specific promotion by its ID.
+- **Response**:
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+  - `400 Bad Request`: If the confirmation parameter is missing or false.
+
+---
+
+### 4. Update Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `PUT`
+- **Description**: Update the information of a specific promotion using its ID.
+- **Request Body**:
+  - JSON containing the updated promotion data.
+- **Response**:
+  - `200 OK`: Returns the updated promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+  - `405 Method Not Allowed`: If the promotion is already expired.
+  - `415 Unsupported Media Type`: If the request is not JSON.
+  - `400 Bad Request`: For data validation errors.
+
+---
+
+### 5. List All Promotions
+
+- **Endpoint**: `/promotions`
+- **Method**: `GET`
+- **Description**: Retrieves a list of all promotions.
+- **Response**:
+  - `200 OK`: Returns a list of all promotions as JSON.
+
+---
+
+### 6. Retrieve a Specific Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>`
+- **Method**: `GET`
+- **Description**: Retrieves the details of a specific promotion using its ID.
+- **Response**:
+  - `200 OK`: Returns the requested promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+
+---
+
 
 
 ## License
