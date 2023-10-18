@@ -68,16 +68,16 @@ class Promotion(db.Model):
         if Promotion.find_by_code(self.code).count() > 0:
             raise ResourceConflictError("code already exist")
         
-        if self.name is None:
+        if self.name is None or self.name == "":
             raise DataValidationError("name attribute is not set")
         if self.start is None:
             raise DataValidationError("start attribute is not set")
         if self.whole_store is None:
             self.whole_store = False
-        if self.promo_type is None:
+        if self.promo_type is None or self.promo_type not in [1,2,3,5,6]:
             raise DataValidationError("promo_type attribute is not set")
         if self.value is None:
-            raise DataValidationError("value attribute is not set")   
+            self.value = 0.0  
         db.session.add(self)
         db.session.commit()
 
