@@ -7,12 +7,14 @@ import os
 import logging
 import unittest
 
+from decimal import Decimal
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError
+
 
 ######################################################################
 #  PromotionModel   M O D E L   T E S T   C A S E S
@@ -74,7 +76,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertAlmostEqual(
             float(promotion.value), float(fake_promotion.value), places=2
         )
-    
+
     def test_create_promotion_with_missing_data(self):
         """Test creating a promotion with missing data."""
         fake_promotion = PromotionFactory()
@@ -269,6 +271,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         retrieved_promotions = Promotion.find_by_name("UpdatedName")
         self.assertEqual(len(retrieved_promotions), 1)
         self.assertEqual(retrieved_promotions[0].id, promotion.id)
+
     def test_concurrent_creates(self):
         # Test concurrent creation of promotions
         promotion1 = PromotionFactory()
@@ -368,41 +371,41 @@ class TestPromotionResourceModel(unittest.TestCase):
         # Ensure promotion is permanently removed from the system
         self.assertEqual(len(Promotion.all()), 0)
 
-    # def test_serialize_a_promotion(self):
-    #     """It should serialize a Promotion"""
-    #     promotion = PromotionFactory()
-    #     data = promotion.serialize()
+    def test_serialize_a_promotion(self):
+        """It should serialize a Promotion"""
+        promotion = PromotionFactory()
+        data = promotion.serialize()
 
-    #     self.assertNotEqual(data, None)
+        self.assertNotEqual(data, None)
 
-    #     self.assertIn("id", data)
-    #     self.assertEqual(data["id"], promotion.id)
+        self.assertIn("id", data)
+        self.assertEqual(data["id"], promotion.id)
 
-    #     self.assertIn("code", data)
-    #     self.assertEqual(data["code"], promotion.code)
+        self.assertIn("code", data)
+        self.assertEqual(data["code"], promotion.code)
 
-    #     self.assertIn("name", data)
-    #     self.assertEqual(data["name"], promotion.name)
-    #     self.assertIn("start", data)
-    #     self.assertEqual(data["start"], promotion.start)
+        self.assertIn("name", data)
+        self.assertEqual(data["name"], promotion.name)
+        self.assertIn("start", data)
+        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%d"))
 
-    #     self.assertIn("expired", data)
-    #     self.assertEqual(data["expired"], promotion.expired)
+        self.assertIn("expired", data)
+        self.assertEqual(data["expired"], promotion.expired.strftime("%Y-%m-%d"))
 
-    #     self.assertIn("whole_store", data)
-    #     self.assertEqual(data["whole_store"], promotion.whole_store)
+        self.assertIn("whole_store", data)
+        self.assertEqual(data["whole_store"], promotion.whole_store)
 
-    #     self.assertIn("promo_type", data)
-    #     self.assertEqual(data["promo_type"], promotion.promo_type)
+        self.assertIn("promo_type", data)
+        self.assertEqual(data["promo_type"], promotion.promo_type)
 
-    #     self.assertIn("value", data)
-    #     self.assertEqual(data["value"], promotion.value)
+        self.assertIn("value", data)
+        self.assertEqual(float(data["value"]), float(promotion.value))
 
-    #     self.assertIn("created_at", data)
-    #     self.assertEqual(data["created_at"], promotion.created_at)
+        self.assertIn("created_at", data)
+        self.assertEqual(data["created_at"], promotion.created_at)
 
-    #     self.assertIn("updated_at", data)
-    #     self.assertEqual(data["updated_at"], promotion.updated_at)
+        self.assertIn("updated_at", data)
+        self.assertEqual(data["updated_at"], promotion.updated_at)
 
     def test_deserialize_a_promotion(self):
         """It should de-serialize a Promotion"""
