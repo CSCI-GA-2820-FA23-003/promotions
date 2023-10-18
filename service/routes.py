@@ -6,7 +6,7 @@ Describe what your service does here
 
 from flask import jsonify, request, url_for, abort, make_response, Flask
 from service.common import status  # HTTP Status Codes
-from service.models import Promotion
+from service.models import Promotion, DataValidationError
 
 # Import Flask application
 from . import app
@@ -28,7 +28,40 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Place your REST API code here ...
+
+######################################################################
+# Create promotions
+######################################################################
+
+
+@app.route("/promotions", methods=["POST"])
+def create_promotion():
+    """
+    Create a new promotion.
+
+    This endpoint creates a new promotion based on the JSON data provided in the request body.
+
+    Returns:
+        JSON: The created promotion as JSON.
+    """
+    app.logger.info("Request to create a promotion")
+
+    # Ensure the request contains JSON data
+    if not request.is_json:
+        return (jsonify({"error": "Unsupported media type: Request is not JSON"}), 415)
+
+    # Get the JSON data from the request
+    data = request.get_json()
+
+    # Create a new Promotion with the data
+    promotion = Promotion()
+    promotion.deserialize(data)
+    promotion.create()
+
+    app.logger.info("Promotion with ID [%s] created.", promotion.id)
+
+    # Return the new Promotion as JSON
+    return (jsonify(promotion.serialize()), 201)
 
 
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
@@ -51,14 +84,3 @@ def delete_promotion(promotion_id):
             status.HTTP_400_BAD_REQUEST,
             "Please confirm deletion by passing the 'confirm' parameter as true.",
         )
-
-
-def not_found(error):
-    """Handle 404 Not Found error with a JSON response."""
-    return jsonify({"error": "Not Found", "message": str(error)}), 404
-
-
-@app.errorhandler(405)
-def method_not_allowed(error):
-    """Handle 405 Method Not Allowed error with a JSON response."""
-    return jsonify({"error": "Method Not Allowed", "message": str(error)}), 405

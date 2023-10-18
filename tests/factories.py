@@ -13,6 +13,7 @@ class PromotionFactory(factory.Factory):
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Maps factory to data model"""
+
         model = Promotion
 
     name = factory.Faker("catch_phrase")
@@ -20,6 +21,5 @@ class PromotionFactory(factory.Factory):
     start = FuzzyDate(date.today() - timedelta(days=30))
     expired = FuzzyDate(date.today(), date.today() + timedelta(days=30))
     whole_store = FuzzyChoice(choices=[True, False])
-    # choices: 1 - "B1G1", 2 - "B2G1", 3 - "50%OFF", 4 - "30%OFF", 5 - "B1G50%OFF2ND"
     promo_type = factory.Sequence(lambda n: (n % 5) + 1)
     value = FuzzyDecimal(0.1, 100.0)
