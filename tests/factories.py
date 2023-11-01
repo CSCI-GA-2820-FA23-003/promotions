@@ -1,11 +1,12 @@
 """
 Test Factory to make fake objects for testing
 """
-from datetime import date, timedelta
-
+from datetime import datetime, timedelta, timezone
 import factory
-from factory.fuzzy import FuzzyChoice, FuzzyDate, FuzzyDecimal
+from factory.fuzzy import FuzzyChoice, FuzzyNaiveDateTime, FuzzyDecimal
 from service.models import Promotion
+
+EST = timezone(timedelta(hours=-5))
 
 
 class PromotionFactory(factory.Factory):
@@ -18,8 +19,14 @@ class PromotionFactory(factory.Factory):
 
     name = factory.Faker("catch_phrase")
     code = factory.Faker("uuid4")
-    start = FuzzyDate(date.today() - timedelta(days=30))
-    expired = FuzzyDate(date.today(), date.today() + timedelta(days=30))
+    start = FuzzyNaiveDateTime(
+        datetime.utcnow(),
+        datetime.utcnow() + timedelta(days=30),
+    )
+    expired = FuzzyNaiveDateTime(
+        datetime.utcnow(),
+        datetime.utcnow() + timedelta(days=30),
+    )
     whole_store = FuzzyChoice(choices=[True, False])
     promo_type = factory.Sequence(lambda n: (n % 5) + 1)
     value = FuzzyDecimal(0.1, 100.0)
