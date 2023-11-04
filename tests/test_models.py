@@ -7,14 +7,10 @@ import os
 import logging
 import unittest
 
-from decimal import Decimal
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
-from tests.factories import PromotionFactory
-from service.models import Promotion, DataValidationError
-
 
 
 ######################################################################

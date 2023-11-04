@@ -3,7 +3,7 @@ My Service
 
 Describe what your service does here
 """
-from flask import jsonify, request, url_for, abort, make_response, Flask
+from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError
@@ -33,6 +33,7 @@ def index():
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
+
 
 ######################################################################
 # CREATE A PROMOTIONS
@@ -95,6 +96,8 @@ def delete_promotion(promotion_id):
 
     except ConfirmationRequiredError as e:
         abort(status.HTTP_400_BAD_REQUEST, str(e))
+
+
 ######################################################################
 # Update promotions
 ######################################################################
@@ -142,6 +145,7 @@ def list_promotions():
     app.logger.info("Returning %d promotions", len(results))
     return jsonify(results), status.HTTP_200_OK
 
+
 ######################################################################
 # RETRIEVE A PROMOTION
 ######################################################################
@@ -155,7 +159,10 @@ def get_promotions(promotion_id):
     app.logger.info("Request for promotion with id: %s", promotion_id)
     promotion = Promotion.find(promotion_id)
     if not promotion:
-        abort(status.HTTP_404_NOT_FOUND, f"Promotion with id '{promotion_id}' was not found.")
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id '{promotion_id}' was not found.",
+        )
 
     app.logger.info("Returning promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK

@@ -8,10 +8,7 @@ Test cases can be run with the following:
 import os
 import json
 import logging
-import datetime
 
-from flask import Flask, jsonify
-from dateutil.parser import parse
 from unittest import TestCase
 from service import app
 from service.models import db, Promotion
@@ -21,6 +18,7 @@ from datetime import datetime, timedelta
 
 DATABASE_URI = os.getenv("DATABASE_URI")
 BASE_URL = "/promotions"
+
 
 ######################################################################
 #  T E S T   C A S E S
@@ -52,21 +50,6 @@ class TestPromotionResourceModel(TestCase):
     def tearDown(self):
         """This runs after each test"""
         db.session.remove()
-
-    def _create_promotions(self, count):
-        """Factory method to create promotions in bulk"""
-        promotions = []
-        for _ in range(count):
-            test_promotion = PromotionFactory()
-            print(test_promotion)
-            response = self.client.post(BASE_URL, json=test_promotion.serialize())
-            self.assertEqual(
-                response.status_code, status.HTTP_201_CREATED, "Could not create test promotion"
-            )
-            new_promotion = response.get_json()
-            test_promotion.id = new_promotion["id"]
-            promotions.append(test_promotion)
-        return promotions
 
     def _create_promotions(self, count):
         """Factory method to create promotions in bulk"""
@@ -160,6 +143,7 @@ class TestPromotionResourceModel(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
+
     def test_delete_promotion_without_confirmation(self):
         # Create a promotion using the factory
         promotion = PromotionFactory()
@@ -175,7 +159,7 @@ class TestPromotionResourceModel(TestCase):
         promotion_id = self._create_promotions(1)[0].id
 
         # Delete the promotion
-        response = self.client.delete(f'/promotions/{promotion_id}?confirm=true')
+        response = self.client.delete(f"/promotions/{promotion_id}?confirm=true")
 
         # Check if promotion was successfully deleted
         self.assertEqual(response.status_code, 204)
@@ -184,13 +168,13 @@ class TestPromotionResourceModel(TestCase):
         # Check if the promotion no longer exists
         promotion = Promotion.find(promotion_id)
         self.assertIsNone(promotion)
-    
+
     def test_delete_promotion_no_confirm(self):
         # Assuming we have a method to create a test promotion and return its ID
         promotion_id = self._create_promotions(1)[0].id
 
         # Try to delete the promotion without confirmation
-        response = self.client.delete(f'/promotions/{promotion_id}?confirm=false')
+        response = self.client.delete(f"/promotions/{promotion_id}?confirm=false")
 
         # Check if deletion was prevented and a BadRequest was returned
         self.assertEqual(response.status_code, 400)
@@ -200,13 +184,12 @@ class TestPromotionResourceModel(TestCase):
         promotion = Promotion.find(promotion_id)
         self.assertIsNotNone(promotion)
 
-
     def test_delete_nonexistent_promotion(self):
         # Attempt to delete a promotion that doesn't exist
         response = self.client.delete("/promotions/999999?confirm=true")
         self.assertEqual(response.status_code, 404)  # Expected Not Found
         self.assertIn("was not found", response.get_data(as_text=True))
-        
+
     def test_create(self):
         """It should respond to a proper create with 201 status code and return the data."""
         promo = PromotionFactory()
@@ -251,8 +234,7 @@ class TestPromotionResourceModel(TestCase):
             "/promotions", data=json.dumps(data_orig), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
-    
-    
+
     def test_create_promotion_no_content_type(self):
         """It should not Create a Promotion with no content type"""
         response = self.client.post("/promotions")

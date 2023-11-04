@@ -69,7 +69,8 @@ def method_not_supported(error):
         ),
         status.HTTP_405_METHOD_NOT_ALLOWED,
     )
-    
+
+
 @app.errorhandler(ResourceConflictError)
 def resource_conflict_error(error):
     """Handles resource conflicts with 409_CONFLICT"""
