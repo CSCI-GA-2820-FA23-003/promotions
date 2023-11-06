@@ -4,7 +4,6 @@ Models for PromotionModel
 All of the models are stored in this module
 """
 import logging
-from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from service.exceptions import ConfirmationRequiredError
 from . import app
@@ -16,9 +15,9 @@ db = SQLAlchemy()
 
 
 # Function to initialize the database
-def init_db(app):
+def init_db(_app):
     """Initializes the SQLAlchemy app"""
-    Promotion.init_db(app)
+    Promotion.init_db(_app)
 
 
 class DataValidationError(Exception):
@@ -83,6 +82,14 @@ class Promotion(db.Model):
         db.session.commit()
 
     def update(self):
+        """Update
+
+        Raises:
+            DataValidationError: _description_
+            DataValidationError: _description_
+            DataValidationError: _description_
+            DataValidationError: _description_
+        """
         if not self.id or not db.session.get(
             Promotion, self.id
         ):  # Using the updated session.get() method
@@ -149,12 +156,12 @@ class Promotion(db.Model):
         return self
 
     @classmethod
-    def init_db(cls, app):
+    def init_db(cls, _app):
         """Initializes the database session"""
-        app.logger.info("Initializing database")
-        cls.app = app
+        _app.logger.info("Initializing database")
+        cls.app = _app
         # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(app)
+        db.init_app(_app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
 

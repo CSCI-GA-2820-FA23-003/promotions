@@ -1,3 +1,6 @@
+"""  This module contains the exceptions for the service layer. """
+
+
 class ConfirmationRequiredError(Exception):
     """Exception raised for errors in the input.
 
