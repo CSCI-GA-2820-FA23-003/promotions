@@ -85,13 +85,13 @@ class TestPromotionResourceModel(TestCase):
         updated_data = {
             "name": "Updated Promotion Name",
             "code": promotion.code,
-            "start": str(datetime.utcnow()),
-            "expired": str(datetime.utcnow() + timedelta(days=1)),
+            "start": datetime.now().isoformat(),
+            "expired": (datetime.now() + timedelta(days=1)).isoformat(),
             "whole_store": False,
             "promo_type": 1,  # Use a valid integer value for promo_type
             "value": 10.0,
-            "created_at": str(datetime.utcnow()),  # Include 'created_at' field
-            "updated_at": str(datetime.utcnow()),  # Include 'created_at' field
+            "created_at": datetime.now().isoformat(),  # Include 'created_at' field
+            "updated_at": datetime.now().isoformat(),  # Include 'created_at' field
         }
 
         response = self.client.put(
