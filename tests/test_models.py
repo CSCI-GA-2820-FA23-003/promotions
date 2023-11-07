@@ -7,13 +7,10 @@ import os
 import logging
 import unittest
 
-from decimal import Decimal
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
 from service.exceptions import ConfirmationRequiredError
-from tests.factories import PromotionFactory
-from service.models import Promotion, DataValidationError
 
 
 ######################################################################
@@ -25,14 +22,12 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        DATABASE_URI = os.getenv("DATABASE_URI")
-
         """This runs once before the entire test suite"""
         app = Flask(__name__)
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
-        app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
+        app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI")
         Promotion.init_db(app)
 
     @classmethod

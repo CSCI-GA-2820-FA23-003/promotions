@@ -9,8 +9,6 @@ import os
 import json
 import logging
 
-from flask import Flask, jsonify
-from dateutil.parser import parse
 from unittest import TestCase
 from service import app
 from service.models import db, Promotion
@@ -52,23 +50,6 @@ class TestPromotionResourceModel(TestCase):
     def tearDown(self):
         """This runs after each test"""
         db.session.remove()
-
-    def _create_promotions(self, count):
-        """Factory method to create promotions in bulk"""
-        promotions = []
-        for _ in range(count):
-            test_promotion = PromotionFactory()
-            print(test_promotion)
-            response = self.client.post(BASE_URL, json=test_promotion.serialize())
-            self.assertEqual(
-                response.status_code,
-                status.HTTP_201_CREATED,
-                "Could not create test promotion",
-            )
-            new_promotion = response.get_json()
-            test_promotion.id = new_promotion["id"]
-            promotions.append(test_promotion)
-        return promotions
 
     def _create_promotions(self, count):
         """Factory method to create promotions in bulk"""

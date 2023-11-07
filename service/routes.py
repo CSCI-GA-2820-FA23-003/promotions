@@ -3,7 +3,7 @@ My Service
 
 Describe what your service does here
 """
-from flask import jsonify, request, url_for, abort, make_response, Flask
+from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError
