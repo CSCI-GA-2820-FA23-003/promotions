@@ -215,7 +215,16 @@ class TestPromotionResourceModel(TestCase):
             del response_json["updated_at"]
             del data_orig["updated_at"]
 
+        # If `start` and `expired` fields are present in the response, remove the time component for comparison.
+        # Note from Jiajun: this is ignoring the time component
+        for field in ['start', 'expired']:
+            if field in response_json:
+                response_json[field] = response_json[field].split('T')[0]
+            if field in data_orig:
+                data_orig[field] = data_orig[field].split('T')[0]
+
         self.assertEqual(response_json, data_orig)
+
 
     def test_create_promotion_no_data(self):
         """It should not Create a Promotion with missing data"""

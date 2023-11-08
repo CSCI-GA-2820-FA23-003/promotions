@@ -62,10 +62,11 @@ def create_promotion():
     promotion.deserialize(data)
     promotion.create()
 
+    location_url = url_for("get_promotions", promotion_id=promotion.id, _external=True)
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), 201)
+    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED, {"Location": location_url})
 
 
 ######################################################################
@@ -109,7 +110,7 @@ def update_promotion(promotion_id):
             status.HTTP_404_NOT_FOUND,
             f"Promotion with id {promotion_id} was not found.",
         )
-    if datetime.now() > promotion.expired:
+    if datetime.now().date() > promotion.expired:
         app.logger.warning("Received request to update an expired promotion.")
         abort(
             status.HTTP_405_METHOD_NOT_ALLOWED,
