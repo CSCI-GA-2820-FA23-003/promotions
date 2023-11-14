@@ -58,7 +58,12 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     value = db.Column(db.Double, nullable=False, default=0.0)
 
     # Relationships
-    products = db.relationship("Product", secondary=promotion_product, backref="promotions", cascade="all, delete")
+    products = db.relationship(
+        "Product",
+        secondary=promotion_product,
+        backref="promotions",
+        cascade="all, delete",
+    )
     created_at = db.Column(
         db.DateTime, nullable=False, default=db.func.current_timestamp()
     )
@@ -72,7 +77,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     def __repr__(self):
         return f"<PromotionModel {self.name} id=[{self.id}]>"
 
-    def create(self):
+    def create(self, product_ids=None):
         """
         Creates a PromotionModel to the database
         """
@@ -91,6 +96,15 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
+
+        if product_ids is not None:
+            ids = product_ids if isinstance(product_ids, list) else [product_ids]
+            for product_id in ids:
+                product = Product.find(product_id)
+                if product is None:
+                    product = Product(id=product_id)
+                    product.create()
+                self.products.append(product)
         db.session.add(self)
         db.session.commit()
 
@@ -166,23 +180,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             ) from error
         return self
 
-    def bind_product(self, product_id):
-        """Bind a product to a promotion
-        Args:
-            product_id (int): the id of the product
-        """
-        product = Product.find(product_id)
-        if product is None:
-            raise DataValidationError(f"Product with id '{id}' was not found.")
-
-        if product_id not in self.products:
-            self.products.append(product)
-        else:
-            raise DataValidationError(
-                f"Product with id '{id}' is already in the promotion."
-            )
-        db.session.commit()
-        
     def unbind_product(self, product_id):
         """Unbind a product to a promotion
         Args:
@@ -240,66 +237,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         """
         cls.app.logger.info("Processing name query for %s ...", code)
         return cls.query.filter(cls.code == code)
-
-    # @classmethod
-    # def bind_product(cls, promotion_id, product_id):
-    #     """Bind a product to a promotion
-    #     Args:
-    #         promotion_id (int): the id of the promotion
-    #         product_id (int): the id of the product
-    #     """
-    #     promotion = cls.query.get(promotion_id)
-    #     if promotion is None:
-    #         raise DataValidationError(f"Promotion with id '{id}' was not found.")
-
-    #     if product_id not in promotion.products:
-    #         promotion.products.append(product_id)
-    #     else:
-    #         raise DataValidationError(
-    #             f"Product with id '{id}' is already in the promotion."
-    #         )
-    #     db.session.commit()
-
-    # @classmethod
-    # def apply(cls, promotion_id, product_id=None):
-    #     """Apply promotion to a product(optional, if not, apply to all products)
-    #     Args:
-    #         promotion_id (int): the id of the promotion
-    #         product_id (int): the id of the product
-    #     """
-    #     promotion = cls.query.get(promotion_id)
-    #     if promotion is None:
-    #         raise DataValidationError(f"Promotion with id '{id}' was not found.")
-
-    #     if promotion.available > 0:
-    #         promotion.available -= 1
-    #         # TODO: switch to promotion type to apply different promotion
-
-    #         if product_id is None:
-    #             # apply to all products
-    #             if not promotion.whole_store:
-    #                 raise DataValidationError(
-    #                     f"Promotion with id '{id}' is not a whole store promotion."
-    #                 )
-    #             if promotion.available > 0:
-    #                 promotion.available -= 1
-    #                 # TODO: switch to promotion type to apply different promotion
-    #                 db.session.commit()
-    #             else:
-    #                 raise DataValidationError(
-    #                     f"Promotion with id '{id}' is not available. Reach the max available usage"
-    #                 )
-    #         else:
-    #             # apply to a product
-    #             if product_id not in promotion.products:
-    #                 raise DataValidationError(
-    #                     f"Product with id '{id}' is not in the promotion."
-    #                 )
-    #         db.session.commit()
-    #     else:
-    #         raise DataValidationError(
-    #             f"Promotion with id '{id}' is not available. Reach the max available usage"
-    #         )
 
 
 class Product(db.Model):
@@ -364,11 +301,8 @@ class Product(db.Model):
         if "promotions" in data:
             for promotion in data["promotions"]:
                 promotion = Promotion.find(promotion["id"])
-                if promotion is None:
-                    raise DataValidationError(
-                        f"Promotion with id '{promotion['id']}' was not found."
-                    )
-                self.promotions.append(promotion)
+                if promotion is not None:
+                    self.promotions.append(promotion)
         return self
 
     def bind_promotion(self, promotion_id):
@@ -378,7 +312,9 @@ class Product(db.Model):
         """
         promotion = Promotion.find(promotion_id)
         if promotion is None:
-            raise DataValidationError(f"Promotion with id '{promotion_id}' was not found.")
+            raise DataValidationError(
+                f"Promotion with id '{promotion_id}' was not found."
+            )
 
         if promotion not in self.promotions:
             self.promotions.append(promotion)
@@ -387,7 +323,7 @@ class Product(db.Model):
                 f"Promotion with id '{promotion_id}' is already in the product."
             )
         db.session.commit()
-    
+
     def unbind_promotion(self, promotion_id):
         """Unbind a promotion to a product
         Args:
@@ -395,7 +331,9 @@ class Product(db.Model):
         """
         promotion = Promotion.find(promotion_id)
         if promotion is None:
-            raise DataValidationError(f"Promotion with id '{promotion_id}' was not found.")
+            raise DataValidationError(
+                f"Promotion with id '{promotion_id}' was not found."
+            )
 
         if promotion in self.promotions:
             self.promotions.remove(promotion)
@@ -404,7 +342,7 @@ class Product(db.Model):
                 f"Promotion with id '{promotion_id}' is not in the product."
             )
         db.session.commit()
-    
+
     @classmethod
     def init_db(cls, _app):
         """Initializes the database session"""

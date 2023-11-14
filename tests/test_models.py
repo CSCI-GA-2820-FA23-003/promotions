@@ -9,7 +9,14 @@ import unittest
 
 from flask import Flask
 from tests.factories import PromotionFactory, ProductFactory
-from service.models import Product, Promotion, DataValidationError, db, init_db, promotion_product
+from service.models import (
+    Product,
+    Promotion,
+    DataValidationError,
+    db,
+    init_db,
+    promotion_product,
+)
 from service.exceptions import ConfirmationRequiredError
 
 
@@ -37,7 +44,6 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def setUp(self):
         """This runs before each test"""
-       
 
     def tearDown(self):
         """This runs after each test"""
@@ -508,6 +514,16 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(found)
         self.assertEqual(found.id, promotion_id)
 
+    def test_create_with_products(self):
+        """It should create a promotion with products"""
+        promotion = PromotionFactory()
+        promotion.create([1, 2, 3])
+        self.assertEqual(len(promotion.products), 3)
+
+        promotion2 = PromotionFactory()
+        promotion2.create(4)
+        self.assertEqual(len(promotion2.products), 1)
+
     # Product Model Tests
     def test_create_product_(self):
         """It should create a product"""
@@ -521,7 +537,6 @@ class TestPromotionResourceModel(unittest.TestCase):
             print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
-
     def test_create_with_deserialize_product(self):
         """It should create a product with deserialize"""
         product_count = len(Product.all())
@@ -534,7 +549,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(new_product.created_at)
         self.assertIsNotNone(new_product.updated_at)
         self.assertEqual(len(Product.all()), product_count + 1)
-        
+
     def test_create_with_deserialize_product_with_promotions(self):
         """It should create a product with deserialize"""
         product_count = len(Product.all())
@@ -546,14 +561,14 @@ class TestPromotionResourceModel(unittest.TestCase):
         new_product = Product()
         new_product.deserialize(data)
         new_product.create()
-        
+
         self.assertIsNotNone(new_product.id)
         self.assertIsNotNone(new_product.created_at)
         self.assertIsNotNone(new_product.updated_at)
         self.assertEqual(len(Product.all()), product_count + 1)
         self.assertEqual(len(new_product.promotions), 1)
         self.assertEqual(new_product.promotions[0].id, promotion.id)
-        
+
     def test_delete_product(self):
         """It should delete a product"""
         total = len(Product.all())
@@ -578,7 +593,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.create()
         found_product = Product.find(product.id)
         self.assertEqual(found_product.id, product.id)
-        
+
     def test_bind_promotion(self):
         """It should bind a promotion to a product"""
         product = ProductFactory()
@@ -588,7 +603,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.bind_promotion(promotion.id)
         self.assertEqual(len(product.promotions), 1)
         self.assertEqual(product.promotions[0].id, promotion.id)
-        
+
     def test_bind_promotion_twice(self):
         """It should not bind a promotion to a product twice"""
         product = ProductFactory()
@@ -601,14 +616,14 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.bind_promotion(promotion.id)
         self.assertEqual(len(product.promotions), 1)
         self.assertEqual(product.promotions[0].id, promotion.id)
-        
+
     def test_bind_nonexistent_promotion(self):
         """It should not bind a nonexistent promotion to a product"""
         product = ProductFactory()
         product.create()
         with self.assertRaises(DataValidationError):
             product.bind_promotion(123)
-            
+
     def test_unbind_promotion(self):
         """It should unbind a promotion from a product"""
         product = ProductFactory()
@@ -627,3 +642,9 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.create()
         with self.assertRaises(DataValidationError):
             product.unbind_promotion(123)
+
+        promotion = PromotionFactory()
+        promotion.create()
+
+        with self.assertRaises(DataValidationError):
+            product.unbind_promotion(promotion.id)
