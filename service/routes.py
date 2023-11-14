@@ -6,8 +6,7 @@ Describe what your service does here
 from datetime import datetime
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
-from service.models import Promotion, DataValidationError
-
+from service.models import Promotion, DataValidationError, Product
 
 # Import Flask application
 from . import app
@@ -117,11 +116,13 @@ def delete_promotion(promotion_id):
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
-    """Updates a Promotion
+    """Update a Promotion
+
+    This endpoint will update a Promotion based the body that is posted
     Args:
-        promotion_id (int): the id of the promotion to update
+        promotion_id (int): ID of the promotion to update
     Returns:
-        tuple: empty tuple and 204 status code if successful
+        json: The promotion that was updated
     """
     promotion = Promotion.find(promotion_id)
     if promotion is None:
@@ -186,3 +187,87 @@ def get_promotions(promotion_id):
 
     app.logger.info("Returning promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# Bind Product to Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/<int:product_id>", methods=["PUT"])
+def bind_prudct_to_promotion(promotion_id, product_id):
+    """Bind the product to the current promotion
+
+    Args:
+        promotion_id (int): Promotion ID
+        product_id (int): Product ID
+
+    Returns:
+        Promotion: the new promotion with the bound product
+    """
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+
+    # check if product is in the promotion
+    product = Product.find(product_id)
+    if product is None:
+        product = Product(id=product_id)
+        product.create()
+        promotion.products.append(product)
+    elif product_id in promotion.products:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Product with id {product_id} is already in the promotion.",
+        )
+    else:
+        promotion.products.append(product)
+
+    app.logger.info("Updating promotion with id %s", promotion_id)
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
+# Apply Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/apply", methods=["POST"])
+def apply_promotion(promotion_id):
+    """Apply the promotion
+
+    Args:
+        promotion_id (inr): Promotion ID
+
+    Returns:
+        json: The data of the promotion
+    """
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+    if datetime.now() > promotion.expired:
+        app.logger.warning("Received request to apply an expired promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying expired promotions is not supported",
+        )
+    elif datetime.now() < promotion.start:
+        app.logger.warning("Received request to apply an Inactive promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying Inactive promotions is not supported",
+        )
+
+    if promotion.available == 0:
+        app.logger.warning("Received request to apply an unavailable promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying unavailable promotions is not supported, reach the limit of promotion",
+        )
+
+    app.logger.info("Applying promotion with id %s", promotion_id)
+    promotion.available -= 1
+    promotion.update()
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
