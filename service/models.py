@@ -5,7 +5,8 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import null
+
+# from sqlalchemy import null
 from service.exceptions import ConfirmationRequiredError
 from . import app
 
@@ -249,13 +250,109 @@ class Promotion(db.Model):
             raise DataValidationError(
                 "Promotion with id '{}' was not found.".format(id)
             )
-        
+
         if product_id is None:
             # apply to all products
             if promotion.whole_store is False:
                 raise DataValidationError(
                     "Promotion with id '{}' is not a whole store promotion.".format(id)
                 )
-            else:
-                # apply to all products
-                
+
+
+class Product(db.Model):
+    """
+    Class that represents a PromotionModel
+    """
+
+    app = None
+
+    # Table Schema
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # Relationships
+    promotions = (
+        db.relationship(
+            "Promotion",
+            secondary=promotion_product,
+            backref=db.backref("products", lazy="dynamic"),
+            lazy="dynamic",
+        ),
+    )
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=db.func.current_timestamp()
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp(),
+    )
+
+    def __repr__(self):
+        return f"<ProductModel {self.name} id=[{self.id}]>"
+
+    def create(self):
+        """
+        Creates a PromotionModel to the database
+        """
+        app.logger.info("Creating Product[id: %s]", self.id)
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        """Update
+        Raises:
+            DataValidationError: _description_
+        """
+        if not self.id or not db.session.get(
+            Promotion, self.id
+        ):  # Using the updated session.get() method
+            raise DataValidationError(f"Promotion with ID {self.id} not found.")
+        db.session.commit()
+
+    def delete(self, confirm=False):
+        """Removes a PromotionModel from the data store"""
+        if not confirm:
+            raise ConfirmationRequiredError("Please confirm deletion")
+
+        app.logger.info("Deleting Product[id: %s]", self.id)
+        db.session.delete(self)
+        db.session.commit()
+
+    def serialize(self):
+        """Serializes a PromotionModel into a dictionary"""
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+    def deserialize(self, data):
+        """
+        Deserializes a PromotionModel from a dictionary
+
+        Args:
+            data (dict): A dictionary containing the resource data
+        """
+        return self
+
+    @classmethod
+    def init_db(cls, _app):
+        """Initializes the database session"""
+        _app.logger.info("Initializing database")
+        cls.app = _app
+        # This is where we initialize SQLAlchemy from the Flask app
+        db.init_app(_app)
+        app.app_context().push()
+        db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def all(cls):
+        """Returns all of the PromotionModels in the database"""
+        app.logger.info("Processing all PromotionModels")
+        return cls.query.all()
+
+    @classmethod
+    def find(cls, by_id):
+        """Finds a PromotionModel by it's ID"""
+        app.logger.info("Processing lookup for id %s ...", by_id)
+        return cls.query.get(by_id)
