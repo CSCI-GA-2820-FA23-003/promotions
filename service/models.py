@@ -8,7 +8,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 # from sqlalchemy import null
 from service.exceptions import ConfirmationRequiredError
-from . import app
 
 logger = logging.getLogger("flask.app")
 
@@ -26,9 +25,10 @@ promotion_product = db.Table(
 
 
 # Function to initialize the database
-def init_db(_app):
+def init_db(app):
     """Initializes the SQLAlchemy app"""
-    Promotion.init_db(_app)
+    Promotion.init_db(app)
+    Product.init_db(app)
 
 
 class DataValidationError(Exception):
@@ -39,7 +39,7 @@ class ResourceConflictError(Exception):
     """Used for the resource already exist"""
 
 
-class Promotion(db.Model):
+class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     """
     Class that represents a PromotionModel
     """
@@ -52,9 +52,11 @@ class Promotion(db.Model):
     name = db.Column(db.String(63), nullable=False)
     start = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     expired = db.Column(db.DateTime, nullable=False)
+    available = db.Column(db.Integer, nullable=False, default=1)
     whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
-    value = (db.Column(db.Double, nullable=True),)
+    value = db.Column(db.Double, nullable=True)
+
     # Relationships
     products = (
         db.relationship(
@@ -81,7 +83,7 @@ class Promotion(db.Model):
         """
         Creates a PromotionModel to the database
         """
-        app.logger.info("Creating %s", self.name)
+        self.app.logger.info("Creating %s", self.name)
         self.id = None  # pylint: disable=invalid-name
         # validation
         if self.code is None or self.code == "":
@@ -129,7 +131,7 @@ class Promotion(db.Model):
         if not confirm:
             raise ConfirmationRequiredError("Please confirm deletion")
 
-        app.logger.info("Deleting %s", self.name)
+        self.app.logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
 
@@ -180,21 +182,20 @@ class Promotion(db.Model):
         """Initializes the database session"""
         _app.logger.info("Initializing database")
         cls.app = _app
-        # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(_app)
-        app.app_context().push()
+        db.init_app(cls.app)
+        cls.app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
 
     @classmethod
     def all(cls):
         """Returns all of the PromotionModels in the database"""
-        app.logger.info("Processing all PromotionModels")
+        cls.app.logger.info("Processing all PromotionModels")
         return cls.query.all()
 
     @classmethod
     def find(cls, by_id):
         """Finds a PromotionModel by it's ID"""
-        app.logger.info("Processing lookup for id %s ...", by_id)
+        cls.app.logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)
 
     @classmethod
@@ -204,7 +205,7 @@ class Promotion(db.Model):
         Args:
             name (string): the name of the PromotionModels you want to match
         """
-        app.logger.info("Processing name query for %s ...", name)
+        cls.app.logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name).all()
 
     @classmethod
@@ -214,7 +215,7 @@ class Promotion(db.Model):
         Args:
             code (string): the code of the PromotionModels you want to match
         """
-        app.logger.info("Processing name query for %s ...", code)
+        cls.app.logger.info("Processing name query for %s ...", code)
         return cls.query.filter(cls.code == code)
 
     @classmethod
@@ -226,15 +227,13 @@ class Promotion(db.Model):
         """
         promotion = cls.query.get(promotion_id)
         if promotion is None:
-            raise DataValidationError(
-                "Promotion with id '{}' was not found.".format(id)
-            )
+            raise DataValidationError(f"Promotion with id '{id}' was not found.")
 
         if product_id not in promotion.products:
             promotion.products.append(product_id)
         else:
             raise DataValidationError(
-                "Product with id '{}' is already in the promotion.".format(id)
+                f"Product with id '{id}' is already in the promotion."
             )
         db.session.commit()
 
@@ -247,21 +246,42 @@ class Promotion(db.Model):
         """
         promotion = cls.query.get(promotion_id)
         if promotion is None:
-            raise DataValidationError(
-                "Promotion with id '{}' was not found.".format(id)
-            )
+            raise DataValidationError(f"Promotion with id '{id}' was not found.")
 
-        if product_id is None:
-            # apply to all products
-            if promotion.whole_store is False:
-                raise DataValidationError(
-                    "Promotion with id '{}' is not a whole store promotion.".format(id)
-                )
+        if promotion.available > 0:
+            promotion.available -= 1
+            # TODO: switch to promotion type to apply different promotion
+
+            if product_id is None:
+                # apply to all products
+                if not promotion.whole_store:
+                    raise DataValidationError(
+                        f"Promotion with id '{id}' is not a whole store promotion."
+                    )
+                if promotion.available > 0:
+                    promotion.available -= 1
+                    # TODO: switch to promotion type to apply different promotion
+                    db.session.commit()
+                else:
+                    raise DataValidationError(
+                        f"Promotion with id '{id}' is not available. Reach the max available usage"
+                    )
+            else:
+                # apply to a product
+                if product_id not in promotion.products:
+                    raise DataValidationError(
+                        f"Product with id '{id}' is not in the promotion."
+                    )
+            db.session.commit()
+        else:
+            raise DataValidationError(
+                f"Promotion with id '{id}' is not available. Reach the max available usage"
+            )
 
 
 class Product(db.Model):
     """
-    Class that represents a PromotionModel
+    Class that represents a ProductModel
     """
 
     app = None
@@ -294,19 +314,8 @@ class Product(db.Model):
         """
         Creates a PromotionModel to the database
         """
-        app.logger.info("Creating Product[id: %s]", self.id)
+        self.id = None  # pylint: disable=invalid-name
         db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        """Update
-        Raises:
-            DataValidationError: _description_
-        """
-        if not self.id or not db.session.get(
-            Promotion, self.id
-        ):  # Using the updated session.get() method
-            raise DataValidationError(f"Promotion with ID {self.id} not found.")
         db.session.commit()
 
     def delete(self, confirm=False):
@@ -314,7 +323,7 @@ class Product(db.Model):
         if not confirm:
             raise ConfirmationRequiredError("Please confirm deletion")
 
-        app.logger.info("Deleting Product[id: %s]", self.id)
+        self.app.logger.info("Deleting Product[id: %s]", self.id)
         db.session.delete(self)
         db.session.commit()
 
@@ -326,12 +335,9 @@ class Product(db.Model):
             "updated_at": self.updated_at,
         }
 
-    def deserialize(self, data):
+    def deserialize(self):
         """
         Deserializes a PromotionModel from a dictionary
-
-        Args:
-            data (dict): A dictionary containing the resource data
         """
         return self
 
@@ -340,19 +346,18 @@ class Product(db.Model):
         """Initializes the database session"""
         _app.logger.info("Initializing database")
         cls.app = _app
-        # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(_app)
-        app.app_context().push()
-        db.create_all()  # make our sqlalchemy tables
+        db.init_app(cls.app)
+        cls.app.app_context().push()
+        db.create_all()
 
     @classmethod
     def all(cls):
         """Returns all of the PromotionModels in the database"""
-        app.logger.info("Processing all PromotionModels")
+        cls.app.logger.info("Processing all PromotionModels")
         return cls.query.all()
 
     @classmethod
     def find(cls, by_id):
         """Finds a PromotionModel by it's ID"""
-        app.logger.info("Processing lookup for id %s ...", by_id)
+        cls.app.logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)

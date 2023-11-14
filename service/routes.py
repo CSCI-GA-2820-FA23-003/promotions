@@ -66,7 +66,11 @@ def create_promotion():
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED, {"Location": location_url})
+    return (
+        jsonify(promotion.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################

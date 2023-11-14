@@ -11,7 +11,7 @@ import logging
 
 from unittest import TestCase
 from service import app
-from service.models import db, Promotion
+from service.models import db, Promotion, init_db
 from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory
 from datetime import datetime, timedelta
@@ -34,7 +34,10 @@ class TestPromotionResourceModel(TestCase):
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-        Promotion.init_db(app)
+        # drop all of the tables in the database
+        db.drop_all()
+        # create the tables
+        init_db(app)
 
     @classmethod
     def tearDownClass(cls):

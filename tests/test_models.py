@@ -8,8 +8,8 @@ import logging
 import unittest
 
 from flask import Flask
-from tests.factories import PromotionFactory
-from service.models import Promotion, DataValidationError, db
+from tests.factories import PromotionFactory, ProductFactory
+from service.models import Product, Promotion, DataValidationError, db, init_db
 from service.exceptions import ConfirmationRequiredError
 
 
@@ -28,7 +28,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
         app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI")
-        Promotion.init_db(app)
+        init_db(app)
 
     @classmethod
     def tearDownClass(cls):
@@ -38,6 +38,7 @@ class TestPromotionResourceModel(unittest.TestCase):
     def setUp(self):
         """This runs before each test"""
         db.session.query(Promotion).delete()
+        db.session.query(Product).delete()
         db.session.commit()
 
     def tearDown(self):
@@ -504,3 +505,41 @@ class TestPromotionResourceModel(unittest.TestCase):
         found = Promotion.find(promotion_id)
         self.assertIsNotNone(found)
         self.assertEqual(found.id, promotion_id)
+
+    # Product Model Tests
+    def test_create_product_(self):
+        """It should create a product"""
+        product_count = len(Product.all())
+        products = ProductFactory.create_batch(10)
+        for product in products:
+            product.create()
+            self.assertIsNotNone(product.id)
+            self.assertIsNotNone(product.created_at)
+            self.assertIsNotNone(product.updated_at)
+            print(product.serialize())
+        self.assertEqual(len(Product.all()), product_count + 10)
+
+    def test_delete_product(self):
+        """It should delete a product"""
+        total = len(Product.all())
+        product = ProductFactory()
+        product.create()
+        self.assertEqual(len(Product.all()), total + 1)
+        product.delete(confirm=True)
+        self.assertEqual(len(Product.all()), total)
+
+    def test_delete_without_confirmation(self):
+        """It should not delete a product without confirmation"""
+        product = ProductFactory()
+        product.create()
+        self.assertEqual(len(Product.all()), 1)
+        with self.assertRaises(ConfirmationRequiredError):
+            product.delete(confirm=False)
+        self.assertEqual(len(Product.all()), 1)
+
+    def test_find_product(self):
+        """It should find a product by id"""
+        product = ProductFactory()
+        product.create()
+        found_product = Product.find(product.id)
+        self.assertEqual(found_product.id, product.id)
