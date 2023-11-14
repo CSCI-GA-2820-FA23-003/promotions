@@ -42,3 +42,4 @@ class ProductFactory(factory.Factory):
         """Maps factory to data model"""
 
         model = Product
+    id = factory.Faker("pyint", min_value=1)

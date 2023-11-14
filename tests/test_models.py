@@ -578,3 +578,52 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.create()
         found_product = Product.find(product.id)
         self.assertEqual(found_product.id, product.id)
+        
+    def test_bind_promotion(self):
+        """It should bind a promotion to a product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+        
+    def test_bind_promotion_twice(self):
+        """It should not bind a promotion to a product twice"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+        
+    def test_bind_nonexistent_promotion(self):
+        """It should not bind a nonexistent promotion to a product"""
+        product = ProductFactory()
+        product.create()
+        with self.assertRaises(DataValidationError):
+            product.bind_promotion(123)
+            
+    def test_unbind_promotion(self):
+        """It should unbind a promotion from a product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+        product.unbind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 0)
+
+    def test_unbind_nonexistent_promotion(self):
+        """It should not unbind a nonexistent promotion from a product"""
+        product = ProductFactory()
+        product.create()
+        with self.assertRaises(DataValidationError):
+            product.unbind_promotion(123)

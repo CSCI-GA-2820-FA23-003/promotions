@@ -166,6 +166,40 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             ) from error
         return self
 
+    def bind_product(self, product_id):
+        """Bind a product to a promotion
+        Args:
+            product_id (int): the id of the product
+        """
+        product = Product.find(product_id)
+        if product is None:
+            raise DataValidationError(f"Product with id '{id}' was not found.")
+
+        if product_id not in self.products:
+            self.products.append(product)
+        else:
+            raise DataValidationError(
+                f"Product with id '{id}' is already in the promotion."
+            )
+        db.session.commit()
+        
+    def unbind_product(self, product_id):
+        """Unbind a product to a promotion
+        Args:
+            product_id (int): the id of the product
+        """
+        product = Product.find(product_id)
+        if product is None:
+            raise DataValidationError(f"Product with id '{id}' was not found.")
+
+        if product_id in self.products:
+            self.products.remove(product)
+        else:
+            raise DataValidationError(
+                f"Product with id '{id}' is not in the promotion."
+            )
+        db.session.commit()
+
     @classmethod
     def init_db(cls, _app):
         """Initializes the database session"""
@@ -276,7 +310,7 @@ class Product(db.Model):
     app = None
 
     # Table Schema
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True)
     # Relationships
     created_at = db.Column(
         db.DateTime, nullable=False, default=db.func.current_timestamp()
@@ -295,7 +329,9 @@ class Product(db.Model):
         """
         Creates a PromotionModel to the database
         """
-        self.id = None  # pylint: disable=invalid-name
+        if self.id is None:
+            raise DataValidationError("id attribute is not set")
+        self.app.logger.info("Creating Product[id: %s]", self.id)
         db.session.add(self)
         db.session.commit()
 
@@ -322,6 +358,9 @@ class Product(db.Model):
         Deserializes a PromotionModel from a dictionary
         """
         # bind the promotion to the product
+        if "id" not in data:
+            raise DataValidationError("Invalid Product: missing id")
+        self.id = data["id"]
         if "promotions" in data:
             for promotion in data["promotions"]:
                 promotion = Promotion.find(promotion["id"])
@@ -332,6 +371,40 @@ class Product(db.Model):
                 self.promotions.append(promotion)
         return self
 
+    def bind_promotion(self, promotion_id):
+        """Bind a promotion to a product
+        Args:
+            promotion_id (int): the id of the promotion
+        """
+        promotion = Promotion.find(promotion_id)
+        if promotion is None:
+            raise DataValidationError(f"Promotion with id '{promotion_id}' was not found.")
+
+        if promotion not in self.promotions:
+            self.promotions.append(promotion)
+        else:
+            self.app.logger.info(
+                f"Promotion with id '{promotion_id}' is already in the product."
+            )
+        db.session.commit()
+    
+    def unbind_promotion(self, promotion_id):
+        """Unbind a promotion to a product
+        Args:
+            promotion_id (int): the id of the promotion
+        """
+        promotion = Promotion.find(promotion_id)
+        if promotion is None:
+            raise DataValidationError(f"Promotion with id '{promotion_id}' was not found.")
+
+        if promotion in self.promotions:
+            self.promotions.remove(promotion)
+        else:
+            raise DataValidationError(
+                f"Promotion with id '{promotion_id}' is not in the product."
+            )
+        db.session.commit()
+    
     @classmethod
     def init_db(cls, _app):
         """Initializes the database session"""
