@@ -5,7 +5,6 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from service.exceptions import ConfirmationRequiredError
 from . import app
 
 logger = logging.getLogger("flask.app")
@@ -104,10 +103,10 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             raise DataValidationError("promo_type attribute is not set")
         db.session.commit()
 
-    def delete(self, confirm=False):
+    def delete(self):
         """Removes a PromotionModel from the data store"""
-        if not confirm:
-            raise ConfirmationRequiredError("Please confirm deletion")
+        if not self.id or not db.session.get(Promotion, self.id):
+            raise DataValidationError(f"Promotion with ID {self.id} not found.")
 
         app.logger.info("Deleting %s", self.name)
         db.session.delete(self)
