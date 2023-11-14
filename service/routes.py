@@ -3,11 +3,11 @@ My Service
 
 Describe what your service does here
 """
+from datetime import datetime
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
-from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError
-from datetime import datetime
+
 
 # Import Flask application
 from . import app
@@ -66,7 +66,11 @@ def create_promotion():
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED, {"Location": location_url})
+    return (
+        jsonify(promotion.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################
@@ -74,29 +78,38 @@ def create_promotion():
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
-    try:
-        promotion = Promotion.find(promotion_id)
-        if promotion is None:
-            abort(
-                status.HTTP_404_NOT_FOUND,
-                f"Promotion with id {promotion_id} was not found.",
-            )
+    """
+    Delete a promotion by its ID.
 
-        confirm = request.args.get("confirm", default="false")
-        if confirm != "true":
-            raise ConfirmationRequiredError(
-                "Please confirm deletion by passing the 'confirm' parameter as true."
-            )
+    This function removes a promotion from the database if it exists and has not expired.
+    If the promotion does not exist, a 404 error is returned.
+    If the promotion has expired, a 405 error is returned indicating that deletion of expired promotions is not supported.
 
-        promotion = Promotion.find(promotion_id)
-        if promotion:
-            promotion.delete(True)
+    Args:
+        promotion_id (int): Unique identifier of the promotion to be deleted.
 
-        app.logger.info("Promotion with ID [%s] delete complete.", promotion_id)
-        return "", status.HTTP_204_NO_CONTENT
+    Returns:
+        tuple: An empty string and a status code of 204 indicating successful deletion.
+    """
+    promotion = Promotion.find(promotion_id)
 
-    except ConfirmationRequiredError as e:
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+
+    if datetime.now() > promotion.expired:
+        app.logger.warning("Received request to delete an expired promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Deleting expired promotions is not supported",
+        )
+
+    app.logger.info("Deleting promotion with id %s", promotion_id)
+    promotion.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
 
 
 ######################################################################

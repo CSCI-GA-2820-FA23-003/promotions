@@ -144,51 +144,44 @@ class TestPromotionResourceModel(TestCase):
 
         self.assertEqual(response.status_code, 415)
 
-    def test_delete_promotion_without_confirmation(self):
-        # Create a promotion using the factory
-        promotion = PromotionFactory()
+    def test_delete_promotion_success(self):
+        # Create a new promotion that is not expired
+        promotion = Promotion(
+            code="PROMO123",
+            name="Test Promotion",
+            start=datetime.utcnow(),
+            expired=datetime.utcnow() + timedelta(days=1),
+            whole_store=False,
+            promo_type=1,
+            value=10.0,
+        )
         db.session.add(promotion)
         db.session.commit()
 
         response = self.client.delete(f"/promotions/{promotion.id}")
-        self.assertEqual(response.status_code, 400)  # Expected Bad Request
-        self.assertIn("Please confirm deletion", response.get_data(as_text=True))
-
-    def test_delete_promotion_success(self):
-        # Assuming we have a method to create a test promotion and return its ID
-        promotion_id = self._create_promotions(1)[0].id
-
-        # Delete the promotion
-        response = self.client.delete(f"/promotions/{promotion_id}?confirm=true")
-
-        # Check if promotion was successfully deleted
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(response.data, b"")
-
-        # Check if the promotion no longer exists
-        promotion = Promotion.find(promotion_id)
-        self.assertIsNone(promotion)
-
-    def test_delete_promotion_no_confirm(self):
-        # Assuming we have a method to create a test promotion and return its ID
-        promotion_id = self._create_promotions(1)[0].id
-
-        # Try to delete the promotion without confirmation
-        response = self.client.delete(f"/promotions/{promotion_id}?confirm=false")
-
-        # Check if deletion was prevented and a BadRequest was returned
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Please confirm deletion", response.get_data(as_text=True))
-
-        # Check that the promotion still exists in the database
-        promotion = Promotion.find(promotion_id)
-        self.assertIsNotNone(promotion)
 
     def test_delete_nonexistent_promotion(self):
         # Attempt to delete a promotion that doesn't exist
-        response = self.client.delete("/promotions/999999?confirm=true")
-        self.assertEqual(response.status_code, 404)  # Expected Not Found
-        self.assertIn("was not found", response.get_data(as_text=True))
+        response = self.client.delete("/promotions/999999")
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_expired_promotion(self):
+        # Create a new promotion that has expired
+        promotion = Promotion(
+            code="EXPIRED123",
+            name="Expired Promotion",
+            start=datetime.utcnow() - timedelta(days=2),
+            expired=datetime.utcnow() - timedelta(days=1),
+            whole_store=False,
+            promo_type=1,
+            value=10.0,
+        )
+        db.session.add(promotion)
+        db.session.commit()
+
+        response = self.client.delete(f"/promotions/{promotion.id}")
+        self.assertEqual(response.status_code, 405)
 
     def test_create(self):
         """It should respond to a proper create with 201 status code and return the data."""

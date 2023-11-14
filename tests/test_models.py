@@ -2,7 +2,7 @@
 Test cases for YourResourceModel Model
 
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import logging
 import unittest
@@ -10,7 +10,6 @@ import unittest
 from flask import Flask
 from tests.factories import PromotionFactory
 from service.models import Promotion, DataValidationError, db
-from service.exceptions import ConfirmationRequiredError
 
 
 ######################################################################
@@ -182,26 +181,6 @@ class TestPromotionResourceModel(unittest.TestCase):
 
         fetched_promotion = Promotion.find(promotion.id)
         self.assertEqual(fetched_promotion.name, special_name)
-
-    def test_update_after_delete(self):
-        promotion = PromotionFactory()
-        promotion.create()
-
-        # Check if promotion exists after creation
-        fetched_promotion = Promotion.find(promotion.id)
-        print(f"Promotion after creation: {fetched_promotion}")
-
-        # Call delete with confirmation
-        promotion.delete(confirm=True)
-
-        # Check if promotion exists after deletion
-        fetched_promotion = Promotion.find(promotion.id)
-        print(f"Promotion after deletion: {fetched_promotion}")
-
-        with self.assertRaises(
-            DataValidationError
-        ):  # Assuming update throws an error if the record doesn't exist
-            promotion.update()
 
     def test_update_with_deserialize(self):
         promotion = PromotionFactory()
@@ -405,30 +384,6 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(fetched_promotion.created_at)
         self.assertIsNotNone(fetched_promotion.updated_at)
 
-    def test_delete_with_confirmation(self):
-        """Ensure a promotion cannot be deleted without confirmation"""
-
-        # Instantiate promotion using the factory
-        promotion = PromotionFactory()
-
-        promotion.create()
-
-        # Ensure promotion is added
-        self.assertEqual(len(Promotion.all()), 1)
-
-        # Attempt to delete without confirmation and expect an error
-        with self.assertRaises(ConfirmationRequiredError):
-            promotion.delete(confirm=False)
-
-        # Ensure promotion is still present after failed delete
-        self.assertEqual(len(Promotion.all()), 1)
-
-        # Delete with confirmation
-        promotion.delete(confirm=True)
-
-        # Ensure promotion is permanently removed from the system
-        self.assertEqual(len(Promotion.all()), 0)
-
     def test_serialize_a_promotion(self):
         """It should serialize a Promotion"""
         promotion = PromotionFactory()
@@ -504,3 +459,40 @@ class TestPromotionResourceModel(unittest.TestCase):
         found = Promotion.find(promotion_id)
         self.assertIsNotNone(found)
         self.assertEqual(found.id, promotion_id)
+
+    def test_delete_existing_promotion(self):
+        # Create a promotion and add it to the database
+        promotion = Promotion(
+            code="SAVE10",
+            name="10% Off",
+            start=datetime.utcnow(),
+            expired=datetime.utcnow() + timedelta(days=7),
+            whole_store=True,
+            promo_type=1,
+            value=10.0,
+        )
+        db.session.add(promotion)
+        db.session.commit()
+
+        promotion_id = promotion.id
+        promotion.delete()
+
+        self.assertIsNone(Promotion.query.get(promotion_id))
+
+    def test_delete_non_existing_promotion_raises_error(self):
+        promotion = Promotion(
+            id=123456,  # Assuming this ID is not used in your test DB
+            code="NOTEXIST",
+            name="Non-Existing",
+            start=datetime.utcnow(),
+            expired=datetime.utcnow() + timedelta(days=7),
+            whole_store=True,
+            promo_type=1,
+            value=10.0,
+        )
+        # Intentionally not adding to DB to simulate non-existence
+
+        with self.assertRaises(DataValidationError) as e:
+            promotion.delete()
+
+        self.assertIn("Promotion with ID 123456 not found", str(e.exception))
