@@ -2,6 +2,7 @@
 Test Factory to make fake objects for testing
 """
 from datetime import datetime, timedelta, timezone
+from venv import create
 import factory
 from factory.fuzzy import FuzzyChoice, FuzzyNaiveDateTime, FuzzyDecimal
 from service.models import Promotion

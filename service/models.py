@@ -5,6 +5,7 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import null
 from service.exceptions import ConfirmationRequiredError
 from . import app
 
@@ -12,6 +13,15 @@ logger = logging.getLogger("flask.app")
 
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
+
+# Relationship table for promotion and product
+promotion_product = db.Table(
+    "promotion_product",
+    db.Column("promotion_id", db.Integer, db.ForeignKey("promotion.id")),
+    db.Column("product_id", db.Integer, db.ForeignKey("product.id")),
+    db.Column("created_at", db.DateTime, nullable=False, default=db.func.now()),
+    db.Column("updated_at", db.DateTime, nullable=False, default=db.func.now()),
+)
 
 
 # Function to initialize the database
@@ -43,7 +53,16 @@ class Promotion(db.Model):
     expired = db.Column(db.DateTime, nullable=False)
     whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
-    value = db.Column(db.Double, nullable=True)
+    value = (db.Column(db.Double, nullable=True),)
+    # Relationships
+    products = (
+        db.relationship(
+            "Product",
+            secondary=promotion_product,
+            backref=db.backref("promotions", lazy="dynamic"),
+            lazy="dynamic",
+        ),
+    )
     created_at = db.Column(
         db.DateTime, nullable=False, default=db.func.current_timestamp()
     )
@@ -196,3 +215,47 @@ class Promotion(db.Model):
         """
         app.logger.info("Processing name query for %s ...", code)
         return cls.query.filter(cls.code == code)
+
+    @classmethod
+    def bind_product(cls, promotion_id, product_id):
+        """Bind a product to a promotion
+        Args:
+            promotion_id (int): the id of the promotion
+            product_id (int): the id of the product
+        """
+        promotion = cls.query.get(promotion_id)
+        if promotion is None:
+            raise DataValidationError(
+                "Promotion with id '{}' was not found.".format(id)
+            )
+
+        if product_id not in promotion.products:
+            promotion.products.append(product_id)
+        else:
+            raise DataValidationError(
+                "Product with id '{}' is already in the promotion.".format(id)
+            )
+        db.session.commit()
+
+    @classmethod
+    def apply(cls, promotion_id, product_id=None):
+        """Apply promotion to a product(optional, if not, apply to all products)
+        Args:
+            promotion_id (int): the id of the promotion
+            product_id (int): the id of the product
+        """
+        promotion = cls.query.get(promotion_id)
+        if promotion is None:
+            raise DataValidationError(
+                "Promotion with id '{}' was not found.".format(id)
+            )
+        
+        if product_id is None:
+            # apply to all products
+            if promotion.whole_store is False:
+                raise DataValidationError(
+                    "Promotion with id '{}' is not a whole store promotion.".format(id)
+                )
+            else:
+                # apply to all products
+                
