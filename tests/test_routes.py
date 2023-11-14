@@ -10,11 +10,11 @@ import json
 import logging
 
 from unittest import TestCase
+from datetime import datetime, timedelta
 from service import app
 from service.models import db, Promotion
 from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory
-from datetime import datetime, timedelta
 
 DATABASE_URI = os.getenv("DATABASE_URI")
 BASE_URL = "/promotions"
@@ -77,6 +77,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_update_valid_promotion(self):
+        """Create a Promotion and then update it"""
         # Create a test promotion using the factory
         promotion = PromotionFactory()
         promotion.create()
@@ -103,11 +104,13 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_promotion_not_found(self):
+        """It should return a 404 error if a Promotion is not found by id"""
         invalid_promotion_id = 99999999
         response = self.client.put(f"/promotions/{invalid_promotion_id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bad_request(self):
+        """It should return 400 Bad Request if the data is invalid"""
         invalid_data = {}  # Empty data, which should trigger a bad request
         promotion = PromotionFactory()
         promotion.create()
@@ -119,6 +122,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_update_expired_promotion(self):
+        """It should not update an expired Promotion"""
         promotion = PromotionFactory()
         promotion.create()
         promotion.expired = datetime.utcnow() - timedelta(days=1)
@@ -132,6 +136,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_unsupported_media_type(self):
+        """It should return 415 Unsupported Media Type when Content-Type is not supported"""
         promotion = PromotionFactory()
         promotion.create()
         promotion.update()
@@ -155,6 +160,7 @@ class TestPromotionResourceModel(TestCase):
             promo_type=1,
             value=10.0,
         )
+
         db.session.add(promotion)
         db.session.commit()
 
@@ -162,6 +168,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 204)
 
     def test_delete_nonexistent_promotion(self):
+        """It should return a 404 error if a Promotion is not found by id"""
         # Attempt to delete a promotion that doesn't exist
         response = self.client.delete("/promotions/999999")
         self.assertEqual(response.status_code, 404)
@@ -216,6 +223,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_duplicated_promotion(self):
+        """It should not Create a duplicated Promotion"""
         promo = PromotionFactory()
         data_orig = promo.serialize()
 
@@ -241,6 +249,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_invalid_promotion_data(self):
+        """It should not Create a Promotion with invalid data"""
         # Create a promotion with incomplete or invalid data
         invalid_promotion_data = {
             "name": "Invalid Promotion",
@@ -261,6 +270,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_404_not_found(self):
+        """It should return a 404 error if a Promotion is not found by id"""
         response = self.client.get("/nonexistent_route")
         self.assertEqual(response.status_code, 404)
         data = response.get_json()

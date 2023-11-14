@@ -112,11 +112,18 @@ def delete_promotion(promotion_id):
     return "", status.HTTP_204_NO_CONTENT
 
 
+
 ######################################################################
 # Update promotions
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
+    """Updates a Promotion
+    Args:
+        promotion_id (int): the id of the promotion to update
+    Returns:
+        tuple: empty tuple and 204 status code if successful
+    """
     promotion = Promotion.find(promotion_id)
     if promotion is None:
         abort(
@@ -133,9 +140,9 @@ def update_promotion(promotion_id):
     data = request.get_json()
     try:
         promotion.deserialize(data)
-    except DataValidationError as e:
-        app.logger.warning("Bad request data: %s", str(e))
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    except DataValidationError as error:
+        app.logger.warning("Bad request data: %s", str(error))
+        abort(status.HTTP_400_BAD_REQUEST, str(error))
     if not request.is_json:
         abort(
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
