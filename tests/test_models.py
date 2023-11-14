@@ -165,6 +165,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertTrue(fetched_promotion.whole_store)
 
     def test_concurrent_updates(self):
+        """Test concurrent updates of a promotion"""
         promotion1 = PromotionFactory()
         promotion1.create()
 
@@ -182,6 +183,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         )  # Due to race condition, the second process overwrites the first one
 
     def test_update_with_special_characters(self):
+        """Test updating a promotion with special characters in the name"""
         promotion = PromotionFactory(name="InitialName")
         promotion.create()
 
@@ -193,6 +195,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(fetched_promotion.name, special_name)
 
     def test_update_after_delete(self):
+        """Test updating a promotion after deleting it"""
         promotion = PromotionFactory()
         promotion.create()
 
@@ -213,6 +216,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             promotion.update()
 
     def test_update_with_deserialize(self):
+        """Test updating a promotion using the deserialize method"""
         promotion = PromotionFactory()
         promotion.create()
 
@@ -295,7 +299,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(retrieved_promotions[0].id, promotion.id)
 
     def test_concurrent_creates(self):
-        # Test concurrent creation of promotions
+        """Test concurrent creation of promotions"""
         promotion1 = PromotionFactory()
         promotion2 = PromotionFactory()
 
@@ -308,7 +312,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(promotion2.id)
 
     def test_create_with_special_characters(self):
-        # Test creating a promotion with special characters in the name
+        """Test creating a promotion with special characters in the name"""
         special_name = "NameWithSpecialChars@#^&*()"
         promotion = PromotionFactory(name=special_name)
 
@@ -386,7 +390,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertRaises(DataValidationError, promotion.create)
 
     def test_create_with_deserialize(self):
-        # Test creating a promotion using the deserialize method
+        """Test creating a promotion using the deserialize method"""
         create_data = {
             "name": "NewPromotion",
             "code": "CODE123",
@@ -568,6 +572,15 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(len(Product.all()), product_count + 1)
         self.assertEqual(len(new_product.promotions), 1)
         self.assertEqual(new_product.promotions[0].id, promotion.id)
+
+    def test_create_with_deserialize_product_withoutid(self):
+        """It should raise a DataValidationError when deserializing bad data."""
+        product = ProductFactory()
+        data = product.serialize()
+        del data["id"]
+        new_product = Product()
+        with self.assertRaises(DataValidationError):
+            new_product.deserialize(data)
 
     def test_delete_product(self):
         """It should delete a product"""

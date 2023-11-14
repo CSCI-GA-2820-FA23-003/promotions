@@ -22,12 +22,12 @@ class PromotionFactory(factory.Factory):
     name = factory.Faker("catch_phrase")
     code = factory.Faker("uuid4")
     start = FuzzyNaiveDateTime(
-        datetime.utcnow(),
-        datetime.utcnow() + timedelta(days=30),
+        datetime.now(),
+        datetime.now() + timedelta(days=2),
     )
     expired = FuzzyNaiveDateTime(
-        datetime.utcnow(),
-        datetime.utcnow() + timedelta(days=30),
+        datetime.now() + timedelta(days=2, hours=1),
+        datetime.now() + timedelta(days=3),
     )
     available = factory.Faker("pyint", min_value=1)
     whole_store = FuzzyChoice(choices=[True, False])
@@ -42,4 +42,5 @@ class ProductFactory(factory.Factory):
         """Maps factory to data model"""
 
         model = Product
+
     id = factory.Faker("pyint", min_value=1)
