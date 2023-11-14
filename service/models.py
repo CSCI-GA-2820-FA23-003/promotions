@@ -28,7 +28,7 @@ class ResourceConflictError(Exception):
     """Used for the resource already exist"""
 
 
-class Promotion(db.Model):
+class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     """
     Class that represents a PromotionModel
     """
