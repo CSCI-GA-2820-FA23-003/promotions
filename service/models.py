@@ -205,7 +205,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         cls.app = _app
         db.init_app(cls.app)
         cls.app.app_context().push()
-        db.create_all()  # make our sqlalchemy tables
+        db.create_all()
 
     @classmethod
     def all(cls):
@@ -298,7 +298,7 @@ class Product(db.Model):
         # bind the promotion to the product
         if "id" not in data:
             raise DataValidationError("Invalid Product: missing id")
-        self.id = data["id"]
+        self.id = data["id"]  # pylint: disable=invalid-name
         if "promotions" in data:
             for promotion in data["promotions"]:
                 promotion = Promotion.find(promotion["id"])

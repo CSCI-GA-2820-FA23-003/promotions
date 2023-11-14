@@ -3,11 +3,11 @@ My Service
 
 Describe what your service does here
 """
+from datetime import datetime
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError, Product
-from datetime import datetime
 
 # Import Flask application
 from . import app
@@ -78,6 +78,16 @@ def create_promotion():
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
+    """Delete a Promotion
+
+    This endpoint will delete a Promotion based the id specified in the path
+
+    Args:
+        promotion_id (int): ID of the promotion to delete
+    Returns:
+        204: no content
+        404: not found
+    """
     try:
         promotion = Promotion.find(promotion_id)
         if promotion is None:
@@ -99,8 +109,8 @@ def delete_promotion(promotion_id):
         app.logger.info("Promotion with ID [%s] delete complete.", promotion_id)
         return "", status.HTTP_204_NO_CONTENT
 
-    except ConfirmationRequiredError as e:
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    except ConfirmationRequiredError as error:
+        abort(status.HTTP_400_BAD_REQUEST, str(error))
 
 
 ######################################################################
@@ -108,6 +118,14 @@ def delete_promotion(promotion_id):
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
+    """Update a Promotion
+
+    This endpoint will update a Promotion based the body that is posted
+    Args:
+        promotion_id (int): ID of the promotion to update
+    Returns:
+        json: The promotion that was updated
+    """
     promotion = Promotion.find(promotion_id)
     if promotion is None:
         abort(
@@ -124,9 +142,9 @@ def update_promotion(promotion_id):
     data = request.get_json()
     try:
         promotion.deserialize(data)
-    except DataValidationError as e:
-        app.logger.warning("Bad request data: %s", str(e))
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    except DataValidationError as error:
+        app.logger.warning("Bad request data: %s", str(error))
+        abort(status.HTTP_400_BAD_REQUEST, str(error))
     if not request.is_json:
         abort(
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -178,6 +196,15 @@ def get_promotions(promotion_id):
 ######################################################################
 @app.route("/promotions/<int:promotion_id>/<int:product_id>", methods=["PUT"])
 def bind_prudct_to_promotion(promotion_id, product_id):
+    """Bind the product to the current promotion
+
+    Args:
+        promotion_id (int): Promotion ID
+        product_id (int): Product ID
+
+    Returns:
+        Promotion: the new promotion with the bound product
+    """
     promotion = Promotion.find(promotion_id)
     if promotion is None:
         abort(
@@ -200,4 +227,49 @@ def bind_prudct_to_promotion(promotion_id, product_id):
         promotion.products.append(product)
 
     app.logger.info("Updating promotion with id %s", promotion_id)
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
+# Apply Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/apply", methods=["POST"])
+def apply_promotion(promotion_id):
+    """Apply the promotion
+
+    Args:
+        promotion_id (inr): Promotion ID
+
+    Returns:
+        json: The data of the promotion
+    """
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+    if datetime.now() > promotion.expired:
+        app.logger.warning("Received request to apply an expired promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying expired promotions is not supported",
+        )
+    elif datetime.now() < promotion.start:
+        app.logger.warning("Received request to apply an Inactive promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying Inactive promotions is not supported",
+        )
+
+    if promotion.available == 0:
+        app.logger.warning("Received request to apply an unavailable promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Applying unavailable promotions is not supported, reach the limit of promotion",
+        )
+
+    app.logger.info("Applying promotion with id %s", promotion_id)
+    promotion.available -= 1
+    promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
