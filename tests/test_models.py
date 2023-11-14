@@ -9,7 +9,7 @@ import unittest
 
 from flask import Flask
 from tests.factories import PromotionFactory, ProductFactory
-from service.models import Product, Promotion, DataValidationError, db, init_db
+from service.models import Product, Promotion, DataValidationError, db, init_db, promotion_product
 from service.exceptions import ConfirmationRequiredError
 
 
@@ -37,12 +37,14 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def setUp(self):
         """This runs before each test"""
-        db.session.query(Promotion).delete()
-        db.session.query(Product).delete()
-        db.session.commit()
+       
 
     def tearDown(self):
         """This runs after each test"""
+        db.session.query(promotion_product).delete()
+        db.session.query(Product).delete()
+        db.session.query(Promotion).delete()
+        db.session.commit()
         db.session.remove()
 
     ######################################################################
@@ -519,6 +521,39 @@ class TestPromotionResourceModel(unittest.TestCase):
             print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
+
+    def test_create_with_deserialize_product(self):
+        """It should create a product with deserialize"""
+        product_count = len(Product.all())
+        product = ProductFactory()
+        data = product.serialize()
+        new_product = Product()
+        new_product.deserialize(data)
+        new_product.create()
+        self.assertIsNotNone(new_product.id)
+        self.assertIsNotNone(new_product.created_at)
+        self.assertIsNotNone(new_product.updated_at)
+        self.assertEqual(len(Product.all()), product_count + 1)
+        
+    def test_create_with_deserialize_product_with_promotions(self):
+        """It should create a product with deserialize"""
+        product_count = len(Product.all())
+        product = ProductFactory()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.promotions.append(promotion)
+        data = product.serialize()
+        new_product = Product()
+        new_product.deserialize(data)
+        new_product.create()
+        
+        self.assertIsNotNone(new_product.id)
+        self.assertIsNotNone(new_product.created_at)
+        self.assertIsNotNone(new_product.updated_at)
+        self.assertEqual(len(Product.all()), product_count + 1)
+        self.assertEqual(len(new_product.promotions), 1)
+        self.assertEqual(new_product.promotions[0].id, promotion.id)
+        
     def test_delete_product(self):
         """It should delete a product"""
         total = len(Product.all())

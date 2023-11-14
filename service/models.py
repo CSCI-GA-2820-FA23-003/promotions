@@ -55,17 +55,10 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     available = db.Column(db.Integer, nullable=False, default=1)
     whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
-    value = db.Column(db.Double, nullable=True)
+    value = db.Column(db.Double, nullable=False, default=0.0)
 
     # Relationships
-    products = (
-        db.relationship(
-            "Product",
-            secondary=promotion_product,
-            backref=db.backref("promotions", lazy="dynamic"),
-            lazy="dynamic",
-        ),
-    )
+    products = db.relationship("Product", secondary=promotion_product, backref="promotions", cascade="all, delete")
     created_at = db.Column(
         db.DateTime, nullable=False, default=db.func.current_timestamp()
     )
@@ -98,8 +91,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
-        if self.value is None:
-            self.value = 0.0
         db.session.add(self)
         db.session.commit()
 
@@ -120,8 +111,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             raise DataValidationError("name attribute is not set")
         if self.start is None:
             raise DataValidationError("start attribute is not set")
-        if self.whole_store is None:
-            self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
         db.session.commit()
@@ -218,65 +207,65 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         cls.app.logger.info("Processing name query for %s ...", code)
         return cls.query.filter(cls.code == code)
 
-    @classmethod
-    def bind_product(cls, promotion_id, product_id):
-        """Bind a product to a promotion
-        Args:
-            promotion_id (int): the id of the promotion
-            product_id (int): the id of the product
-        """
-        promotion = cls.query.get(promotion_id)
-        if promotion is None:
-            raise DataValidationError(f"Promotion with id '{id}' was not found.")
+    # @classmethod
+    # def bind_product(cls, promotion_id, product_id):
+    #     """Bind a product to a promotion
+    #     Args:
+    #         promotion_id (int): the id of the promotion
+    #         product_id (int): the id of the product
+    #     """
+    #     promotion = cls.query.get(promotion_id)
+    #     if promotion is None:
+    #         raise DataValidationError(f"Promotion with id '{id}' was not found.")
 
-        if product_id not in promotion.products:
-            promotion.products.append(product_id)
-        else:
-            raise DataValidationError(
-                f"Product with id '{id}' is already in the promotion."
-            )
-        db.session.commit()
+    #     if product_id not in promotion.products:
+    #         promotion.products.append(product_id)
+    #     else:
+    #         raise DataValidationError(
+    #             f"Product with id '{id}' is already in the promotion."
+    #         )
+    #     db.session.commit()
 
-    @classmethod
-    def apply(cls, promotion_id, product_id=None):
-        """Apply promotion to a product(optional, if not, apply to all products)
-        Args:
-            promotion_id (int): the id of the promotion
-            product_id (int): the id of the product
-        """
-        promotion = cls.query.get(promotion_id)
-        if promotion is None:
-            raise DataValidationError(f"Promotion with id '{id}' was not found.")
+    # @classmethod
+    # def apply(cls, promotion_id, product_id=None):
+    #     """Apply promotion to a product(optional, if not, apply to all products)
+    #     Args:
+    #         promotion_id (int): the id of the promotion
+    #         product_id (int): the id of the product
+    #     """
+    #     promotion = cls.query.get(promotion_id)
+    #     if promotion is None:
+    #         raise DataValidationError(f"Promotion with id '{id}' was not found.")
 
-        if promotion.available > 0:
-            promotion.available -= 1
-            # TODO: switch to promotion type to apply different promotion
+    #     if promotion.available > 0:
+    #         promotion.available -= 1
+    #         # TODO: switch to promotion type to apply different promotion
 
-            if product_id is None:
-                # apply to all products
-                if not promotion.whole_store:
-                    raise DataValidationError(
-                        f"Promotion with id '{id}' is not a whole store promotion."
-                    )
-                if promotion.available > 0:
-                    promotion.available -= 1
-                    # TODO: switch to promotion type to apply different promotion
-                    db.session.commit()
-                else:
-                    raise DataValidationError(
-                        f"Promotion with id '{id}' is not available. Reach the max available usage"
-                    )
-            else:
-                # apply to a product
-                if product_id not in promotion.products:
-                    raise DataValidationError(
-                        f"Product with id '{id}' is not in the promotion."
-                    )
-            db.session.commit()
-        else:
-            raise DataValidationError(
-                f"Promotion with id '{id}' is not available. Reach the max available usage"
-            )
+    #         if product_id is None:
+    #             # apply to all products
+    #             if not promotion.whole_store:
+    #                 raise DataValidationError(
+    #                     f"Promotion with id '{id}' is not a whole store promotion."
+    #                 )
+    #             if promotion.available > 0:
+    #                 promotion.available -= 1
+    #                 # TODO: switch to promotion type to apply different promotion
+    #                 db.session.commit()
+    #             else:
+    #                 raise DataValidationError(
+    #                     f"Promotion with id '{id}' is not available. Reach the max available usage"
+    #                 )
+    #         else:
+    #             # apply to a product
+    #             if product_id not in promotion.products:
+    #                 raise DataValidationError(
+    #                     f"Product with id '{id}' is not in the promotion."
+    #                 )
+    #         db.session.commit()
+    #     else:
+    #         raise DataValidationError(
+    #             f"Promotion with id '{id}' is not available. Reach the max available usage"
+    #         )
 
 
 class Product(db.Model):
@@ -289,14 +278,6 @@ class Product(db.Model):
     # Table Schema
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     # Relationships
-    promotions = (
-        db.relationship(
-            "Promotion",
-            secondary=promotion_product,
-            backref=db.backref("products", lazy="dynamic"),
-            lazy="dynamic",
-        ),
-    )
     created_at = db.Column(
         db.DateTime, nullable=False, default=db.func.current_timestamp()
     )
@@ -331,14 +312,24 @@ class Product(db.Model):
         """Serializes a PromotionModel into a dictionary"""
         return {
             "id": self.id,
+            "promotions": [promotion.serialize() for promotion in self.promotions],
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
 
-    def deserialize(self):
+    def deserialize(self, data):
         """
         Deserializes a PromotionModel from a dictionary
         """
+        # bind the promotion to the product
+        if "promotions" in data:
+            for promotion in data["promotions"]:
+                promotion = Promotion.find(promotion["id"])
+                if promotion is None:
+                    raise DataValidationError(
+                        f"Promotion with id '{promotion['id']}' was not found."
+                    )
+                self.promotions.append(promotion)
         return self
 
     @classmethod
