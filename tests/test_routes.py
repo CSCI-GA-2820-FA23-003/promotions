@@ -219,6 +219,11 @@ class TestPromotionResourceModel(TestCase):
             del response_json["updated_at"]
             del data_orig["updated_at"]
 
+        response_json["expired"] = response_json["expired"].split("T")[0]
+        data_orig["expired"] = data_orig["expired"].split("T")[0]
+        response_json["start"] = response_json["start"].split("T")[0]
+        data_orig["start"] = data_orig["start"].split("T")[0]
+
         self.assertEqual(response_json, data_orig)
 
     def test_create_promotion_no_data(self):

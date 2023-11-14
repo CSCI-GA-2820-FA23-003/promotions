@@ -98,8 +98,10 @@ def delete_promotion(promotion_id):
             status.HTTP_404_NOT_FOUND,
             f"Promotion with id {promotion_id} was not found.",
         )
+    # Convert promotion.expired to datetime.datetime for comparison
+    expired_datetime = datetime.combine(promotion.expired, datetime.min.time())
 
-    if datetime.now() > promotion.expired:
+    if datetime.now() > expired_datetime:
         app.logger.warning("Received request to delete an expired promotion.")
         abort(
             status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -129,7 +131,10 @@ def update_promotion(promotion_id):
             status.HTTP_404_NOT_FOUND,
             f"Promotion with id {promotion_id} was not found.",
         )
-    if datetime.now() > promotion.expired:
+    # Convert promotion.expired to datetime.datetime for comparison
+    expired_datetime = datetime.combine(promotion.expired, datetime.min.time())
+
+    if datetime.now() > expired_datetime:
         app.logger.warning("Received request to update an expired promotion.")
         abort(
             status.HTTP_405_METHOD_NOT_ALLOWED,
