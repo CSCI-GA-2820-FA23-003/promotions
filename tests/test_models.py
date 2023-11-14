@@ -17,7 +17,6 @@ from service.models import (
     init_db,
     promotion_product,
 )
-from service.exceptions import ConfirmationRequiredError
 
 
 ######################################################################
@@ -499,6 +498,13 @@ class TestPromotionResourceModel(unittest.TestCase):
             print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
+    def test_create_without_id(self):
+        """It should raise a DataValidationError when creating without an id."""
+        product = ProductFactory()
+        product.id = None
+        with self.assertRaises(DataValidationError):
+            product.create()
+
     def test_create_with_deserialize_product(self):
         """It should create a product with deserialize"""
         product_count = len(Product.all())
@@ -554,7 +560,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         product = ProductFactory()
         product.create()
         self.assertEqual(len(Product.all()), 1)
-        with self.assertRaises(ConfirmationRequiredError):
+        with self.assertRaises(DataValidationError):
             product.delete(confirm=False)
         self.assertEqual(len(Product.all()), 1)
 
@@ -619,6 +625,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
         with self.assertRaises(DataValidationError):
             product.unbind_promotion(promotion.id)
+
     def test_delete_existing_promotion(self):
         """Test the deletion of an existing promotion from the database."""
         # Create a promotion and add it to the database

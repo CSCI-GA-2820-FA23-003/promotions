@@ -6,9 +6,6 @@ All of the models are stored in this module
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
-# from sqlalchemy import null
-from service.exceptions import ConfirmationRequiredError
-
 logger = logging.getLogger("flask.app")
 
 # Create the SQLAlchemy object to be initialized later in init_db()
@@ -276,7 +273,7 @@ class Product(db.Model):
     def delete(self, confirm=False):
         """Removes a PromotionModel from the data store"""
         if not confirm:
-            raise ConfirmationRequiredError("Please confirm deletion")
+            raise DataValidationError("Please confirm deletion")
 
         self.app.logger.info("Deleting Product[id: %s]", self.id)
         db.session.delete(self)

@@ -6,7 +6,6 @@ Describe what your service does here
 from datetime import datetime
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
-from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError, Product
 
 # Import Flask application
