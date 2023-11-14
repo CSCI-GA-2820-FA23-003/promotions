@@ -172,6 +172,7 @@ def get_promotions(promotion_id):
     app.logger.info("Returning promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK
 
+
 ######################################################################
 # Bind Product to Promotion
 ######################################################################
@@ -197,6 +198,6 @@ def bind_prudct_to_promotion(promotion_id, product_id):
         )
     else:
         promotion.products.append(product)
-        
+
     app.logger.info("Updating promotion with id %s", promotion_id)
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
