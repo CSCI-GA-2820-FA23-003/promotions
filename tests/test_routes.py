@@ -150,6 +150,10 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 415)
 
     def test_delete_promotion_success(self):
+        """
+        Test the deletion of a non-expired promotion. The test verifies that the
+        response status code is 204, indicating that the operation was successful.
+        """
         # Create a new promotion that is not expired
         promotion = Promotion(
             code="PROMO123",
@@ -169,7 +173,6 @@ class TestPromotionResourceModel(TestCase):
 
     def test_delete_nonexistent_promotion(self):
         """It should return a 404 error if a Promotion is not found by id"""
-        # Attempt to delete a promotion that doesn't exist
         response = self.client.delete("/promotions/999999")
         self.assertEqual(response.status_code, 404)
 

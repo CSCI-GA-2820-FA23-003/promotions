@@ -467,6 +467,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(found.id, promotion_id)
 
     def test_delete_existing_promotion(self):
+        """Test the deletion of an existing promotion from the database."""
         # Create a promotion and add it to the database
         promotion = Promotion(
             code="SAVE10",
@@ -486,6 +487,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNone(Promotion.query.get(promotion_id))
 
     def test_delete_non_existing_promotion_raises_error(self):
+        """Test deletion of a promotion that does not exist raises DataValidationError."""
         promotion = Promotion(
             id=123456,  # Assuming this ID is not used in your test DB
             code="NOTEXIST",
@@ -498,7 +500,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         )
         # Intentionally not adding to DB to simulate non-existence
 
-        with self.assertRaises(DataValidationError) as e:
+        with self.assertRaises(DataValidationError) as error:
             promotion.delete()
 
-        self.assertIn("Promotion with ID 123456 not found", str(e.exception))
+        self.assertIn("Promotion with ID 123456 not found", str(error.exception))
