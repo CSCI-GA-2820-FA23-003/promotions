@@ -129,10 +129,10 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             raise DataValidationError("promo_type attribute is not set")
         db.session.commit()
 
-    def delete(self, confirm=False):
+    def delete(self):
         """Removes a PromotionModel from the data store"""
-        if not confirm:
-            raise ConfirmationRequiredError("Please confirm deletion")
+        if not self.id or not db.session.get(Promotion, self.id):
+            raise DataValidationError(f"Promotion with ID {self.id} not found.")
 
         self.app.logger.info("Deleting %s", self.name)
         db.session.delete(self)

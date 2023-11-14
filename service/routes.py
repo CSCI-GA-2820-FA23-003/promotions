@@ -78,39 +78,38 @@ def create_promotion():
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
-    """Delete a Promotion
+    """
+    Delete a promotion by its ID.
 
-    This endpoint will delete a Promotion based the id specified in the path
+    This function removes a promotion from the database if it exists and has not expired.
+    If the promotion does not exist, a 404 error is returned.
+    If the promotion has expired, a 405 error is returned indicating that deletion of expired promotions is not supported.
 
     Args:
-        promotion_id (int): ID of the promotion to delete
+        promotion_id (int): Unique identifier of the promotion to be deleted.
+
     Returns:
-        204: no content
-        404: not found
+        tuple: An empty string and a status code of 204 indicating successful deletion.
     """
-    try:
-        promotion = Promotion.find(promotion_id)
-        if promotion is None:
-            abort(
-                status.HTTP_404_NOT_FOUND,
-                f"Promotion with id {promotion_id} was not found.",
-            )
+    promotion = Promotion.find(promotion_id)
 
-        confirm = request.args.get("confirm", default="false")
-        if confirm != "true":
-            raise ConfirmationRequiredError(
-                "Please confirm deletion by passing the 'confirm' parameter as true."
-            )
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
 
-        promotion = Promotion.find(promotion_id)
-        if promotion:
-            promotion.delete(True)
+    if datetime.now() > promotion.expired:
+        app.logger.warning("Received request to delete an expired promotion.")
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "Deleting expired promotions is not supported",
+        )
 
-        app.logger.info("Promotion with ID [%s] delete complete.", promotion_id)
-        return "", status.HTTP_204_NO_CONTENT
+    app.logger.info("Deleting promotion with id %s", promotion_id)
+    promotion.delete()
 
-    except ConfirmationRequiredError as error:
-        abort(status.HTTP_400_BAD_REQUEST, str(error))
+    return "", status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
