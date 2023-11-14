@@ -6,7 +6,7 @@ Describe what your service does here
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.exceptions import ConfirmationRequiredError
-from service.models import Promotion, DataValidationError
+from service.models import Promotion, DataValidationError, Product
 from datetime import datetime
 
 # Import Flask application
@@ -172,46 +172,31 @@ def get_promotions(promotion_id):
     app.logger.info("Returning promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK
 
-# ######################################################################
-# # Apply promotions
-# ######################################################################
-# @app.route(
-#     "/promotions/<int:promotion_id>/apply/<int:product_id>", methods=["PUT", "POST"]
-# )
-# def apply_promotion(promotion_id, product_id):
-#     promotion = Promotion.find(promotion_id)
-#     if promotion is None:
-#         abort(
-#             status.HTTP_404_NOT_FOUND,
-#             f"Promotion with id {promotion_id} was not found.",
-#         )
-#     if datetime.now() > promotion.expired:
-#         app.logger.warning("Received request to update an expired promotion.")
-#         abort(
-#             status.HTTP_405_METHOD_NOT_ALLOWED,
-#             "Updating expired promotions is not supported",
-#         )
+######################################################################
+# Bind Product to Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/<int:product_id>", methods=["PUT"])
+def bind_prudct_to_promotion(promotion_id, product_id):
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
 
-#     # check if product is in the promotion
-#     if product_id not in promotion.products:
-#         abort(
-#             status.HTTP_404_NOT_FOUND,
-#             f"Product with id {product_id} is not in the promotion.",
-#         )
-
-#     app.logger.info("Updating promotion with id %s", promotion_id)
-#     data = request.get_json()
-
-#     try:
-#         promotion.deserialize(data)
-#     except DataValidationError as e:
-#         app.logger.warning("Bad request data: %s", str(e))
-#         abort(status.HTTP_400_BAD_REQUEST, str(e))
-#     if not request.is_json:
-#         abort(
-#             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-#             "Unsupported media type: Request is not JSON",
-#         )
-
-#     promotion.update()
-#     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+    # check if product is in the promotion
+    product = Product.find(product_id)
+    if product is None:
+        product = Product(id=product_id)
+        product.create()
+        promotion.products.append(product)
+    elif product_id in promotion.products:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Product with id {product_id} is already in the promotion.",
+        )
+    else:
+        promotion.products.append(product)
+        
+    app.logger.info("Updating promotion with id %s", promotion_id)
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)

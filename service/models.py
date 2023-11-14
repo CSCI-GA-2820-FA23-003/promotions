@@ -149,6 +149,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             "whole_store": self.whole_store,
             "promo_type": self.promo_type,
             "value": float(self.value),
+            "products": [product.id for product in self.products],
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }

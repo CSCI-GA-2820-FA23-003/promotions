@@ -44,13 +44,13 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def setUp(self):
         """This runs before each test"""
-
-    def tearDown(self):
-        """This runs after each test"""
         db.session.query(promotion_product).delete()
         db.session.query(Product).delete()
         db.session.query(Promotion).delete()
         db.session.commit()
+
+    def tearDown(self):
+        """This runs after each test"""
         db.session.remove()
 
     ######################################################################

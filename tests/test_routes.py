@@ -11,9 +11,9 @@ import logging
 
 from unittest import TestCase
 from service import app
-from service.models import db, Promotion, init_db
+from service.models import db, Promotion, init_db, promotion_product, Product
 from service.common import status  # HTTP Status Codes
-from tests.factories import PromotionFactory
+from tests.factories import PromotionFactory, ProductFactory
 from datetime import datetime, timedelta
 
 DATABASE_URI = os.getenv("DATABASE_URI")
@@ -34,9 +34,6 @@ class TestPromotionResourceModel(TestCase):
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-        # drop all of the tables in the database
-        db.drop_all()
-        # create the tables
         init_db(app)
 
     @classmethod
@@ -47,6 +44,8 @@ class TestPromotionResourceModel(TestCase):
     def setUp(self):
         """This runs before each test"""
         self.client = app.test_client()
+        db.session.query(promotion_product).delete()
+        db.session.query(Product).delete()
         db.session.query(Promotion).delete()
         db.session.commit()
 
@@ -310,3 +309,39 @@ class TestPromotionResourceModel(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    # +++++ Actions Routes +++++
+    def test_bind_product_to_promotion(self):
+        """It should bind a product to a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 200)
+
+    def test_bind_product_to_promotion_promotion_not_found(self):
+        """It should not bind a product to a promotion that doesn't exist"""
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/0/{product.id}")
+        self.assertEqual(response.status_code, 404)
+
+    def test_bind_product_to_promotion_product_not_found(self):
+        """It should create a product and bind it to a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/0")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(promotion.products), 1)
