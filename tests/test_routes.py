@@ -177,6 +177,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_delete_expired_promotion(self):
+        """Test that deleting an expired promotion returns a 405 HTTP status code."""
         # Create a new promotion that has expired
         promotion = Promotion(
             code="EXPIRED123",
