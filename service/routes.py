@@ -3,11 +3,12 @@ My Service
 
 Describe what your service does here
 """
+from datetime import datetime
 from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.exceptions import ConfirmationRequiredError
 from service.models import Promotion, DataValidationError
-from datetime import datetime
+
 
 # Import Flask application
 from . import app
@@ -66,7 +67,11 @@ def create_promotion():
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED, {"Location": location_url})
+    return (
+        jsonify(promotion.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################
@@ -74,6 +79,17 @@ def create_promotion():
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
 def delete_promotion(promotion_id):
+    """Deletes a Promotion from the database
+
+    Args:
+        promotion_id (int): the id of the promotion to delete
+
+    Raises:
+        ConfirmationRequiredError: raised if the confirm parameter is not true
+
+    Returns:
+        tuple: empty tuple and 204 status code if successful
+    """
     try:
         promotion = Promotion.find(promotion_id)
         if promotion is None:
@@ -95,8 +111,8 @@ def delete_promotion(promotion_id):
         app.logger.info("Promotion with ID [%s] delete complete.", promotion_id)
         return "", status.HTTP_204_NO_CONTENT
 
-    except ConfirmationRequiredError as e:
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    except ConfirmationRequiredError as error:
+        abort(status.HTTP_400_BAD_REQUEST, str(error))
 
 
 ######################################################################
@@ -104,6 +120,12 @@ def delete_promotion(promotion_id):
 ######################################################################
 @app.route("/promotions/<int:promotion_id>", methods=["PUT"])
 def update_promotion(promotion_id):
+    """Updates a Promotion
+    Args:
+        promotion_id (int): the id of the promotion to update
+    Returns:
+        tuple: empty tuple and 204 status code if successful
+    """
     promotion = Promotion.find(promotion_id)
     if promotion is None:
         abort(
@@ -120,9 +142,9 @@ def update_promotion(promotion_id):
     data = request.get_json()
     try:
         promotion.deserialize(data)
-    except DataValidationError as e:
-        app.logger.warning("Bad request data: %s", str(e))
-        abort(status.HTTP_400_BAD_REQUEST, str(e))
+    except DataValidationError as error:
+        app.logger.warning("Bad request data: %s", str(error))
+        abort(status.HTTP_400_BAD_REQUEST, str(error))
     if not request.is_json:
         abort(
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
