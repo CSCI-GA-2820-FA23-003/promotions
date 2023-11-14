@@ -62,10 +62,11 @@ def create_promotion():
     promotion.deserialize(data)
     promotion.create()
 
+    location_url = url_for("get_promotions", promotion_id=promotion.id, _external=True)
     app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
     # Return the new Promotion as JSON
-    return (jsonify(promotion.serialize()), 201)
+    return (jsonify(promotion.serialize()), status.HTTP_201_CREATED, {"Location": location_url})
 
 
 ######################################################################
