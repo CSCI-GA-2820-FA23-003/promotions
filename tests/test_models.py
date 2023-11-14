@@ -300,6 +300,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def test_concurrent_creates(self):
         """Test concurrent creation of promotions"""
+        # Test concurrent creation of promotions
         promotion1 = PromotionFactory()
         promotion2 = PromotionFactory()
 
@@ -313,6 +314,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def test_create_with_special_characters(self):
         """Test creating a promotion with special characters in the name"""
+        # Test creating a promotion with special characters in the name
         special_name = "NameWithSpecialChars@#^&*()"
         promotion = PromotionFactory(name=special_name)
 
@@ -391,6 +393,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
     def test_create_with_deserialize(self):
         """Test creating a promotion using the deserialize method"""
+        # Test creating a promotion using the deserialize method
         create_data = {
             "name": "NewPromotion",
             "code": "CODE123",

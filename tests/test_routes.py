@@ -79,7 +79,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_update_valid_promotion(self):
-        """It should update a promotion"""
+        """Create a Promotion and then update it"""
         # Create a test promotion using the factory
         promotion = PromotionFactory()
         promotion.create()
@@ -106,13 +106,13 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_promotion_not_found(self):
-        """It should return a 404 error if the promotion doesn't exist"""
+        """It should return a 404 error if a Promotion is not found by id"""
         invalid_promotion_id = 99999999
         response = self.client.put(f"/promotions/{invalid_promotion_id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bad_request(self):
-        """It should return a 400 error if the data is invalid"""
+        """It should return 400 Bad Request if the data is invalid"""
         invalid_data = {}  # Empty data, which should trigger a bad request
         promotion = PromotionFactory()
         promotion.create()
@@ -124,7 +124,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_update_expired_promotion(self):
-        """It should return a 405 error if the promotion is expired"""
+        """It should not update an expired Promotion"""
         promotion = PromotionFactory()
         promotion.create()
         promotion.expired = datetime.utcnow() - timedelta(days=1)
@@ -138,7 +138,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_unsupported_media_type(self):
-        """It should return a 415 error if the media type is unsupported"""
+        """It should return 415 Unsupported Media Type when Content-Type is not supported"""
         promotion = PromotionFactory()
         promotion.create()
         promotion.update()
@@ -152,7 +152,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 415)
 
     def test_delete_promotion_without_confirmation(self):
-        """It should return a 400 error if the user doesn't confirm deletion"""
+        """It should not delete a Promotion without confirmation"""
         # Create a promotion using the factory
         promotion = PromotionFactory()
         db.session.add(promotion)
@@ -163,7 +163,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertIn("Please confirm deletion", response.get_data(as_text=True))
 
     def test_delete_promotion_success(self):
-        """It should delete a promotion if the user confirms deletion"""
+        """It should delete a Promotion with confirmation"""
         # Assuming we have a method to create a test promotion and return its ID
         promotion_id = self._create_promotions(1)[0].id
 
@@ -179,7 +179,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertIsNone(promotion)
 
     def test_delete_promotion_no_confirm(self):
-        """It should not delete a promotion if the user doesn't confirm deletion"""
+        """It should not delete a Promotion without confirmation"""
         # Assuming we have a method to create a test promotion and return its ID
         promotion_id = self._create_promotions(1)[0].id
 
@@ -195,7 +195,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertIsNotNone(promotion)
 
     def test_delete_nonexistent_promotion(self):
-        """It should return a 404 error if the promotion doesn't exist"""
+        """It should return a 404 error if a Promotion is not found by id"""
         # Attempt to delete a promotion that doesn't exist
         response = self.client.delete("/promotions/999999?confirm=true")
         self.assertEqual(response.status_code, 404)  # Expected Not Found
@@ -281,7 +281,7 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_404_not_found(self):
-        """It should return a 404 error if the promotion doesn't exist"""
+        """It should return a 404 error if a Promotion is not found by id"""
         response = self.client.get("/nonexistent_route")
         self.assertEqual(response.status_code, 404)
         data = response.get_json()
