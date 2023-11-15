@@ -208,6 +208,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             "whole_store": False,
             "promo_type": 2,
             "value": 50.0,
+            "available": 10
         }
 
         promotion.deserialize(update_data)
@@ -380,6 +381,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             "whole_store": True,
             "promo_type": 1,
             "value": 10.0,
+            "available": 10
         }
 
         promotion = PromotionFactory()
@@ -436,6 +438,9 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIn("updated_at", data)
         self.assertEqual(data["updated_at"], promotion.updated_at)
 
+        self.assertIn("available", data)
+        self.assertEqual(data["available"], promotion.available)
+
     def test_deserialize_a_promotion(self):
         """It should de-serialize a Promotion"""
         data = PromotionFactory().serialize()
@@ -451,6 +456,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["whole_store"], promotion.whole_store)
         self.assertEqual(data["promo_type"], promotion.promo_type)
         self.assertEqual(data["value"], promotion.value)
+        self.assertEqual(data["available"], promotion.available)
 
     def test_deserialize_bad_data(self):
         """It should raise a DataValidationError when deserializing bad data."""

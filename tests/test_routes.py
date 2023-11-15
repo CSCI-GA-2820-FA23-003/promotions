@@ -96,6 +96,7 @@ class TestPromotionResourceModel(TestCase):
             "value": 10.0,
             "created_at": datetime.now().isoformat(),  # Include 'created_at' field
             "updated_at": datetime.now().isoformat(),  # Include 'created_at' field
+            "available": 10
         }
 
         response = self.client.put(
