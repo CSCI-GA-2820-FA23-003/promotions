@@ -271,3 +271,26 @@ def apply_promotion(promotion_id):
     promotion.available -= 1
     promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
+# Cancel Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/cancel", methods=["POST"])
+def cancel_promotion(promotion_id):
+    """Cancel the promotion
+    Args:
+        promotion_id (inr): Promotion ID
+
+    Returns:
+        json: The data of the promotion
+    """
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+    app.logger.info("Canceling promotion with id %s", promotion_id)
+    promotion.invalidate()
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)

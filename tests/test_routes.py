@@ -391,3 +391,17 @@ class TestPromotionResourceModel(TestCase):
         promotion.create()
         response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
+
+    def test_cancel_promotion(self):
+        """It should cancel the promotion"""
+        promotion = PromotionFactory()
+        promotion.available = 0
+        promotion.create()
+        response = self.client.post(f"{BASE_URL}/{promotion.id}/cancel")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(promotion.available, 0)
+
+    def test_cancel_nonexistent_promotion(self):
+        """It should not cancel the promotion"""
+        response = self.client.post(f"{BASE_URL}/0/cancel")
+        self.assertEqual(response.status_code, 404)
