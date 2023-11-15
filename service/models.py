@@ -162,6 +162,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             "products": [product.id for product in self.products],
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "available": self.available
         }
 
     def deserialize(self, data):
@@ -179,6 +180,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             self.whole_store = data["whole_store"]
             self.promo_type = data["promo_type"]
             self.value = data["value"]
+            self.available = data["available"]
 
         except KeyError as error:
             raise DataValidationError(
