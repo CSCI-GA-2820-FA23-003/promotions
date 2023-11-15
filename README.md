@@ -40,7 +40,10 @@ This service is designed to manage promotions. It offers endpoints to create, re
 
 ---
 
-## Promotion Schema
+## Data Model / DB Schema
+
+### Promotion Schema
+
 | Field    | Type  | Description    |
 | ------- | ------- | -------- |
 | id | int | The promotion id |
@@ -56,17 +59,27 @@ This service is designed to manage promotions. It offers endpoints to create, re
 | updated_at | Date | Model lasted updated timestamp |
 
 > **Note**: promotion_type is an integer value that represents the type of promotion. The value can be one of the following:
+>
 > - 1: Percentage
 > - 2: Fixed Amount
 > - 3: Buy X Get Y Free
 > - 4: Buy X Get Y at Z% Off
 > - 5: Buy X Get Y at Z% Off (same product)
 
-## Promotion - Product Schema
+### Product Schema
+
 | Field    | Type  | Description    |
 | ------- | ------- | -------- |
-| promotion_id | str | The Promotion Id |
-| product_id | str | The Product Id |
+| id | int | The Promotion Id |
+| created_at | str | Date the Promotion applies to the product |
+| updated_at | Date | Model lasted updated timestamp |
+
+### Promotion - Product Schema
+
+| Field    | Type  | Description    |
+| ------- | ------- | -------- |
+| promotion_id | int | The Promotion id |
+| product_id | int | The Product Id |
 | created_at | str | Date the Promotion applies to the product |
 | updated_at | Date | Model lasted updated timestamp |
 
@@ -81,6 +94,7 @@ This service is designed to manage promotions. It offers endpoints to create, re
   - `200 OK`: Returns the service name, version, and the URL for listing promotions.
 
 Example Response:
+
 ```json
 {
     "name": "Promotion Demo REST API Service",
@@ -194,6 +208,18 @@ Example Response:
 - **Response**:
   - `200 OK`: Returns the requested promotion as JSON.
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
+
+---
+
+### 7. Apply Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>/apply`
+- **Method**: `POST`
+- **Description**: Apply a specific promotion using its ID.
+- **Response**:
+  - `200 OK`: Returns the requested promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
+  - `405 Method Not Allowed`: If the promotion is already expired or not available.
 
 ---
 
