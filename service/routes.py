@@ -160,7 +160,18 @@ def update_promotion(promotion_id):
 def list_promotions():
     """Returns all of the Promotions"""
     app.logger.info("Request for promotion list")
-    promotions = Promotion.all()
+    name = request.args.get("name")
+    code = request.args.get("code")
+    promo_type = request.args.get("promo_type")
+
+    if name:
+        promotions = Promotion.find_by_name(name)
+    elif code:
+        promotions = Promotion.find_by_code(code)
+    elif promo_type:
+        promotions = Promotion.find_by_promo_type(promo_type)
+    else:
+        promotions = Promotion.all()
 
     results = [p.serialize() for p in promotions]
     app.logger.info("Returning %d promotions", len(results))

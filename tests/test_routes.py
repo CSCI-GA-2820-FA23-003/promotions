@@ -11,6 +11,7 @@ import logging
 
 from unittest import TestCase
 from datetime import datetime, timedelta
+from urllib.parse import quote_plus
 from service import app
 from service.models import db, Promotion, init_db, promotion_product, Product
 from service.common import status  # HTTP Status Codes
@@ -294,6 +295,54 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
+
+    def test_query_promotion_list_by_name(self):
+        """It should Query Promotion by Name"""
+        promotions = self._create_promotions(10)
+        test_name = promotions[0].name
+        name_promotions = [promotion for promotion in promotions if promotion.name == test_name]
+        response = self.client.get(
+            BASE_URL,
+            query_string=f"name={quote_plus(test_name)}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(name_promotions))
+        # check the data just to be sure
+        for promotion in data:
+            self.assertEqual(promotion["name"], test_name)
+
+    def test_query_promotion_list_by_code(self):
+        """It should Query Promotion by Code"""
+        promotions = self._create_promotions(10)
+        test_code = promotions[0].code
+        code_promotions = [promotion for promotion in promotions if promotion.code == test_code]
+        response = self.client.get(
+            BASE_URL,
+            query_string=f"code={quote_plus(test_code)}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(code_promotions))
+        # check the data just to be sure
+        for promotion in data:
+            self.assertEqual(promotion["code"], test_code)
+
+    def test_query_promotion_list_by_promo_type(self):
+        """It should Query Promotion by Promo_type"""
+        promotions = self._create_promotions(10)
+        test_promo_type = promotions[0].promo_type
+        promo_type_promotions = [promotion for promotion in promotions if promotion.promo_type == test_promo_type]
+        response = self.client.get(
+            BASE_URL,
+            query_string=f"promo_type={test_promo_type}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(promo_type_promotions))
+        # check the data just to be sure
+        for promotion in data:
+            self.assertEqual(promotion["promo_type"], test_promo_type)
 
     def test_not_allow_method(self):
         """It should return a 405 error when calling a nonexistent method"""
