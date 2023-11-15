@@ -194,9 +194,13 @@ Example Response:
 
 - **Endpoint**: `/promotions`
 - **Method**: `GET`
-- **Description**: Retrieves a list of all promotions.
+- **Description**: Retrieves a list of all promotions with optional filters.
+- **Query Parameters**:
+  - `name` (optional): Filter promotions by name.
+  - `code` (optional): Filter promotions by code.
+  - `promo_type` (optional): Filter promotions by type.
 - **Response**:
-  - `200 OK`: Returns a list of all promotions as JSON.
+  - `200 OK`: Returns a list of promotions as JSON.
 
 ---
 
