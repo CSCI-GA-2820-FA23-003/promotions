@@ -135,6 +135,19 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         db.session.delete(self)
         db.session.commit()
 
+    def invalidate(self):
+        """Invalidate the promotion"""
+        if not self.id or not db.session.get(Promotion, self.id):
+            raise DataValidationError(f"Promotion with ID {self.id} not found.")
+
+        self.app.logger.info("Invalidating %s", self.name)
+        self.available = 0
+        self.expired = db.func.current_timestamp()
+
+        # unbind all products
+        self.products.clear()
+        db.session.commit()
+
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         return {

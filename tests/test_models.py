@@ -664,3 +664,33 @@ class TestPromotionResourceModel(unittest.TestCase):
             promotion.delete()
 
         self.assertIn("Promotion with ID 123456 not found", str(error.exception))
+
+    def test_cancel_promotion(self):
+        """Test the cancellation of an existing promotion."""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.invalidate()
+        self.assertEqual(promotion.available, 0)
+        self.assertAlmostEqual(
+            promotion.expired, datetime.utcnow(), delta=timedelta(seconds=1)
+        )
+
+    def test_cancel_promotion_with_products(self):
+        """Test the cancellation of an existing promotion with products."""
+        promotion = PromotionFactory()
+        promotion.create()
+        product = ProductFactory()
+        product.create()
+        promotion.products.append(product)
+        promotion.invalidate()
+        self.assertEqual(promotion.available, 0)
+        self.assertAlmostEqual(
+            promotion.expired, datetime.utcnow(), delta=timedelta(seconds=1)
+        )
+        self.assertEqual(len(promotion.products), 0)
+
+    def test_invalid_promotion_id_raises_error(self):
+        """Test deletion of a promotion with invalid ID raises DataValidationError."""
+        promotion = PromotionFactory()
+        with self.assertRaises(DataValidationError):
+            promotion.invalidate()

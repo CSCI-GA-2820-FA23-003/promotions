@@ -211,6 +211,8 @@ Example Response:
 
 ---
 
+## Action Routes
+
 ### 7. Apply Promotion
 
 - **Endpoint**: `/promotions/<int:promotion_id>/apply`
@@ -220,6 +222,15 @@ Example Response:
   - `200 OK`: Returns the requested promotion as JSON.
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
   - `405 Method Not Allowed`: If the promotion is already expired or not available.
+
+### 8. Cancel Promotion
+
+- **Endpoint**: `/promotions/<int:promotion_id>/cancel`
+- **Method**: `POST`
+- **Description**: Cancel a specific promotion using its ID.
+- **Response**:
+  - `200 OK`: Returns the requested promotion as JSON.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---
 
