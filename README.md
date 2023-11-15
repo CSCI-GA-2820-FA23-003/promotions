@@ -32,7 +32,7 @@ tests/              - test cases package
 └── test_routes.py  - test suite for service routes
 ```
 
-## Spint 1 
+## Sprint 1 & 2
 
 ## Description
 
@@ -41,17 +41,18 @@ This service is designed to manage promotions. It offers endpoints to create, re
 ---
 
 ## Promotion Schema
-| Field    | Type  | Des    |
+| Field    | Type  | Description    |
 | ------- | ------- | -------- |
 | id | int | The promotion id |
 | code | str | The Promotion code |
 | name | str | The Promotion label (description) |
 | start | date | Active date |
 | expired | date | Expired date |
+| available | int | Code available to use |
 | whole_store | bool | Whether is whole store promotion|
 | promo_type | int | The Promotion type |
 | value | double | Promotion value according to the type |
-| created_at | str | The Promotion code |
+| created_at | Date | Date the Promotion was created |
 | updated_at | Date | Model lasted updated timestamp |
 
 > **Note**: promotion_type is an integer value that represents the type of promotion. The value can be one of the following:
@@ -60,6 +61,14 @@ This service is designed to manage promotions. It offers endpoints to create, re
 > - 3: Buy X Get Y Free
 > - 4: Buy X Get Y at Z% Off
 > - 5: Buy X Get Y at Z% Off (same product)
+
+## Promotion - Product Schema
+| Field    | Type  | Description    |
+| ------- | ------- | -------- |
+| promotion_id | str | The Promotion Id |
+| product_id | str | The Product Id |
+| created_at | str | Date the Promotion applies to the product |
+| updated_at | Date | Model lasted updated timestamp |
 
 ## API Endpoints
 
@@ -94,6 +103,7 @@ Example Response:
     > | name | str | True | The Promotion label (description) |
     > | start | date | True | Active date |
     > | expired | date | True | Expired date |
+    > | available | int | Code available to use |
     > | whole_store | bool | False (Default to False) | Whether is whole store promotion|
     > | promo_type | int | True | The Promotion type |
     > | value | double | False (Default to 0.0) | Promotion value according to the type |
@@ -106,6 +116,7 @@ Example Response:
     > | name | str | The Promotion label (description) |
     > | start | date | Active date |
     > | expired | date | Expired date |
+    > | available | int | Code available to use |
     > | whole_store | bool | Whether is whole store promotion|
     > | promo_type | int | The Promotion type |
     > | value | Date | Promotion value according to the type |
@@ -123,6 +134,7 @@ Example Response:
 - **Response**:
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
   - `400 Bad Request`: If the confirmation parameter is missing or false.
+  - `204 No Content`: This status is returned regardless of whether the promotion existed or not. The delete operation is idempotent, ensuring consistent behavior.
 
 ---
 
@@ -138,6 +150,7 @@ Example Response:
     > | name | str | True | The Promotion label (description) |
     > | start | date | True | Active date |
     > | expired | date | True | Expired date |
+    > | available | int | Code available to use |
     > | whole_store | bool | False (Default to False) | Whether is whole store promotion|
     > | promo_type | int | True | The Promotion type |
     > | value | double | False (Default to 0.0) | Promotion value according to the type |
@@ -150,6 +163,7 @@ Example Response:
     > | name | str | The Promotion label (description) |
     > | start | date | Active date |
     > | expired | date | Expired date |
+    > | available | int | Code available to use |
     > | whole_store | bool | Whether is whole store promotion|
     > | promo_type | int | The Promotion type |
     > | value | Date | Promotion value according to the type |
