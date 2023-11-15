@@ -273,7 +273,7 @@ class TestPromotionResourceModel(unittest.TestCase):
 
         # Validation
         retrieved_promotions = Promotion.find_by_name("UpdatedName")
-        self.assertEqual(len(retrieved_promotions), 1)
+        self.assertEqual(retrieved_promotions.count(), 1)
         self.assertEqual(retrieved_promotions[0].id, promotion.id)
 
     def test_concurrent_creates(self):
@@ -474,6 +474,42 @@ class TestPromotionResourceModel(unittest.TestCase):
         found = Promotion.find(promotion_id)
         self.assertIsNotNone(found)
         self.assertEqual(found.id, promotion_id)
+
+    def test_find_by_name(self):
+        """It should Find Promotions by Name"""
+        promotions = PromotionFactory.create_batch(10)
+        for promotion in promotions:
+            promotion.create()
+        name = promotions[0].name
+        count = len([promotion for promotion in promotions if promotion.name == name])
+        found = Promotion.find_by_name(name)
+        self.assertEqual(found.count(), count)
+        for promotion in found:
+            self.assertEqual(promotion.name, name)
+
+    def test_find_by_code(self):
+        """It should Find Promotions by Code"""
+        promotions = PromotionFactory.create_batch(10)
+        for promotion in promotions:
+            promotion.create()
+        code = promotions[0].code
+        count = len([promotion for promotion in promotions if promotion.code == code])
+        found = Promotion.find_by_code(code)
+        self.assertEqual(found.count(), count)
+        for promotion in found:
+            self.assertEqual(promotion.code, code)
+
+    def test_find_by_promo_type(self):
+        """It should Find Promotions by Promo_type"""
+        promotions = PromotionFactory.create_batch(10)
+        for promotion in promotions:
+            promotion.create()
+        promo_type = promotions[0].promo_type
+        count = len([promotion for promotion in promotions if promotion.promo_type == promo_type])
+        found = Promotion.find_by_promo_type(promo_type)
+        self.assertEqual(found.count(), count)
+        for promotion in found:
+            self.assertEqual(promotion.promo_type, promo_type)
 
     def test_create_with_products(self):
         """It should create a promotion with products"""

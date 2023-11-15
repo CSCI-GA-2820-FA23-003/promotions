@@ -237,7 +237,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             name (string): the name of the PromotionModels you want to match
         """
         cls.app.logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name).all()
+        return cls.query.filter(cls.name == name)
 
     @classmethod
     def find_by_code(cls, code):
@@ -246,8 +246,18 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         Args:
             code (string): the code of the PromotionModels you want to match
         """
-        cls.app.logger.info("Processing name query for %s ...", code)
+        cls.app.logger.info("Processing code query for %s ...", code)
         return cls.query.filter(cls.code == code)
+
+    @classmethod
+    def find_by_promo_type(cls, promo_type):
+        """Returns all PromotionModels with the given promo_type
+
+        Args:
+            promo_type (int): the integer of the promo_type you want to match
+        """
+        cls.app.logger.info("Processing promo_type query for %s ...", promo_type)
+        return cls.query.filter(cls.promo_type == promo_type)
 
 
 class Product(db.Model):
