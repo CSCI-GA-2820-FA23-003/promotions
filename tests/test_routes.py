@@ -180,24 +180,6 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.delete("/promotions/999999")
         self.assertEqual(response.status_code, 404)
 
-    # def test_delete_expired_promotion(self):
-    #    """Test that deleting an expired promotion returns a 405 HTTP status code."""
-    # Create a new promotion that has expired
-    #    promotion = Promotion(
-    #        code="EXPIRED123",
-    #        name="Expired Promotion",
-    #        start=datetime.utcnow() - timedelta(days=2),
-    #        expired=datetime.utcnow() - timedelta(days=1),
-    #        whole_store=False,
-    #        promo_type=1,
-    #        value=10.0,
-    #    )
-    #    db.session.add(promotion)
-    #    db.session.commit()
-
-    #   response = self.client.delete(f"/promotions/{promotion.id}")
-    #    self.assertEqual(response.status_code, 405)
-
     def test_create(self):
         """It should respond to a proper create with 201 status code and return the data."""
         promo = PromotionFactory()

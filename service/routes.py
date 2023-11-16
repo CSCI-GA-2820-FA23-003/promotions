@@ -97,13 +97,6 @@ def delete_promotion(promotion_id):
             status.HTTP_404_NOT_FOUND,
             f"Promotion with id {promotion_id} was not found.",
         )
-    #
-    # if datetime.now() > promotion.expired:
-    #    app.logger.warning("Received request to delete an expired promotion.")
-    #   abort(
-    #        status.HTTP_405_METHOD_NOT_ALLOWED,
-    #        "Deleting expired promotions is not supported",
-    #    )
 
     app.logger.info("Deleting promotion with id %s", promotion_id)
     promotion.delete()
