@@ -335,7 +335,7 @@ def apply_promotion(promotion_id):
 ######################################################################
 # Cancel Promotion
 ######################################################################
-@app.route("/promotions/<int:promotion_id>/cancel", methods=["POST", "GET"])
+@app.route("/promotions/<int:promotion_id>/cancel", methods=["POST"])
 def cancel_promotion(promotion_id):
     """Cancel the promotion
     Args:

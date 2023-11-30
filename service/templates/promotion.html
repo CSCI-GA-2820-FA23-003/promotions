@@ -11,6 +11,16 @@
     <h1 class="text-2xl">Promotion Edit (ID: {{ promotion.id }})</h1>
     <div class="rounded-lg bg-gray-100 p-5">
         <form id="form_data" class="ui form">
+            {% if not promotion.is_valid() %}
+            <div class="ui negative message">
+                <i class="close icon"></i>
+                <div class="header">
+                  Invalid Promotion
+                </div>
+                <p>Please update the available count, start time and expired time to re-active the promotion</p>
+              </div>
+            {% endif %}
+
             <h4 class="ui dividing header">Basic</h4>
             <div class="field">
                 <label>Name</label>
@@ -164,44 +174,6 @@ $('#product-select').dropdown({
     },
 });
 
-function remove_promotion(){
-    $.ajax({
-        url: '/promotions/{{ promotion.id }}',
-        type: 'DELETE',
-        success: function(result) {
-            $.toast({
-                class: 'success',
-                message: `Promotion {{ promotion.code }} deleted`,
-              });
-        },
-        error: function(result) {
-            $.toast({
-                class: 'error',
-                message: `Failed to delete promotion {{ promotion.code }}: ${result.responseJSON.message}`,
-              });
-        }
-    });
-}
-
-function revoke_promotion(){
-    $.ajax({
-        url: '/promotions/{{ promotion.id }}/revoke',
-        type: 'POST',
-        success: function(result) {
-            $.toast({
-                class: 'success',
-                message: `Promotion {{ promotion.code }} revoked`,
-              });
-        },
-        error: function(result) {
-            $.toast({
-                class: 'error',
-                message: `Failed to revoke promotion {{ promotion.code }}: ${result.responseJSON.message}`,
-              });
-        }
-    });
-}
-
 function submit_promotion(){
     $.ajax({
         url: '/promotions/{{ promotion.id }}',
@@ -243,6 +215,8 @@ function delete_promotion(){
             class: 'success',
             message: `Promotion {{ promotion.code }} deleted`,
           });
+
+          window.location.href = '/promotions';
     },
     error: function(result) {
         $.toast({
@@ -254,6 +228,44 @@ function delete_promotion(){
 }
 
 $(document).ready(function(){
+    $('#btn-del').on('click', function(){
+        $.ajax({
+            url: '/promotions/{{ promotion.id }}',
+            type: 'DELETE',
+            success: function(result) {
+                $.toast({
+                    class: 'success',
+                    message: `Promotion {{ promotion.code }} deleted`,
+                  });
+            },
+            error: function(result) {
+                $.toast({
+                    class: 'error',
+                    message: `Failed to delete promotion {{ promotion.code }}: ${result.responseJSON.message}`,
+                  });
+            }
+        });
+    });
+
+    $('#btn-revoke').on('click', function(){
+        $.ajax({
+            url: '/promotions/{{ promotion.id }}/cancel',
+            type: 'POST',
+            success: function(result) {
+                $.toast({
+                    class: 'success',
+                    message: `Promotion {{ promotion.code }} revoked`,
+                  });
+            },
+            error: function(result) {
+                $.toast({
+                    class: 'error',
+                    message: `Failed to revoke promotion {{ promotion.code }}: ${result}`,
+                  });
+            }
+        });
+    });
+
     $('#form_data').submit(function(e){
         e.preventDefault();
     });
