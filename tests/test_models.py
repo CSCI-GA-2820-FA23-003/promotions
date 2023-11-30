@@ -208,7 +208,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             "whole_store": False,
             "promo_type": 2,
             "value": 50.0,
-            "available": 10
+            "available": 10,
         }
 
         promotion.deserialize(update_data)
@@ -381,7 +381,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             "whole_store": True,
             "promo_type": 1,
             "value": 10.0,
-            "available": 10
+            "available": 10,
         }
 
         promotion = PromotionFactory()
@@ -511,7 +511,13 @@ class TestPromotionResourceModel(unittest.TestCase):
         for promotion in promotions:
             promotion.create()
         promo_type = promotions[0].promo_type
-        count = len([promotion for promotion in promotions if promotion.promo_type == promo_type])
+        count = len(
+            [
+                promotion
+                for promotion in promotions
+                if promotion.promo_type == promo_type
+            ]
+        )
         found = Promotion.find_by_promo_type(promo_type)
         self.assertEqual(found.count(), count)
         for promotion in found:
@@ -612,6 +618,27 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.create()
         found_product = Product.find(product.id)
         self.assertEqual(found_product.id, product.id)
+
+    def test_bind_promotion_with_product(self):
+        """It should bind a promotion to a product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+
+    def test_bind_promotion_with_nonexistent_product(self):
+        """It should bind a promotion to a nonexistent product, creating the product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
 
     def test_bind_promotion(self):
         """It should bind a promotion to a product"""

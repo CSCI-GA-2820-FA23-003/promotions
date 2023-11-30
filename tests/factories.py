@@ -31,7 +31,7 @@ class PromotionFactory(factory.Factory):
     )
     available = factory.Faker("pyint", min_value=1)
     whole_store = FuzzyChoice(choices=[True, False])
-    promo_type = factory.Sequence(lambda n: (n % 5) + 1)
+    promo_type = factory.Sequence(lambda n: (n % 2) + 1)
     value = FuzzyDecimal(0.1, 100.0)
 
 

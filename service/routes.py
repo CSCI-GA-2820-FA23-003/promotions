@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import datetime
-from flask import jsonify, request, url_for, abort, make_response
+from flask import jsonify, request, url_for, abort, make_response, render_template
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 
@@ -27,6 +27,22 @@ def index():
         ),
         status.HTTP_200_OK,
     )
+
+
+######################################################################
+# Promotions User View
+######################################################################
+@app.route("/promotion/<int:promotion_id>/edit", methods=["GET"])
+def promotion_detail_view(promotion_id):
+    """Root URL response"""
+    app.logger.info("Request for Root URL")
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+    return render_template("promotion.html", promotion=promotion)
 
 
 ######################################################################
@@ -197,7 +213,7 @@ def get_promotions(promotion_id):
 # Bind Product to Promotion
 ######################################################################
 @app.route("/promotions/<int:promotion_id>/<int:product_id>", methods=["PUT"])
-def bind_prudct_to_promotion(promotion_id, product_id):
+def bind_product_to_promotion(promotion_id, product_id):
     """Bind the product to the current promotion
 
     Args:
@@ -227,6 +243,46 @@ def bind_prudct_to_promotion(promotion_id, product_id):
         )
     else:
         promotion.products.append(product)
+
+    app.logger.info("Updating promotion with id %s", promotion_id)
+    return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
+# Unbind Product to Promotion
+######################################################################
+@app.route("/promotions/<int:promotion_id>/<int:product_id>", methods=["DELETE"])
+def unbind_product_to_promotion(promotion_id, product_id):
+    """Unbind the product to the current promotion
+
+    Args:
+        promotion_id (int): Promotion ID
+        product_id (int): Product ID
+
+    Returns:
+        Promotion: the new promotion with the unbound product
+    """
+    promotion = Promotion.find(promotion_id)
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id {promotion_id} was not found.",
+        )
+
+    # check if product is in the promotion
+    product = Product.find(product_id)
+    if product is None:
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            f"Product with id {product_id} was not found.",
+        )
+    elif product not in promotion.products:
+        abort(
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            f"Product with id {product_id} is not in the promotion.",
+        )
+    else:
+        promotion.products.remove(product)
 
     app.logger.info("Updating promotion with id %s", promotion_id)
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)

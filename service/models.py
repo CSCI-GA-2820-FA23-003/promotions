@@ -162,7 +162,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             "products": [product.id for product in self.products],
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "available": self.available
+            "available": self.available,
         }
 
     def deserialize(self, data):
@@ -192,6 +192,22 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
                 "Error message: " + error.args[0]
             ) from error
         return self
+
+    def bind_product(self, product_id):
+        """Bind a product to a promotion
+        Args:
+            product_id (int): the id of the product
+        """
+        product = Product.find(product_id)
+        if product is None:
+            # create a new product
+            product = Product(id=product_id)
+            product.create()
+        if product_id not in self.products:
+            self.products.append(product)
+        else:
+            self.app.logger.info(f"Product with id '{id}' is already in the promotion.")
+        db.session.commit()
 
     def unbind_product(self, product_id):
         """Unbind a product to a promotion

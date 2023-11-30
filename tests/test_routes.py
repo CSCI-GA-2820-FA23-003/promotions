@@ -390,6 +390,58 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(promotion.products), 1)
 
+    def test_unbind_product_from_promotion(self):
+        """It should unbind a product from a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 200)
+
+        # Unbind the product from the promotion
+        response = self.client.delete(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unbind_product_from_promotion_promotion_not_found(self):
+        """It should not unbind a product from a promotion that doesn't exist"""
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Unbind the product from the promotion
+        response = self.client.delete(f"{BASE_URL}/0/{product.id}")
+        self.assertEqual(response.status_code, 404)
+
+    def test_unbind_nonexistent_product_from_promotion(self):
+        """It should not unbind a nonexistent product from a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Unbind the product from the promotion
+        response = self.client.delete(f"{BASE_URL}/{promotion.id}/0")
+        self.assertEqual(response.status_code, 405)
+
+    def test_unbind_nonbound_product_from_promotion(self):
+        """It should not unbind a nonbound product from a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Unbind the product from the promotion
+        response = self.client.delete(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 405)
+
     def test_apply_promotion(self):
         """It should apply the promotion"""
         promotion = PromotionFactory()
@@ -441,4 +493,16 @@ class TestPromotionResourceModel(TestCase):
     def test_cancel_nonexistent_promotion(self):
         """It should not cancel the promotion"""
         response = self.client.post(f"{BASE_URL}/0/cancel")
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_View(self):
+        """It should edit the promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        response = self.client.get(f"promotion/{promotion.id}/edit")
+        self.assertEqual(response.status_code, 200)
+
+    def test_edit_nonexistent_promotion(self):
+        """It should not edit the promotion"""
+        response = self.client.get(f"{BASE_URL}/0/edit")
         self.assertEqual(response.status_code, 404)

@@ -1,0 +1,224 @@
+<!doctype html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<title>Promotions  {{ promotion.code }}</title>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
+</head>
+
+<div class="p-20 flex flex-col gap-5 w-1/2 m-auto">
+    <h1 class="text-2xl">Promotion Edit (ID: {{ promotion.id }})</h1>
+    <div class="rounded-lg bg-gray-100 p-5">
+        <form id="form_data" class="ui form">
+            <h4 class="ui dividing header">Basic</h4>
+            <div class="field">
+                <label>Name</label>
+                <input type="text" name="name" placeholder="Promotion Name" value="{{ promotion.name }}">
+            </div>
+
+            <div class="field">
+                <label>Code</label>
+                <input type="text" name="code" value="{{ promotion.code }}" disabled>
+            </div>
+
+            <div class="field">
+                <label>Start</label>
+                <input type="datetime-local" name="start" value="{{ promotion.start }}">
+            </div>
+
+            <div class="field">
+                <label>End</label>
+                <input type="datetime-local" name="end" value="{{ promotion.end }}">
+            </div>
+
+            <div class="field">
+                <label>Available Count</label>
+                <input type="number" name="available" value="{{ promotion.available}}">
+            </div>
+                
+            <h4 class="ui dividing header">Type</h4>
+            <div class="field">
+                <label>Type</label>
+                <select name="type" class="ui dropdown selection">
+                    <option value="1" {{ 'selected' if promotion.promo_type == 1 else '' }}>Percentage</option>
+                    <option value="2" {{ 'selected' if promotion.promo_type == 2 else '' }}>Fixed Amount</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>value</label>
+                <input type="number" name="value" value="{{ promotion.value }}">
+            </div>
+
+            <h4 class="ui dividing header">Product</h4>
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox" name="whole_store" value="true" {{ 'checked' if promotion.whole_store else '' }} class="hidden">
+                    <label>Whole Store</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Product</label>
+                <div class="ui fluid multiple search selection dropdown" id="product-select">
+                    <input name="tags" type="hidden" value="{{ promotion.products }}">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Product(s)</div>
+                    <div class="menu">
+                        {% for product in products %}
+                            <div class="item" data-value="css" value="{{ product.id }}" {{ 'selected' if product.id in promotion.products else '' }}>{{ product.id }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="ui dividing header">Operation</h4>
+            <div>
+                <button class="ui button disabled" id="submit-btn" type="submit">Update</button>
+                <button class="ui button" type="reset">Reset</button>
+                <button class="ui button red" type="button">Revoke</button>
+            </div>
+
+            <input type="hidden" name="id" value="{{ promotion.id }}" class="hidden">
+        </form>
+    </div>
+</div>
+
+<script>
+$('.ui.checkbox').checkbox();
+
+$('select').dropdown();
+
+$('#product-select').dropdown({
+    hideAdditions: false,
+    allowAdditions: true,
+    onAdd: function(value, text, $selectedItem) {
+        console.log('onAdd', value, text, $selectedItem);
+        
+        $.ajax({
+            url: '/promotions/{{ promotion.code }}',
+            type: 'PUT',
+            success: function(result) {
+                $.toast({
+                    class: 'success',
+                    message: `Product ${value} added and bound to promotion {{ promotion.code }}`,
+                  });
+                
+                  $('#product-select').dropdown('save defaults');
+            },
+            error: function(result) {
+                $('#product-select').dropdown('restore defaults', true);
+                $.toast({
+                    class: 'error',
+                    message: `Failed to add product ${value} to ${result.responseJSON.message}`,
+                  })
+            }
+        });
+    },
+    onRemove: function(value, text, $selectedItem) {
+        console.log('onRemove', value, text, $selectedItem);
+
+        $.ajax({
+            url: '/promotions/{{ promotion.code }}',
+            type: 'PUT',
+            success: function(result) {
+                $.toast({
+                    class: 'success',
+                    message: `Product ${value} removed and unbound from promotion {{ promotion.code }}`,
+                  });
+
+                $('#product-select').dropdown('save defaults');
+            },
+            error: function(result) {
+                $('#product-select').dropdown('restore defaults', true);
+                $.toast({
+                    class: 'error',
+                    message: `Failed to remove product ${value} from ${result.responseJSON.message}`,
+                  })
+            }
+        });
+    },
+    onLabelSelect: function(label) {
+        $.ajax({
+            url: '/promotions/{{ promotion.code }}',
+            type: 'PUT',
+            success: function(result) {
+                $.toast({
+                    class: 'success',
+                    message: `Product ${label} bound to promotion {{ promotion.code }}`,
+                  });
+
+                $('#product-select').dropdown('save defaults');
+            },
+            error: function(result) {
+                $('#product-select').dropdown('restore defaults', true);
+                $.toast({
+                    class: 'error',
+                    message: `Failed to add product ${label} to ${result.responseJSON.message}`,
+                  })
+            }
+        });
+    },
+});
+
+function apply_promotion(){
+    $.ajax({
+        url: '/promotions/{{ promotion.code }}',
+        type: 'POST',
+        data: $('#form_data').serialize(),
+        success: function(result) {
+            window.location.replace("/promotions/{{ promotion.code }}");
+        }
+    });
+}
+
+function submit_promotion(){
+    $.ajax({
+        url: '/promotions/{{ promotion.code }}',
+        type: 'PUT',
+        data: $('#form_data').serialize(),
+        success: function(result) {
+            window.location.replace("/promotions/{{ promotion.code }}");
+        }
+    });
+}
+
+function de1ete_promotion(){
+  //using ajax to delete
+  $.ajax({
+    url: '/promotions/{{ promotion.code }}',
+    type: 'DELETE',
+    success: function(result) {
+      window.location.replace("/promotions");
+    }
+  });   
+}
+
+$(document).ready(function(){
+    $('#form_data').submit(function(e){
+        e.preventDefault();
+    });
+
+    // handle the data change
+    $('#form_data').on('change', 'input, select', function(){
+        $('#submit-btn').removeClass('disabled');
+    });
+
+    $('#apply-btn').click(function(){
+        apply_promotion();
+    });
+
+    $('#edit-btn').click(function(){
+        edit_promotion();
+    });
+
+    $('#submit-btn').click(function(){
+        submit_promotion();
+    });
+
+    $('#delete-btn').click(function(){
+        delete_promotion();
+    });
+});
+</script>
