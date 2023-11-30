@@ -248,7 +248,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         if product is None:
             raise DataValidationError(f"Product with id '{id}' was not found.")
 
-        if product_id in self.products:
+        if product in self.products:
             self.products.remove(product)
         else:
             raise DataValidationError(

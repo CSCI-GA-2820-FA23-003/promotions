@@ -556,6 +556,31 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion2.create(4)
         self.assertEqual(len(promotion2.products), 1)
 
+    def test_bind_product(self):
+        """It should bind a product to a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+
+    def test_bind_product_twice(self):
+        """It should not bind a product to a promotion twice"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+
+    def test_unbind_product(self):
+        """It should unbind a product from a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+        promotion.unbind_product(1)
+        self.assertEqual(len(promotion.products), 0)
+
     # Product Model Tests
     def test_create_product_(self):
         """It should create a product"""
