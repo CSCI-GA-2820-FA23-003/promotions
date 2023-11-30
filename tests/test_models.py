@@ -128,6 +128,25 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(fetched_promotion)
         self.assertEqual(fetched_promotion.name, updated_name)
 
+    def test_update_nonexist_promotion(self):
+        """Update a non-existent promotion"""
+        promotion = PromotionFactory()
+        updated_name = "UpdatedTestPromotion"
+        promotion.name = updated_name
+
+        with self.assertRaises(DataValidationError):
+            promotion.update()
+
+    def test_update_with_unset_name(self):
+        """Update a promotion with an unset name"""
+        promotion = PromotionFactory()
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+
+        # Update the promotion
+        promotion.name = None
+        self.assertRaises(DataValidationError, promotion.update)
+
     def test_update_promotion_multiple_attributes(self):
         """Update multiple attributes of a Promotion using the factory"""
         promotion = PromotionFactory()
@@ -622,6 +641,13 @@ class TestPromotionResourceModel(unittest.TestCase):
         found_product = Product.find(product.id)
         self.assertEqual(found_product.id, product.id)
 
+    def test_unbind_nonexist_product_from_promotion(self):
+        """It should not unbind a nonexistent product from a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        with self.assertRaises(DataValidationError):
+            promotion.unbind_product(123)
+
     def test_bind_promotion_with_product(self):
         """It should bind a promotion to a product"""
         product = ProductFactory()
@@ -751,7 +777,6 @@ class TestPromotionResourceModel(unittest.TestCase):
         """Test the cancellation of an existing promotion with products."""
         promotion = PromotionFactory()
         promotion.create()
-        print(promotion.serialize())
         product = ProductFactory()
         product.create()
         promotion.products.append(product)

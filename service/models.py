@@ -119,12 +119,16 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             Promotion, self.id
         ):  # Using the updated session.get() method
             raise DataValidationError(f"Promotion with ID {self.id} not found.")
+
         if self.name is None or self.name == "":
             raise DataValidationError("name attribute is not set")
-        if self.start is None:
+
+        if self.start is None or self.start == "":
             raise DataValidationError("start attribute is not set")
+
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
+
         db.session.commit()
 
     def delete(self):
@@ -214,7 +218,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         """
         product = Product.find(product_id)
         if product is None:
-            # create a new product
             product = Product(id=product_id)
             product.create()
         if product_id not in self.products:
@@ -315,9 +318,6 @@ class Product(db.Model):
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp(),
     )
-
-    def __repr__(self):
-        return f"<ProductModel {self.name} id=[{self.id}]>"
 
     def create(self):
         """

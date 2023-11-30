@@ -147,16 +147,19 @@ def update_promotion(promotion_id):
         )
     app.logger.info("Updating promotion with id %s", promotion_id)
     data = request.get_json()
+
     try:
         promotion.deserialize(data)
     except DataValidationError as error:
         app.logger.warning("Bad request data: %s", str(error))
         abort(status.HTTP_400_BAD_REQUEST, str(error))
+
     if not request.is_json:
         abort(
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             "Unsupported media type: Request is not JSON",
         )
+
     promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
 
@@ -235,7 +238,7 @@ def bind_product_to_promotion(promotion_id, product_id):
         product = Product(id=product_id)
         product.create()
         promotion.products.append(product)
-    elif product_id in promotion.products:
+    elif product in promotion.products:
         abort(
             status.HTTP_409_CONFLICT,
             f"Product with id {product_id} is already in the promotion.",
@@ -319,7 +322,7 @@ def apply_promotion(promotion_id):
             "Applying Inactive promotions is not supported",
         )
 
-    if promotion.available == 0:
+    if promotion.available < 1:
         app.logger.warning("Received request to apply an unavailable promotion.")
         abort(
             status.HTTP_405_METHOD_NOT_ALLOWED,

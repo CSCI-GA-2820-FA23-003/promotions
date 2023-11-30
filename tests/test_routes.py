@@ -141,6 +141,19 @@ class TestPromotionResourceModel(TestCase):
         )
         self.assertEqual(response.status_code, 405)
 
+    def test_update_with_nojson(self):
+        """It should return 415 Unsupported Media Type when Content-Type is not supported"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        response = self.client.put(
+            f"/promotions/{promotion.id}",  # Use a valid promotion ID
+            data="<xml>Data</xml>",
+            content_type="application/xml",
+        )
+
+        self.assertEqual(response.status_code, 415)
+
     def test_unsupported_media_type(self):
         """It should return 415 Unsupported Media Type when Content-Type is not supported"""
         promotion = PromotionFactory()
@@ -392,6 +405,34 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(promotion.products), 1)
 
+    def test_bind_product_to_promotion_product_already_bound(self):
+        """It should not bind a product to a promotion that already has it"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 200)
+
+        # Bind the product to the promotion again
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/{product.id}")
+        self.assertEqual(response.status_code, 409)
+
+    def test_bind_nonexistent_product_to_promotion(self):
+        """It should not bind a nonexistent product to a promotion"""
+        # Create a promotion
+        promotion = PromotionFactory()
+        promotion.create()
+
+        # Bind the product to the promotion
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/0")
+        self.assertEqual(response.status_code, 200)
+
     def test_unbind_product_from_promotion(self):
         """It should unbind a product from a promotion"""
         # Create a promotion
@@ -483,6 +524,16 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
 
+    def test_apply_with_zero_available(self):
+        """It should not apply the promotion"""
+        promotion = PromotionFactory()
+        promotion.available = 0
+        promotion.start = datetime.now() - timedelta(days=1)
+        promotion.expired = datetime.now() + timedelta(days=1)
+        promotion.create()
+        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        self.assertEqual(response.status_code, 405)
+
     def test_cancel_promotion(self):
         """It should cancel the promotion"""
         promotion = PromotionFactory()
@@ -497,7 +548,7 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.post(f"{BASE_URL}/0/cancel")
         self.assertEqual(response.status_code, 404)
 
-    def test_edit_View(self):
+    def test_edit_view(self):
         """It should edit the promotion"""
         promotion = PromotionFactory()
         promotion.create()
