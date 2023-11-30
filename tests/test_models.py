@@ -537,7 +537,7 @@ class TestPromotionResourceModel(unittest.TestCase):
             self.assertIsNotNone(product.id)
             self.assertIsNotNone(product.created_at)
             self.assertIsNotNone(product.updated_at)
-            print(product.serialize())
+            # print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
     def test_create_without_id(self):
