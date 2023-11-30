@@ -5,7 +5,7 @@ Describe what your service does here
 """
 from datetime import datetime
 from flask import request
-from flask_restx import Resource, fields, reqparse, inputs
+from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 from . import app, api
@@ -32,6 +32,7 @@ from . import app, api
 def index():
     """Index page"""
     return app.send_static_file("index.html")
+
 
 # Define the model for Promotion
 create_model = api.model(
@@ -82,8 +83,13 @@ promotion_args.add_argument(
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
+######################################################################
+# PATH: /promotions
+######################################################################
+
 @api.route("/promotions", strict_slashes=False)
 class PromotionCollection(Resource):
+    """Handles all interactions with collections of Promotions"""
     ######################################################################
     # CREATE A PROMOTIONS
     ######################################################################
@@ -91,7 +97,7 @@ class PromotionCollection(Resource):
     @api.response(400, "The posted data was not valid")
     @api.response(415, "Unsupported media type")
     @api.expect(create_model)
-    @api.marshal_with(promotion_model, code=201) 
+    @api.marshal_with(promotion_model, code=201)
     def post(self):
 
         """
@@ -121,10 +127,11 @@ class PromotionCollection(Resource):
             status.HTTP_201_CREATED,
             {"Location": location_url},
         )
-    
+
     ######################################################################
     # LIST ALL PROMOTIONS
     ######################################################################
+
     @api.doc("list_promotions")
     @api.expect(promotion_args, validate=True)
     @api.marshal_list_with(promotion_model)
@@ -150,10 +157,22 @@ class PromotionCollection(Resource):
         app.logger.info("Returning %d promotions", len(results))
         return results, status.HTTP_200_OK
 
+######################################################################
+# PATH: /promotions/<int:promotion_id>
+######################################################################
+
 
 @api.route("/promotions/<int:promotion_id>")
 @api.param("promotion_id", "The Promotion identifier")
 class PromotionResource(Resource):
+    """
+    PromotionResource class
+
+    Allows the manipulation of a single Promotion
+    GET /{promotion_id} - Returns a Promotion with the id
+    PUT /{promotion_id} - Update a Promotion with the id
+    DELETE /{promotion_id} -  Deletes a Promotion with the id
+    """
     ######################################################################
     # DELETE A PROMOTION
     ######################################################################
@@ -186,7 +205,6 @@ class PromotionResource(Resource):
         promotion.delete()
 
         return "", status.HTTP_204_NO_CONTENT
-
 
     ######################################################################
     # Update A Promotion
@@ -234,10 +252,10 @@ class PromotionResource(Resource):
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
 
-
     ######################################################################
     # RETRIEVE A PROMOTION
     ######################################################################
+
     @api.doc("get_promotions")
     @api.response(404, "Promotion not found")
     @api.marshal_with(promotion_model)
@@ -259,12 +277,18 @@ class PromotionResource(Resource):
         app.logger.info("Returning promotion: %s", promotion.name)
         return promotion.serialize(), status.HTTP_200_OK
 
+
 ######################################################################
-# Apply Promotion
+# PATH: /promotions/<int:promotion_id>/apply
 ######################################################################
+
 @api.route("/promotions/<int:promotion_id>/apply")
 @api.param("promotion_id", "The Promotion identifier")
 class PromotionApply(Resource):
+    """Apply action on a Promotion"""
+    ######################################################################
+    # Apply Promotion
+    ######################################################################
     @api.doc("apply_promotion")
     @api.response(404, "Promotion not found")
     @api.response(405, "Promotion cannot be applied")
@@ -278,7 +302,7 @@ class PromotionApply(Resource):
             json: The data of the promotion
         """
         promotion = Promotion.find(promotion_id)
-        
+
         if promotion is None:
             abort(
                 status.HTTP_404_NOT_FOUND,
@@ -297,7 +321,6 @@ class PromotionApply(Resource):
                 "Applying Inactive promotions is not supported",
             )
 
-        
         if promotion.available == 0:
             app.logger.warning("Received request to apply an unavailable promotion.")
             abort(
@@ -309,13 +332,16 @@ class PromotionApply(Resource):
         promotion.available -= 1
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
-    
+
 ######################################################################
 # Cancel A Promotion
 ######################################################################
+
+
 @api.route("/promotions/<int:promotion_id>/cancel")
 @api.param("promotion_id", "The Promotion identifier")
 class PromotionCancel(Resource):
+    """Cancel action on a Promotion"""
     @api.doc("cancel_promotion")
     @api.response(404, "Promotion not found")
     def post(self, promotion_id):
@@ -336,12 +362,19 @@ class PromotionCancel(Resource):
         app.logger.info("Canceling promotion with id %s", promotion_id)
         promotion.invalidate()
         return (promotion.serialize(), status.HTTP_200_OK)
-    
+
+
 ######################################################################
-# Bind Product to Promotion
+# PATH: /promotions/<int:promotion_id>/bind/<int:product_id>
 ######################################################################
+
 @api.route("/promotions/<int:promotion_id>/bind/<int:product_id>")
 class PromotionBindProduct(Resource):
+    """Binding action on a Promotion"""
+
+    ######################################################################
+    # Bind Product to Promotion
+    ######################################################################
     @api.doc("bind_product_to_promotion")
     @api.response(404, "Promotion or Product not found")
     @api.response(409, "Product already in promotion")
@@ -357,7 +390,7 @@ class PromotionBindProduct(Resource):
             Promotion: the new promotion with the bound product
         """
         promotion = Promotion.find(promotion_id)
-        
+
         if promotion is None:
 
             abort(
@@ -380,7 +413,7 @@ class PromotionBindProduct(Resource):
 
         app.logger.info("Updating promotion with id %s", promotion_id)
         return (promotion.serialize(), status.HTTP_200_OK)
-    
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
@@ -392,11 +425,11 @@ def abort(error_code: int, message: str):
     api.abort(error_code, message)
 
 
-def init_db(dbname="pets"):
+def init_db(dbname="promotions"):
     """Initialize the model"""
     Promotion.init_db(dbname)
 
 
 def data_reset():
-    """Removes all Pets from the database"""
+    """Removes all Promotions from the database"""
     Promotion.remove_all()

@@ -176,7 +176,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             serialized_data["updated_at"] = self.updated_at.isoformat()
         else:
             serialized_data["updated_at"] = self.updated_at
-        
         return serialized_data
 
     def deserialize(self, data):

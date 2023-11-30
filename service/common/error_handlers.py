@@ -18,7 +18,7 @@
 Module: error_handlers
 """
 from flask import jsonify
-from service.models import DataValidationError, ResourceConflictError
+# from service.models import DataValidationError, ResourceConflictError
 from service import app
 from . import status
 
