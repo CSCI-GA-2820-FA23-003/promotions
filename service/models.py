@@ -226,6 +226,10 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             )
         db.session.commit()
 
+    def product_ids(self):
+        """Returns all product ids"""
+        return [str(product.id) for product in self.products]
+
     @classmethod
     def init_db(cls, _app):
         """Initializes the database session"""

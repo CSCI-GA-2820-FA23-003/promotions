@@ -24,12 +24,13 @@
 
             <div class="field">
                 <label>Start</label>
-                <input type="datetime-local" name="start" value="{{ promotion.start }}">
+                <input type="datetime-local" name="start" value="{{ promotion.start.strftime('%Y-%m-%dT%H:%M:%S') }}">
             </div>
 
             <div class="field">
                 <label>End</label>
-                <input type="datetime-local" name="end" value="{{ promotion.end }}">
+                <!-- format: 2023-12-01T00:03:09.643599 convert to local time -->
+                <input type="datetime-local" name="end" value="{{ promotion.expired.strftime('%Y-%m-%dT%H:%M:%S') }}">
             </div>
 
             <div class="field">
@@ -62,12 +63,12 @@
             <div class="field">
                 <label>Product</label>
                 <div class="ui fluid multiple search selection dropdown" id="product-select">
-                    <input name="tags" type="hidden" value="{{ promotion.products }}">
+                    <input type="hidden" value="{{ ','.join(promotion.product_ids()) }}">
                     <i class="dropdown icon"></i>
                     <div class="default text">Product(s)</div>
                     <div class="menu">
                         {% for product in products %}
-                            <div class="item" data-value="css" value="{{ product.id }}" {{ 'selected' if product.id in promotion.products else '' }}>{{ product.id }}</div>
+                            <div class="item" data-value="product.id" value="{{ product.id }}" {{ 'selected' if product.id in promotion.products else '' }}>{{ product.id }}</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -76,7 +77,6 @@
             <h4 class="ui dividing header">Operation</h4>
             <div>
                 <button class="ui button disabled" id="submit-btn" type="submit">Update</button>
-                <button class="ui button" type="reset">Reset</button>
                 <button class="ui button red" type="button">Revoke</button>
             </div>
 
@@ -97,7 +97,7 @@ $('#product-select').dropdown({
         console.log('onAdd', value, text, $selectedItem);
         
         $.ajax({
-            url: '/promotions/{{ promotion.code }}',
+            url: `/promotions/{{ promotion.id }}/${value}`,
             type: 'PUT',
             success: function(result) {
                 $.toast({
@@ -120,8 +120,8 @@ $('#product-select').dropdown({
         console.log('onRemove', value, text, $selectedItem);
 
         $.ajax({
-            url: '/promotions/{{ promotion.code }}',
-            type: 'PUT',
+            url: `/promotions/{{ promotion.id }}/${value}`,
+            type: 'DELETE',
             success: function(result) {
                 $.toast({
                     class: 'success',
@@ -141,7 +141,7 @@ $('#product-select').dropdown({
     },
     onLabelSelect: function(label) {
         $.ajax({
-            url: '/promotions/{{ promotion.code }}',
+            url: `/promotions/{{ promotion.id }}/${label.value}`,
             type: 'PUT',
             success: function(result) {
                 $.toast({
@@ -162,35 +162,52 @@ $('#product-select').dropdown({
     },
 });
 
-function apply_promotion(){
-    $.ajax({
-        url: '/promotions/{{ promotion.code }}',
-        type: 'POST',
-        data: $('#form_data').serialize(),
-        success: function(result) {
-            window.location.replace("/promotions/{{ promotion.code }}");
-        }
-    });
-}
-
 function submit_promotion(){
     $.ajax({
-        url: '/promotions/{{ promotion.code }}',
+        url: '/promotions/{{ promotion.id }}',
         type: 'PUT',
-        data: $('#form_data').serialize(),
+        contentType: 'application/json',
+        data:JSON.stringify({
+            'name': $('input[name="name"]').val(),
+            'code': $('input[name="code"]').val(),
+            'start': $('input[name="start"]').val(),
+            'expired': $('input[name="end"]').val(),
+            'available': $('input[name="available"]').val(),
+            'type': $('select[name="type"]').val(),
+            'value': $('input[name="value"]').val(),
+            'whole_store': $('input[name="whole_store"]').val(),
+        }),
         success: function(result) {
-            window.location.replace("/promotions/{{ promotion.code }}");
+            $.toast({
+                class: 'success',
+                message: `Promotion {{ promotion.code }} updated`,
+              });
+        },
+        error: function(result) {
+            $.toast({
+                class: 'error',
+                message: `Failed to update promotion {{ promotion.code }}: ${result.responseJSON.message}`,
+              });
         }
     });
 }
 
-function de1ete_promotion(){
+function delete_promotion(){
   //using ajax to delete
   $.ajax({
-    url: '/promotions/{{ promotion.code }}',
+    url: '/promotions/{{ promotion.id }}',
     type: 'DELETE',
     success: function(result) {
-      window.location.replace("/promotions");
+        $.toast({
+            class: 'success',
+            message: `Promotion {{ promotion.code }} deleted`,
+          });
+    },
+    error: function(result) {
+        $.toast({
+            class: 'error',
+            message: `Failed to delete promotion {{ promotion.code }}: ${result.responseJSON.message}`,
+          });
     }
   });   
 }
@@ -203,14 +220,6 @@ $(document).ready(function(){
     // handle the data change
     $('#form_data').on('change', 'input, select', function(){
         $('#submit-btn').removeClass('disabled');
-    });
-
-    $('#apply-btn').click(function(){
-        apply_promotion();
-    });
-
-    $('#edit-btn').click(function(){
-        edit_promotion();
     });
 
     $('#submit-btn').click(function(){
