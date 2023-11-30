@@ -2,6 +2,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
+[![CI Build](https://github.com/CSCI-GA-2820-FA23-003/promotions/actions/workflows/tdd-tests.yml/badge.svg)](https://github.com/CSCI-GA-2820-FA23-003/promotions/actions/workflows/tdd-tests.yml)
+[![codecov](https://codecov.io/gh/CSCI-GA-2820-FA23-003/promotions/graph/badge.svg?token=RMHC0YICQ1)](https://codecov.io/gh/CSCI-GA-2820-FA23-003/promotions)
 
 ## Contents
 
