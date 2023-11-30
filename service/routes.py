@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import datetime
-from flask import jsonify, request, url_for, abort, make_response, render_template
+from flask import request, render_template
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
@@ -40,16 +40,33 @@ create_model = api.model(
     {
         "code": fields.String(required=True, description="Unique promotion code"),
         "name": fields.String(required=True, description="Name of the promotion"),
-        "start": fields.DateTime(required=True, description="Start date and time of the promotion"),
-        "expired": fields.DateTime(required=True, description="Expiration date and time of the promotion"),
-        "available": fields.Integer(required=True, description="Availability status of the promotion"),
-        "whole_store": fields.Boolean(required=True, description="Is the promotion applicable to the whole store?"),
-        "promo_type": fields.Integer(required=True, description="Type of the promotion"),
+        "start": fields.DateTime(
+            required=True, description="Start date and time of the promotion"
+        ),
+        "expired": fields.DateTime(
+            required=True, description="Expiration date and time of the promotion"
+        ),
+        "available": fields.Integer(
+            required=True, description="Availability status of the promotion"
+        ),
+        "whole_store": fields.Boolean(
+            required=True, description="Is the promotion applicable to the whole store?"
+        ),
+        "promo_type": fields.Integer(
+            required=True, description="Type of the promotion"
+        ),
         "value": fields.Float(required=True, description="Value of the promotion"),
-        "products": fields.List(fields.Integer, description="List of product IDs associated with the promotion"),
-        "created_at": fields.DateTime(description="Creation date and time of the promotion"),
-        "updated_at": fields.DateTime(description="Last update date and time of the promotion")
-    }
+        "products": fields.List(
+            fields.Integer,
+            description="List of product IDs associated with the promotion",
+        ),
+        "created_at": fields.DateTime(
+            description="Creation date and time of the promotion"
+        ),
+        "updated_at": fields.DateTime(
+            description="Last update date and time of the promotion"
+        ),
+    },
 )
 
 promotion_model = api.inherit(
@@ -103,9 +120,11 @@ def promotion_detail_view(promotion_id):
 # PATH: /promotions
 ######################################################################
 
+
 @api.route("/promotions", strict_slashes=False)
 class PromotionCollection(Resource):
     """Handles all interactions with collections of Promotions"""
+
     ######################################################################
     # CREATE A PROMOTIONS
     ######################################################################
@@ -115,7 +134,6 @@ class PromotionCollection(Resource):
     @api.expect(create_model)
     @api.marshal_with(promotion_model, code=201)
     def post(self):
-
         """
         Create a new promotion.
 
@@ -134,7 +152,9 @@ class PromotionCollection(Resource):
         promotion.deserialize(data)
         promotion.create()
 
-        location_url = api.url_for(PromotionResource, promotion_id=promotion.id, _external=True)
+        location_url = api.url_for(
+            PromotionResource, promotion_id=promotion.id, _external=True
+        )
         app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
         # Return the new Promotion as JSON
@@ -152,7 +172,6 @@ class PromotionCollection(Resource):
     @api.expect(promotion_args, validate=True)
     @api.marshal_list_with(promotion_model)
     def get(self):
-
         """Returns all of the Promotions"""
         app.logger.info("Request for promotion list")
         args = promotion_args.parse_args()
@@ -173,6 +192,7 @@ class PromotionCollection(Resource):
         app.logger.info("Returning %d promotions", len(results))
         return results, status.HTTP_200_OK
 
+
 ######################################################################
 # PATH: /promotions/<int:promotion_id>
 ######################################################################
@@ -189,13 +209,13 @@ class PromotionResource(Resource):
     PUT /{promotion_id} - Update a Promotion with the id
     DELETE /{promotion_id} -  Deletes a Promotion with the id
     """
+
     ######################################################################
     # DELETE A PROMOTION
     ######################################################################
     @api.doc("delete_promotions")
     @api.response(204, "Promotion deleted")
     def delete(self, promotion_id):
-
         """
         Delete a promotion by its ID.
 
@@ -231,7 +251,6 @@ class PromotionResource(Resource):
     @api.expect(promotion_model)
     @api.marshal_with(promotion_model)
     def put(self, promotion_id):
-
         """Update a Promotion
 
         This endpoint will update a Promotion based the body that is posted
@@ -276,7 +295,6 @@ class PromotionResource(Resource):
     @api.response(404, "Promotion not found")
     @api.marshal_with(promotion_model)
     def get(self, promotion_id):
-
         """
         Retrieve a single Promotion
 
@@ -298,10 +316,12 @@ class PromotionResource(Resource):
 # PATH: /promotions/<int:promotion_id>/apply
 ######################################################################
 
+
 @api.route("/promotions/<int:promotion_id>/apply")
 @api.param("promotion_id", "The Promotion identifier")
 class PromotionApply(Resource):
     """Apply action on a Promotion"""
+
     ######################################################################
     # Apply Promotion
     ######################################################################
@@ -349,6 +369,7 @@ class PromotionApply(Resource):
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
 
+
 ######################################################################
 # Cancel A Promotion
 ######################################################################
@@ -358,10 +379,10 @@ class PromotionApply(Resource):
 @api.param("promotion_id", "The Promotion identifier")
 class PromotionCancel(Resource):
     """Cancel action on a Promotion"""
+
     @api.doc("cancel_promotion")
     @api.response(404, "Promotion not found")
     def post(self, promotion_id):
-
         """Cancel the promotion
         Args:
             promotion_id (int): Promotion ID
@@ -384,6 +405,7 @@ class PromotionCancel(Resource):
 # PATH: /promotions/<int:promotion_id>/bind/<int:product_id>
 ######################################################################
 
+
 @api.route("/promotions/<int:promotion_id>/bind/<int:product_id>")
 class PromotionBindProduct(Resource):
     """Binding action on a Promotion"""
@@ -395,7 +417,6 @@ class PromotionBindProduct(Resource):
     @api.response(404, "Promotion or Product not found")
     @api.response(409, "Product already in promotion")
     def put(self, promotion_id, product_id):
-
         """Bind the product to the current promotion
 
         Args:
@@ -408,7 +429,6 @@ class PromotionBindProduct(Resource):
         promotion = Promotion.find(promotion_id)
 
         if promotion is None:
-
             abort(
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
@@ -419,7 +439,7 @@ class PromotionBindProduct(Resource):
             product = Product(id=product_id)
             product.create()
             promotion.products.append(product)
-        elif product_id in promotion.products:
+        elif product in promotion.products:
             abort(
                 status.HTTP_409_CONFLICT,
                 f"Product with id {product_id} is already in the promotion.",
@@ -429,6 +449,58 @@ class PromotionBindProduct(Resource):
 
         app.logger.info("Updating promotion with id %s", promotion_id)
         return (promotion.serialize(), status.HTTP_200_OK)
+
+
+######################################################################
+# PATH: /promotions/<int:promotion_id>/unbind/<int:product_id>
+######################################################################
+
+
+@api.route("/promotions/<int:promotion_id>/unbind/<int:product_id>")
+class PromotionUnbindProduct(Resource):
+    """Unbinding action on a Promotion"""
+
+    ######################################################################
+    # Unbind Product from Promotion
+    ######################################################################
+    @api.doc("unbind_product_from_promotion")
+    @api.response(404, "Promotion or Product not found")
+    @api.response(409, "Product not in promotion")
+    def delete(self, promotion_id, product_id):
+        """Unbind the product from the current promotion
+
+        Args:
+            promotion_id (int): Promotion ID
+            product_id (int): Product ID
+
+        Returns:
+            Promotion: the new promotion without the unbound product
+        """
+        promotion = Promotion.find(promotion_id)
+
+        if promotion is None:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Promotion with id {promotion_id} was not found.",
+            )
+        # check if product is in the promotion
+        product = Product.find(product_id)
+        if product is None:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Product with id {product_id} was not found.",
+            )
+        elif product not in promotion.products:
+            abort(
+                status.HTTP_409_CONFLICT,
+                f"Product with id {product_id} is not in the promotion.",
+            )
+        else:
+            promotion.products.remove(product)
+
+        app.logger.info("Updating promotion with id %s", promotion_id)
+        return (promotion.serialize(), status.HTTP_200_OK)
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
