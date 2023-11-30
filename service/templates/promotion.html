@@ -78,7 +78,7 @@
                     <div class="default text">Product(s)</div>
                     <div class="menu">
                         {% for product in products %}
-                            <div class="item" data-value="product.id" value="{{ product.id }}" {{ 'selected' if product.id in promotion.products else '' }}>{{ product.id }}</div>
+                            <div class="item" data-value="{{product.id}}" value="{{ product.id }}" {{ 'selected' if promotion.selected else '' }}>{{ product.id }}</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -105,10 +105,8 @@ $('#product-select').dropdown({
     hideAdditions: false,
     allowAdditions: true,
     onAdd: function(value, text, $selectedItem) {
-        console.log('onAdd', value, text, $selectedItem);
-        
         $.ajax({
-            url: `/promotions/{{ promotion.id }}/${value}`,
+            url: `/api/promotions/{{ promotion.id }}/bind/${value}`,
             type: 'PUT',
             success: function(result) {
                 $.toast({
@@ -129,10 +127,8 @@ $('#product-select').dropdown({
         });
     },
     onRemove: function(value, text, $selectedItem) {
-        console.log('onRemove', value, text, $selectedItem);
-
         $.ajax({
-            url: `/promotions/{{ promotion.id }}/${value}`,
+            url: `/api/promotions/{{ promotion.id }}/unbind/${value}`,
             type: 'DELETE',
             success: function(result) {
                 $.toast({
@@ -153,7 +149,7 @@ $('#product-select').dropdown({
     },
     onLabelSelect: function(label) {
         $.ajax({
-            url: `/promotions/{{ promotion.id }}/${label.value}`,
+            url: `/api/promotions/{{ promotion.id }}/bind/${label.value}`,
             type: 'PUT',
             success: function(result) {
                 $.toast({
@@ -176,7 +172,7 @@ $('#product-select').dropdown({
 
 function submit_promotion(){
     $.ajax({
-        url: '/promotions/{{ promotion.id }}',
+        url: '/api/promotions/{{ promotion.id }}',
         type: 'PUT',
         contentType: 'application/json',
         data:JSON.stringify({
@@ -208,7 +204,7 @@ function submit_promotion(){
 function delete_promotion(){
   //using ajax to delete
   $.ajax({
-    url: '/promotions/{{ promotion.id }}',
+    url: '/api/promotions/{{ promotion.id }}',
     type: 'DELETE',
     success: function(result) {
         $.toast({
@@ -230,7 +226,7 @@ function delete_promotion(){
 $(document).ready(function(){
     $('#btn-del').on('click', function(){
         $.ajax({
-            url: '/promotions/{{ promotion.id }}',
+            url: '/api/promotions/{{ promotion.id }}',
             type: 'DELETE',
             success: function(result) {
                 $.toast({
@@ -249,7 +245,7 @@ $(document).ready(function(){
 
     $('#btn-revoke').on('click', function(){
         $.ajax({
-            url: '/promotions/{{ promotion.id }}/cancel',
+            url: '/api/promotions/{{ promotion.id }}/cancel',
             type: 'POST',
             success: function(result) {
                 $.toast({

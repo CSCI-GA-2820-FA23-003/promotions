@@ -18,7 +18,8 @@ from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory, ProductFactory
 
 DATABASE_URI = os.getenv("DATABASE_URI")
-BASE_URL = "/api/promotions"
+API_PROMOTION_URL = "/api/promotions"
+API_PRODUCT_URL = "/api/products"
 
 
 ######################################################################
@@ -59,7 +60,9 @@ class TestPromotionResourceModel(TestCase):
         promotions = []
         for _ in range(count):
             test_promotion = PromotionFactory()
-            response = self.client.post(BASE_URL, json=test_promotion.serialize())
+            response = self.client.post(
+                API_PROMOTION_URL, json=test_promotion.serialize()
+            )
             self.assertEqual(
                 response.status_code,
                 status.HTTP_201_CREATED,
@@ -69,6 +72,22 @@ class TestPromotionResourceModel(TestCase):
             test_promotion.id = new_promotion["id"]
             promotions.append(test_promotion)
         return promotions
+
+    def _create_products(self, count):
+        """Factory method to create products in bulk"""
+        products = []
+        for _ in range(count):
+            test_product = ProductFactory()
+            response = self.client.post(API_PRODUCT_URL, json=test_product.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test product",
+            )
+            new_product = response.get_json()
+            test_product.id = new_product["id"]
+            products.append(test_product)
+        return products
 
     ######################################################################
     #  T E S T   C A S E S     ######################################################################
@@ -101,7 +120,7 @@ class TestPromotionResourceModel(TestCase):
         }
 
         response = self.client.put(
-            f"{BASE_URL}/{promotion.id}",
+            f"{API_PROMOTION_URL}/{promotion.id}",
             data=json.dumps(updated_data),
             content_type="application/json",
         )
@@ -111,7 +130,7 @@ class TestPromotionResourceModel(TestCase):
     def test_promotion_not_found(self):
         """It should return a 404 error if a Promotion is not found by id"""
         invalid_promotion_id = 99999999
-        response = self.client.put(f"{BASE_URL}/{invalid_promotion_id}")
+        response = self.client.put(f"{API_PROMOTION_URL}/{invalid_promotion_id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bad_request(self):
@@ -120,7 +139,7 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.create()
         response = self.client.put(
-            f"{BASE_URL}/{promotion.id}",
+            f"{API_PROMOTION_URL}/{promotion.id}",
             data=json.dumps(invalid_data),
             content_type="application/json",
         )
@@ -134,7 +153,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.update()
         updated_data = {}
         response = self.client.put(
-            f"{BASE_URL}/{promotion.id}",
+            f"{API_PROMOTION_URL}/{promotion.id}",
             data=json.dumps(updated_data),
             content_type="application/json",
         )
@@ -147,7 +166,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.update()
 
         response = self.client.put(
-            f"{BASE_URL}/{promotion.id}",  # Use a valid promotion ID
+            f"{API_PROMOTION_URL}/{promotion.id}",  # Use a valid promotion ID
             data="<xml>Data</xml>",
             content_type="application/xml",
         )
@@ -173,12 +192,12 @@ class TestPromotionResourceModel(TestCase):
         db.session.add(promotion)
         db.session.commit()
 
-        response = self.client.delete(f"{BASE_URL}/{promotion.id}")
+        response = self.client.delete(f"{API_PROMOTION_URL}/{promotion.id}")
         self.assertEqual(response.status_code, 204)
 
     def test_delete_nonexistent_promotion(self):
         """It should return a 404 error if a Promotion is not found by id"""
-        response = self.client.delete("{BASE_URL}/999999")
+        response = self.client.delete("{API_PROMOTION_URL}/999999")
         self.assertEqual(response.status_code, 404)
 
     def test_404_not_found(self):
@@ -190,13 +209,13 @@ class TestPromotionResourceModel(TestCase):
 
     def test_get_promotion_list(self):
         """It should Get a list of promotions"""
-        response = self.client.get(BASE_URL)
+        response = self.client.get(API_PROMOTION_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 0)
 
         self._create_promotions(5)
-        response = self.client.get(BASE_URL)
+        response = self.client.get(API_PROMOTION_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
@@ -209,7 +228,7 @@ class TestPromotionResourceModel(TestCase):
             promotion for promotion in promotions if promotion.name == test_name
         ]
         response = self.client.get(
-            BASE_URL, query_string=f"name={quote_plus(test_name)}"
+            API_PROMOTION_URL, query_string=f"name={quote_plus(test_name)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -226,7 +245,7 @@ class TestPromotionResourceModel(TestCase):
             promotion for promotion in promotions if promotion.code == test_code
         ]
         response = self.client.get(
-            BASE_URL, query_string=f"code={quote_plus(test_code)}"
+            API_PROMOTION_URL, query_string=f"code={quote_plus(test_code)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -245,7 +264,7 @@ class TestPromotionResourceModel(TestCase):
             if promotion.promo_type == test_promo_type
         ]
         response = self.client.get(
-            BASE_URL, query_string=f"promo_type={test_promo_type}"
+            API_PROMOTION_URL, query_string=f"promo_type={test_promo_type}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -263,18 +282,64 @@ class TestPromotionResourceModel(TestCase):
         """It should Get a single Promotion"""
         # get the id of a promotion
         test_promotion = self._create_promotions(1)[0]
-        response = self.client.get(f"{BASE_URL}/{test_promotion.id}")
+        response = self.client.get(f"{API_PROMOTION_URL}/{test_promotion.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(data["name"], test_promotion.name)
 
     def test_get_promotion_not_found(self):
         """It should not Get a Promotion thats not found"""
-        response = self.client.get(f"{BASE_URL}/0")
+        response = self.client.get(f"{API_PROMOTION_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    def test_index_proudct(self):
+        """It should get all products"""
+        response = self.client.get(API_PRODUCT_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 0)
+
+        self._create_products(5)
+        response = self.client.get(API_PRODUCT_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+    def test_create_product(self):
+        """It should create a new product"""
+        # Create a promotion
+        response = self.client.post(
+            f"{API_PRODUCT_URL}",
+            data=json.dumps({"id": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # check id
+        data = response.get_json()
+        self.assertEqual(data["id"], 1)
+
+    def test_delete_product(self):
+        """It should delete a product"""
+        # Create a promotion
+        response = self.client.post(
+            f"{API_PRODUCT_URL}",
+            data=json.dumps({"id": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Delete the product
+        response = self.client.delete(f"{API_PRODUCT_URL}/1")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_nonexistent_product(self):
+        """It should not delete a nonexistent product"""
+        # Delete the product
+        response = self.client.delete(f"{API_PRODUCT_URL}/100")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     # +++++ Actions Routes +++++
     def test_bind_product_to_promotion(self):
@@ -288,7 +353,9 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/{product.id}")
+        response = self.client.put(
+            f"{API_PROMOTION_URL}/{promotion.id}/bind/{product.id}"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_bind_product_to_promotion_promotion_not_found(self):
@@ -298,7 +365,7 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/99999/bind/{product.id}")
+        response = self.client.put(f"{API_PROMOTION_URL}/99999/bind/{product.id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bind_product_to_promotion_product_not_found(self):
@@ -308,7 +375,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/0")
+        response = self.client.put(f"{API_PROMOTION_URL}/{promotion.id}/bind/0")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(promotion.products), 1)
 
@@ -323,11 +390,15 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/{product.id}")
+        response = self.client.put(
+            f"{API_PROMOTION_URL}/{promotion.id}/bind/{product.id}"
+        )
         self.assertEqual(response.status_code, 200)
 
         # Bind the product to the promotion again
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/{product.id}")
+        response = self.client.put(
+            f"{API_PROMOTION_URL}/{promotion.id}/bind/{product.id}"
+        )
         self.assertEqual(response.status_code, 409)
 
     def test_bind_nonexistent_product_to_promotion(self):
@@ -337,7 +408,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/0")
+        response = self.client.put(f"{API_PROMOTION_URL}/{promotion.id}/bind/0")
         self.assertEqual(response.status_code, 200)
 
     def test_unbind_product_from_promotion(self):
@@ -351,11 +422,15 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/{product.id}")
+        response = self.client.put(
+            f"{API_PROMOTION_URL}/{promotion.id}/bind/{product.id}"
+        )
         self.assertEqual(response.status_code, 200)
 
         # Unbind the product from the promotion
-        response = self.client.delete(f"{BASE_URL}/{promotion.id}/unbind/{product.id}")
+        response = self.client.delete(
+            f"{API_PROMOTION_URL}/{promotion.id}/unbind/{product.id}"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_unbind_product_from_promotion_promotion_not_found(self):
@@ -365,7 +440,7 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Unbind the product from the promotion
-        response = self.client.delete(f"{BASE_URL}/0/{product.id}")
+        response = self.client.delete(f"{API_PROMOTION_URL}/0/{product.id}")
         self.assertEqual(response.status_code, 404)
 
     def test_unbind_nonexistent_product_from_promotion(self):
@@ -375,7 +450,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.create()
 
         # Unbind the product from the promotion
-        response = self.client.delete(f"{BASE_URL}/{promotion.id}/unbind/0")
+        response = self.client.delete(f"{API_PROMOTION_URL}/{promotion.id}/unbind/0")
         self.assertEqual(response.status_code, 404)
 
     def test_unbind_nonbound_product_from_promotion(self):
@@ -389,7 +464,9 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Unbind the product from the promotion
-        response = self.client.delete(f"{BASE_URL}/{promotion.id}/unbind/{product.id}")
+        response = self.client.delete(
+            f"{API_PROMOTION_URL}/{promotion.id}/unbind/{product.id}"
+        )
         self.assertEqual(response.status_code, 409)
 
     def test_apply_promotion(self):
@@ -398,13 +475,13 @@ class TestPromotionResourceModel(TestCase):
         promotion.start = datetime.now() - timedelta(days=1)
         promotion.available = 1
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(promotion.available, 0)
 
     def test_apply_nonexistent_promotion(self):
         """It should not apply the promotion"""
-        response = self.client.post(f"{BASE_URL}/0/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/0/apply")
         self.assertEqual(response.status_code, 404)
 
     def test_apply_inactive_promotion(self):
@@ -412,7 +489,7 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.start = datetime.now() + timedelta(days=1)
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
 
     def test_apply_expired_promotion(self):
@@ -420,7 +497,7 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.expired = datetime.now() - timedelta(days=1)
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
 
     def test_apply_unavailable_promotion(self):
@@ -429,7 +506,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.available = 0
         promotion.start = datetime.now() - timedelta(days=1)
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
 
     def test_apply_with_zero_available(self):
@@ -439,7 +516,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.start = datetime.now() - timedelta(days=1)
         promotion.expired = datetime.now() + timedelta(days=1)
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)
 
     def test_cancel_promotion(self):
@@ -447,23 +524,23 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.available = 0
         promotion.create()
-        response = self.client.post(f"{BASE_URL}/{promotion.id}/cancel")
+        response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/cancel")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(promotion.available, 0)
 
     def test_cancel_nonexistent_promotion(self):
         """It should not cancel the promotion"""
-        response = self.client.post(f"{BASE_URL}/0/cancel")
+        response = self.client.post(f"{API_PROMOTION_URL}/0/cancel")
         self.assertEqual(response.status_code, 404)
 
     def test_edit_view(self):
         """It should edit the promotion"""
         promotion = PromotionFactory()
         promotion.create()
-        response = self.client.get(f"promotion/{promotion.id}/edit")
+        response = self.client.get(f"promotions/{promotion.id}/edit")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_nonexistent_promotion(self):
         """It should not edit the promotion"""
-        response = self.client.get(f"{BASE_URL}/0/edit")
+        response = self.client.get("promotions/0/edit")
         self.assertEqual(response.status_code, 404)

@@ -10,30 +10,6 @@ from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 from . import app, api
 
-
-######################################################################
-# GET INDEX
-######################################################################
-# @app.route("/")
-# def index():
-#     """Root URL response"""
-#     app.logger.info("Request for Root URL")
-#     return (
-#         jsonify(
-#             name="Promotion Demo REST API Service",
-#             version="1.0",
-#             paths=url_for("list_promotions", _external=True),
-#         ),
-#         status.HTTP_200_OK,
-#     )
-
-
-@app.route("/")
-def index():
-    """Index page"""
-    return app.send_static_file("index.html")
-
-
 # Define the model for Promotion
 create_model = api.model(
     "Promotion",
@@ -68,17 +44,6 @@ create_model = api.model(
         ),
     },
 )
-
-promotion_model = api.inherit(
-    "PromotionModel",
-    create_model,
-    {
-        "id": fields.String(
-            readOnly=True, description="The unique id assigned internally by service"
-        ),
-    },
-)
-
 # query string arguments
 promotion_args = reqparse.RequestParser()
 promotion_args.add_argument(
@@ -96,25 +61,195 @@ promotion_args.add_argument(
 )
 
 
+create_product_model = api.model(
+    "Product",
+    {
+        "id": fields.Integer(required=True, description="Name of the product"),
+        "created_at": fields.DateTime(
+            description="Creation date and time of the product"
+        ),
+        "updated_at": fields.DateTime(
+            description="Last update date and time of the product"
+        ),
+    },
+)
+
+promotion_model = api.inherit(
+    "PromotionModel",
+    create_model,
+    {
+        "id": fields.String(
+            readOnly=True, description="The unique id assigned internally by service"
+        ),
+    },
+)
+
+product_model = api.inherit(
+    "ProductModel",
+    create_product_model,
+    {
+        "id": fields.Integer(
+            readOnly=True, description="The unique id assigned internally by service"
+        ),
+    },
+)
+
+product_args = reqparse.RequestParser()
+product_args.add_argument(
+    "id", type=int, location="args", required=True, help="The existing product id"
+)
+
+######################################################################
+# GET INDEX
+######################################################################
+
+
+@app.route("/")
+def index():
+    """Index page"""
+    return app.send_static_file("index.html")
+
+
 ######################################################################
 # Promotions User View
 ######################################################################
-@app.route("/promotion/<int:promotion_id>/edit", methods=["GET"])
+
+
+@app.route("/promotions/<int:promotion_id>/edit", methods=["GET"])
 def promotion_detail_view(promotion_id):
     """Root URL response"""
     app.logger.info("Request for Root URL")
     promotion = Promotion.find(promotion_id)
+    pruducts = Product.all()
+
     if promotion is None:
         abort(
             status.HTTP_404_NOT_FOUND,
             f"Promotion with id {promotion_id} was not found.",
         )
-    return render_template("promotion.html", promotion=promotion)
+
+    bind_products = [
+        {
+            "id": product.id,
+            "selected": product in promotion.products,
+        }
+        for product in pruducts
+    ]
+    return render_template(
+        "promotion.html", promotion=promotion, products=bind_products
+    )
 
 
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
+
+######################################################################
+# PATH: /products
+######################################################################
+
+
+@api.route("/products", strict_slashes=False)
+class ProductCollection(Resource):
+    """Handles all interactions with collections of Products"""
+
+    ######################################################################
+    # LIST ALL PRODUCTS
+    ######################################################################
+    @api.doc("list_products")
+    @api.marshal_list_with(promotion_model)
+    def get(self):
+        """Returns all of the Products"""
+        app.logger.info("Request for product list")
+        products = Product.all()
+        results = [p.serialize() for p in products]
+        app.logger.info("Returning %d products", len(results))
+        return results, status.HTTP_200_OK
+
+    ######################################################################
+    # CREATE A PRODUCT
+    ######################################################################
+    @api.doc("create_products")
+    @api.response(400, "The posted data was not valid")
+    @api.response(415, "Unsupported media type")
+    @api.expect(create_product_model)
+    @api.marshal_with(product_model, code=201)
+    def post(self):
+        """
+        Create a new product.
+
+        This endpoint creates a new product based on the JSON data provided in the request body.
+
+        Returns:
+            JSON: The created product as JSON.
+        """
+        app.logger.info("Request to create a product")
+
+        # Get the JSON data from the request
+        data = api.payload
+
+        # Create a new Product with the data
+        product = Product()
+        product.deserialize(data)
+        product.create()
+
+        app.logger.info("Product with ID [%s] created.", product.id)
+
+        # Return the new Product as JSON
+        return (
+            product.serialize(),
+            status.HTTP_201_CREATED,
+        )
+
+
+######################################################################
+# PATH: /product/<int:product_id>
+######################################################################
+
+
+@api.route("/products/<int:product_id>")
+@api.param("product_id", "The Product identifier")
+class ProductResource(Resource):
+    """
+    ProductResource class
+
+    Allows the manipulation of a single Product
+    GET /{product_id} - Returns a Product with the id
+    """
+
+    ######################################################################
+    # DELETE A PRODUCT
+    ######################################################################
+
+    @api.doc("delete_products")
+    @api.response(204, "Product deleted")
+    @api.response(404, "Product not found")
+    def delete(self, product_id):
+        """
+        Delete a product by its ID.
+
+        This function removes a product from the database if it exists.
+        If the product does not exist, a 404 error is returned.
+
+        Args:
+            product_id (int): Unique identifier of the product to be deleted.
+
+        Returns:
+            tuple: An empty string and a status code of 204 indicating successful deletion.
+        """
+        product = Product.find(product_id)
+
+        if product is None:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Product with id {product_id} was not found.",
+            )
+
+        app.logger.info("Deleting product with id %s", product_id)
+        product.delete()
+
+        return "", status.HTTP_204_NO_CONTENT
+
 
 ######################################################################
 # PATH: /promotions

@@ -342,11 +342,8 @@ class Product(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self, confirm=False):
+    def delete(self):
         """Removes a PromotionModel from the data store"""
-        if not confirm:
-            raise DataValidationError("Please confirm deletion")
-
         self.app.logger.info("Deleting Product[id: %s]", self.id)
         db.session.delete(self)
         db.session.commit()

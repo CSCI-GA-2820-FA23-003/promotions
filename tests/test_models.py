@@ -622,17 +622,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         product = ProductFactory()
         product.create()
         self.assertEqual(len(Product.all()), total + 1)
-        product.delete(confirm=True)
+        product.delete()
         self.assertEqual(len(Product.all()), total)
-
-    def test_delete_without_confirmation(self):
-        """It should not delete a product without confirmation"""
-        product = ProductFactory()
-        product.create()
-        self.assertEqual(len(Product.all()), 1)
-        with self.assertRaises(DataValidationError):
-            product.delete(confirm=False)
-        self.assertEqual(len(Product.all()), 1)
 
     def test_find_product(self):
         """It should find a product by id"""
