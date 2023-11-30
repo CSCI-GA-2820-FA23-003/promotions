@@ -27,7 +27,7 @@
 				"ms-python.pylint",
 				"ms-python.vscode-pylance",
 				"ms-python.black-formatter",
-				// "alexkrechik.cucumberautocomplete",
+				"alexkrechik.cucumberautocomplete",
 				"cstrap.flask-snippets",
 				"yzhang.markdown-all-in-one",
 				"bierner.github-markdown-preview",
