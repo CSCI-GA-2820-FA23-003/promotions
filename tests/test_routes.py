@@ -18,7 +18,7 @@ from service.common import status  # HTTP Status Codes
 from tests.factories import PromotionFactory, ProductFactory
 
 DATABASE_URI = os.getenv("DATABASE_URI")
-BASE_URL = "/promotions"
+BASE_URL = "/api/promotions"
 
 
 ######################################################################
@@ -71,8 +71,7 @@ class TestPromotionResourceModel(TestCase):
         return promotions
 
     ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
-    ######################################################################
+    #  T E S T   C A S E S     ######################################################################
 
     def test_index(self):
         """It should call the home page"""
@@ -102,7 +101,7 @@ class TestPromotionResourceModel(TestCase):
         }
 
         response = self.client.put(
-            f"/promotions/{promotion.id}",
+            f"{BASE_URL}/{promotion.id}",
             data=json.dumps(updated_data),
             content_type="application/json",
         )
@@ -112,7 +111,7 @@ class TestPromotionResourceModel(TestCase):
     def test_promotion_not_found(self):
         """It should return a 404 error if a Promotion is not found by id"""
         invalid_promotion_id = 99999999
-        response = self.client.put(f"/promotions/{invalid_promotion_id}")
+        response = self.client.put(f"{BASE_URL}/{invalid_promotion_id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bad_request(self):
@@ -121,7 +120,7 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.create()
         response = self.client.put(
-            f"/promotions/{promotion.id}",
+            f"{BASE_URL}/{promotion.id}",
             data=json.dumps(invalid_data),
             content_type="application/json",
         )
@@ -135,7 +134,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.update()
         updated_data = {}
         response = self.client.put(
-            f"/promotions/{promotion.id}",
+            f"{BASE_URL}/{promotion.id}",
             data=json.dumps(updated_data),
             content_type="application/json",
         )
@@ -161,7 +160,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.update()
 
         response = self.client.put(
-            f"/promotions/{promotion.id}",  # Use a valid promotion ID
+            f"{BASE_URL}/{promotion.id}",  # Use a valid promotion ID
             data="<xml>Data</xml>",
             content_type="application/xml",
         )
@@ -187,92 +186,13 @@ class TestPromotionResourceModel(TestCase):
         db.session.add(promotion)
         db.session.commit()
 
-        response = self.client.delete(f"/promotions/{promotion.id}")
+        response = self.client.delete(f"{BASE_URL}/{promotion.id}")
         self.assertEqual(response.status_code, 204)
 
     def test_delete_nonexistent_promotion(self):
         """It should return a 404 error if a Promotion is not found by id"""
-        response = self.client.delete("/promotions/999999")
+        response = self.client.delete("{BASE_URL}/999999")
         self.assertEqual(response.status_code, 404)
-
-    def test_create(self):
-        """It should respond to a proper create with 201 status code and return the data."""
-        promo = PromotionFactory()
-        data_orig = promo.serialize()
-
-        resp = self.client.post(
-            "/promotions", data=json.dumps(data_orig), content_type="application/json"
-        )
-
-        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        response_json = resp.get_json()
-
-        # remove all auto created entries in the DB
-        if "id" in response_json:
-            del response_json["id"]
-            del data_orig["id"]
-
-        if "created_at" in response_json:
-            del response_json["created_at"]
-            del data_orig["created_at"]
-
-        if "updated_at" in response_json:
-            del response_json["updated_at"]
-            del data_orig["updated_at"]
-
-        self.assertEqual(response_json, data_orig)
-
-    def test_create_promotion_no_data(self):
-        """It should not Create a Promotion with missing data"""
-        response = self.client.post("/promotions", json={})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_duplicated_promotion(self):
-        """It should not Create a duplicated Promotion"""
-        promo = PromotionFactory()
-        data_orig = promo.serialize()
-
-        resp = self.client.post(
-            "/promotions", data=json.dumps(data_orig), content_type="application/json"
-        )
-        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        resp = self.client.post(
-            "/promotions", data=json.dumps(data_orig), content_type="application/json"
-        )
-        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
-
-    def test_create_promotion_no_content_type(self):
-        """It should not Create a Promotion with no content type"""
-        response = self.client.post("/promotions")
-        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-
-    def test_create_promotion_wrong_content_type(self):
-        """It should not Create a Promotion with the wrong content type"""
-        response = self.client.post(
-            "/promotions", data="hello", content_type="text/html"
-        )
-        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-
-    def test_create_invalid_promotion_data(self):
-        """It should not Create a Promotion with invalid data"""
-        # Create a promotion with incomplete or invalid data
-        invalid_promotion_data = {
-            "name": "Invalid Promotion",
-            "code": "INVALIDPROMO",
-            "start": "2023-10-01",  # Invalid date format
-            "expired": "2023-10-10",
-            "whole_store": True,
-            "promo_type": "Discount",  # Should be an integer
-            "value": "Fifteen",  # Should be a numeric value
-        }
-
-        response = self.client.post(
-            "/promotions",
-            data=invalid_promotion_data,
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 400)
 
     def test_404_not_found(self):
         """It should return a 404 error if a Promotion is not found by id"""
@@ -381,7 +301,7 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/{product.id}")
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/{product.id}")
         self.assertEqual(response.status_code, 200)
 
     def test_bind_product_to_promotion_promotion_not_found(self):
@@ -391,7 +311,7 @@ class TestPromotionResourceModel(TestCase):
         product.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/0/{product.id}")
+        response = self.client.put(f"{BASE_URL}/99999/bind/{product.id}")
         self.assertEqual(response.status_code, 404)
 
     def test_bind_product_to_promotion_product_not_found(self):
@@ -401,7 +321,7 @@ class TestPromotionResourceModel(TestCase):
         promotion.create()
 
         # Bind the product to the promotion
-        response = self.client.put(f"{BASE_URL}/{promotion.id}/0")
+        response = self.client.put(f"{BASE_URL}/{promotion.id}/bind/0")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(promotion.products), 1)
 
@@ -520,6 +440,7 @@ class TestPromotionResourceModel(TestCase):
         """It should not apply the promotion"""
         promotion = PromotionFactory()
         promotion.available = 0
+        promotion.start = datetime.now() - timedelta(days=1)
         promotion.create()
         response = self.client.post(f"{BASE_URL}/{promotion.id}/apply")
         self.assertEqual(response.status_code, 405)

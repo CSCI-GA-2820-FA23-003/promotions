@@ -163,7 +163,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
 
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
-        return {
+        serialized_data = {
             "id": self.id,
             "name": self.name,
             "code": self.code,
@@ -177,6 +177,19 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             "updated_at": self.updated_at,
             "available": self.available,
         }
+
+        # Optionally include 'created_at'
+        if self.created_at is not None:
+            serialized_data["created_at"] = self.created_at.isoformat()
+        else:
+            serialized_data["created_at"] = self.created_at
+
+        # Optionally include 'updated_at'
+        if self.updated_at is not None:
+            serialized_data["updated_at"] = self.updated_at.isoformat()
+        else:
+            serialized_data["updated_at"] = self.updated_at
+        return serialized_data
 
     def deserialize(self, data):
         """

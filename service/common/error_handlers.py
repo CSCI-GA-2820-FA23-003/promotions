@@ -18,7 +18,7 @@
 Module: error_handlers
 """
 from flask import jsonify
-from service.models import DataValidationError, ResourceConflictError
+# from service.models import DataValidationError, ResourceConflictError
 from service import app
 from . import status
 
@@ -26,23 +26,23 @@ from . import status
 ######################################################################
 # Error Handlers
 ######################################################################
-@app.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """Handles Value Errors from bad data"""
-    return bad_request(error)
+# @app.errorhandler(DataValidationError)
+# def request_validation_error(error):
+#     """Handles Value Errors from bad data"""
+#     return bad_request(error)
 
 
-@app.errorhandler(status.HTTP_400_BAD_REQUEST)
-def bad_request(error):
-    """Handles bad requests with 400_BAD_REQUEST"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
-        ),
-        status.HTTP_400_BAD_REQUEST,
-    )
+# @app.errorhandler(status.HTTP_400_BAD_REQUEST)
+# def bad_request(error):
+#     """Handles bad requests with 400_BAD_REQUEST"""
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+#         ),
+#         status.HTTP_400_BAD_REQUEST,
+#     )
 
 
 @app.errorhandler(status.HTTP_404_NOT_FOUND)
@@ -71,40 +71,40 @@ def method_not_supported(error):
     )
 
 
-@app.errorhandler(ResourceConflictError)
-def resource_conflict_error(error):
-    """Handles resource conflicts with 409_CONFLICT"""
-    return resource_conflict(error)
+# @app.errorhandler(ResourceConflictError)
+# def resource_conflict_error(error):
+#     """Handles resource conflicts with 409_CONFLICT"""
+#     return resource_conflict(error)
 
 
-@app.errorhandler(status.HTTP_409_CONFLICT)
-def resource_conflict(error):
-    """Handles resource conflicts with HTTP_409_CONFLICT"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_409_CONFLICT,
-            error="Conflict",
-            message=message,
-        ),
-        status.HTTP_409_CONFLICT,
-    )
+# @app.errorhandler(status.HTTP_409_CONFLICT)
+# def resource_conflict(error):
+#     """Handles resource conflicts with HTTP_409_CONFLICT"""
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_409_CONFLICT,
+#             error="Conflict",
+#             message=message,
+#         ),
+#         status.HTTP_409_CONFLICT,
+#     )
 
 
-@app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-def mediatype_not_supported(error):
-    """Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            error="Unsupported media type",
-            message=message,
-        ),
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-    )
+# @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+# def mediatype_not_supported(error):
+#     """Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE"""
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#             error="Unsupported media type",
+#             message=message,
+#         ),
+#         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#     )
 
 
 @app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
