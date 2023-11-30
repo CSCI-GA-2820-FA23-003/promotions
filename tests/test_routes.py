@@ -89,8 +89,10 @@ class TestPromotionResourceModel(TestCase):
         updated_data = {
             "name": "Updated Promotion Name",
             "code": promotion.code,
-            "start": datetime.now().isoformat(),
-            "expired": (datetime.now() + timedelta(days=1)).isoformat(),
+            "start": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": (datetime.now() + timedelta(days=1)).strftime(
+                "%Y-%m-%dT%H:%M:%S"
+            ),
             "whole_store": False,
             "promo_type": 1,  # Use a valid integer value for promo_type
             "value": 10.0,

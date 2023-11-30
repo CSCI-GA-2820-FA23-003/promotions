@@ -203,8 +203,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         update_data = {
             "name": 12345,  # It's strange to have a numeric name. Consider changing this if it's not intentional.
             "code": "NEWCODE",
-            "start": datetime(2022, 1, 1).isoformat(),
-            "expired": datetime(2022, 2, 1).isoformat(),
+            "start": datetime(2022, 1, 1).strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": datetime(2022, 2, 1).strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": False,
             "promo_type": 2,
             "value": 50.0,
@@ -376,8 +376,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         create_data = {
             "name": "NewPromotion",
             "code": "CODE123",
-            "start": "2023-01-01 00:00:00",
-            "expired": "2023-02-01 00:00:00",
+            "start": datetime(2023, 1, 1).strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": datetime(2023, 2, 1).strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": True,
             "promo_type": 1,
             "value": 10.0,
@@ -418,10 +418,12 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["name"], promotion.name)
         self.assertIn("start", data)
 
-        self.assertEqual(data["start"], promotion.start.isoformat())
+        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.assertIn("expired", data)
-        self.assertEqual(data["expired"], promotion.expired.isoformat())
+        self.assertEqual(
+            data["expired"], promotion.expired.strftime("%Y-%m-%dT%H:%M:%S")
+        )
 
         self.assertIn("whole_store", data)
         self.assertEqual(data["whole_store"], promotion.whole_store)
@@ -451,8 +453,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(promotion.id, None)
         self.assertEqual(data["code"], promotion.code)
         self.assertEqual(data["name"], promotion.name)
-        self.assertEqual(data["start"], promotion.start)
-        self.assertEqual(data["expired"], promotion.expired)
+        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.assertEqual(
+            data["expired"], promotion.expired.strftime("%Y-%m-%dT%H:%M:%S")
+        )
         self.assertEqual(data["whole_store"], promotion.whole_store)
         self.assertEqual(data["promo_type"], promotion.promo_type)
         self.assertEqual(data["value"], promotion.value)
@@ -543,7 +547,6 @@ class TestPromotionResourceModel(unittest.TestCase):
             self.assertIsNotNone(product.id)
             self.assertIsNotNone(product.created_at)
             self.assertIsNotNone(product.updated_at)
-            print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
     def test_create_without_id(self):
@@ -748,6 +751,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         """Test the cancellation of an existing promotion with products."""
         promotion = PromotionFactory()
         promotion.create()
+        print(promotion.serialize())
         product = ProductFactory()
         product.create()
         promotion.products.append(product)

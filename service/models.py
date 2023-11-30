@@ -3,6 +3,7 @@ Models for PromotionModel
 
 All of the models are stored in this module
 """
+from datetime import datetime
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
@@ -148,16 +149,24 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         self.products.clear()
         db.session.commit()
 
+    def is_valid(self):
+        """Check if the promotion is valid"""
+        return (
+            self.available > 0
+            and self.start <= datetime.now()
+            and self.expired >= datetime.now()
+        )
+
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         return {
             "id": self.id,
             "name": self.name,
             "code": self.code,
-            "start": self.start.isoformat(),
-            "expired": self.expired.isoformat(),
+            "start": self.start.strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": self.expired.strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": self.whole_store,
-            "promo_type": self.promo_type,
+            "promo_type": int(self.promo_type),
             "value": float(self.value),
             "products": [product.id for product in self.products],
             "created_at": self.created_at,
@@ -175,13 +184,12 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         try:
             self.name = data["name"]
             self.code = data["code"]
-            self.start = data["start"]
-            self.expired = data["expired"]
-            self.whole_store = data["whole_store"]
-            self.promo_type = data["promo_type"]
-            self.value = data["value"]
-            self.available = data["available"]
-
+            self.start = datetime.strptime(data["start"], "%Y-%m-%dT%H:%M:%S")
+            self.expired = datetime.strptime(data["expired"], "%Y-%m-%dT%H:%M:%S")
+            self.whole_store = bool(data["whole_store"])
+            self.promo_type = int(data["promo_type"])
+            self.value = float(data["value"])
+            self.available = int(data["available"])
         except KeyError as error:
             raise DataValidationError(
                 "Invalid PromotionModel: missing " + error.args[0]
@@ -189,6 +197,12 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         except TypeError as error:
             raise DataValidationError(
                 "Invalid PromotionModel: body of request contained bad or no data - "
+                "Error message: " + error.args[0]
+            ) from error
+        except ValueError as error:
+            raise DataValidationError(
+                "Invalid PromotionModel: body of request contained "
+                "malformed data - "
                 "Error message: " + error.args[0]
             ) from error
         return self

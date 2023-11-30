@@ -157,7 +157,6 @@ def update_promotion(promotion_id):
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             "Unsupported media type: Request is not JSON",
         )
-    promotion.id = promotion_id
     promotion.update()
     return make_response(jsonify(promotion.serialize()), status.HTTP_200_OK)
 
