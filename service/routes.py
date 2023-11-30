@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import datetime
-from flask import jsonify, request, url_for, abort, make_response, render_template
+from flask import jsonify, request, url_for, abort, make_response
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 
