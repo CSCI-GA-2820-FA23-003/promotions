@@ -128,6 +128,25 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertIsNotNone(fetched_promotion)
         self.assertEqual(fetched_promotion.name, updated_name)
 
+    def test_update_nonexist_promotion(self):
+        """Update a non-existent promotion"""
+        promotion = PromotionFactory()
+        updated_name = "UpdatedTestPromotion"
+        promotion.name = updated_name
+
+        with self.assertRaises(DataValidationError):
+            promotion.update()
+
+    def test_update_with_unset_name(self):
+        """Update a promotion with an unset name"""
+        promotion = PromotionFactory()
+        promotion.create()
+        self.assertIsNotNone(promotion.id)
+
+        # Update the promotion
+        promotion.name = None
+        self.assertRaises(DataValidationError, promotion.update)
+
     def test_update_promotion_multiple_attributes(self):
         """Update multiple attributes of a Promotion using the factory"""
         promotion = PromotionFactory()
@@ -203,12 +222,12 @@ class TestPromotionResourceModel(unittest.TestCase):
         update_data = {
             "name": 12345,  # It's strange to have a numeric name. Consider changing this if it's not intentional.
             "code": "NEWCODE",
-            "start": datetime(2022, 1, 1).isoformat(),
-            "expired": datetime(2022, 2, 1).isoformat(),
+            "start": datetime(2022, 1, 1).strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": datetime(2022, 2, 1).strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": False,
             "promo_type": 2,
             "value": 50.0,
-            "available": 10
+            "available": 10,
         }
 
         promotion.deserialize(update_data)
@@ -376,12 +395,12 @@ class TestPromotionResourceModel(unittest.TestCase):
         create_data = {
             "name": "NewPromotion",
             "code": "CODE123",
-            "start": "2023-01-01 00:00:00",
-            "expired": "2023-02-01 00:00:00",
+            "start": datetime(2023, 1, 1).strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": datetime(2023, 2, 1).strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": True,
             "promo_type": 1,
             "value": 10.0,
-            "available": 10
+            "available": 10,
         }
 
         promotion = PromotionFactory()
@@ -418,10 +437,12 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(data["name"], promotion.name)
         self.assertIn("start", data)
 
-        self.assertEqual(data["start"], promotion.start.isoformat())
+        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.assertIn("expired", data)
-        self.assertEqual(data["expired"], promotion.expired.isoformat())
+        self.assertEqual(
+            data["expired"], promotion.expired.strftime("%Y-%m-%dT%H:%M:%S")
+        )
 
         self.assertIn("whole_store", data)
         self.assertEqual(data["whole_store"], promotion.whole_store)
@@ -451,8 +472,10 @@ class TestPromotionResourceModel(unittest.TestCase):
         self.assertEqual(promotion.id, None)
         self.assertEqual(data["code"], promotion.code)
         self.assertEqual(data["name"], promotion.name)
-        self.assertEqual(data["start"], promotion.start)
-        self.assertEqual(data["expired"], promotion.expired)
+        self.assertEqual(data["start"], promotion.start.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.assertEqual(
+            data["expired"], promotion.expired.strftime("%Y-%m-%dT%H:%M:%S")
+        )
         self.assertEqual(data["whole_store"], promotion.whole_store)
         self.assertEqual(data["promo_type"], promotion.promo_type)
         self.assertEqual(data["value"], promotion.value)
@@ -511,7 +534,13 @@ class TestPromotionResourceModel(unittest.TestCase):
         for promotion in promotions:
             promotion.create()
         promo_type = promotions[0].promo_type
-        count = len([promotion for promotion in promotions if promotion.promo_type == promo_type])
+        count = len(
+            [
+                promotion
+                for promotion in promotions
+                if promotion.promo_type == promo_type
+            ]
+        )
         found = Promotion.find_by_promo_type(promo_type)
         self.assertEqual(found.count(), count)
         for promotion in found:
@@ -527,6 +556,31 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion2.create(4)
         self.assertEqual(len(promotion2.products), 1)
 
+    def test_bind_product(self):
+        """It should bind a product to a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+
+    def test_bind_product_twice(self):
+        """It should not bind a product to a promotion twice"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+
+    def test_unbind_product(self):
+        """It should unbind a product from a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        promotion.bind_product(1)
+        self.assertEqual(len(promotion.products), 1)
+        promotion.unbind_product(1)
+        self.assertEqual(len(promotion.products), 0)
+
     # Product Model Tests
     def test_create_product_(self):
         """It should create a product"""
@@ -537,7 +591,6 @@ class TestPromotionResourceModel(unittest.TestCase):
             self.assertIsNotNone(product.id)
             self.assertIsNotNone(product.created_at)
             self.assertIsNotNone(product.updated_at)
-            # print(product.serialize())
         self.assertEqual(len(Product.all()), product_count + 10)
 
     def test_create_without_id(self):
@@ -594,17 +647,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         product = ProductFactory()
         product.create()
         self.assertEqual(len(Product.all()), total + 1)
-        product.delete(confirm=True)
+        product.delete()
         self.assertEqual(len(Product.all()), total)
-
-    def test_delete_without_confirmation(self):
-        """It should not delete a product without confirmation"""
-        product = ProductFactory()
-        product.create()
-        self.assertEqual(len(Product.all()), 1)
-        with self.assertRaises(DataValidationError):
-            product.delete(confirm=False)
-        self.assertEqual(len(Product.all()), 1)
 
     def test_find_product(self):
         """It should find a product by id"""
@@ -612,6 +656,34 @@ class TestPromotionResourceModel(unittest.TestCase):
         product.create()
         found_product = Product.find(product.id)
         self.assertEqual(found_product.id, product.id)
+
+    def test_unbind_nonexist_product_from_promotion(self):
+        """It should not unbind a nonexistent product from a promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+        with self.assertRaises(DataValidationError):
+            promotion.unbind_product(123)
+
+    def test_bind_promotion_with_product(self):
+        """It should bind a promotion to a product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
+
+    def test_bind_promotion_with_nonexistent_product(self):
+        """It should bind a promotion to a nonexistent product, creating the product"""
+        product = ProductFactory()
+        product.create()
+        promotion = PromotionFactory()
+        promotion.create()
+
+        product.bind_promotion(promotion.id)
+        self.assertEqual(len(product.promotions), 1)
+        self.assertEqual(product.promotions[0].id, promotion.id)
 
     def test_bind_promotion(self):
         """It should bind a promotion to a product"""

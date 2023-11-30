@@ -3,6 +3,7 @@ Models for PromotionModel
 
 All of the models are stored in this module
 """
+from datetime import datetime
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
@@ -118,12 +119,16 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             Promotion, self.id
         ):  # Using the updated session.get() method
             raise DataValidationError(f"Promotion with ID {self.id} not found.")
+
         if self.name is None or self.name == "":
             raise DataValidationError("name attribute is not set")
-        if self.start is None:
+
+        if self.start is None or self.start == "":
             raise DataValidationError("start attribute is not set")
+
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
+
         db.session.commit()
 
     def delete(self):
@@ -148,21 +153,29 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         self.products.clear()
         db.session.commit()
 
+    def is_valid(self):
+        """Check if the promotion is valid"""
+        return (
+            self.available > 0
+            and self.start <= datetime.now()
+            and self.expired >= datetime.now()
+        )
+
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
         serialized_data = {
             "id": self.id,
             "name": self.name,
             "code": self.code,
-            "start": self.start.isoformat(),
-            "expired": self.expired.isoformat(),
+            "start": self.start.strftime("%Y-%m-%dT%H:%M:%S"),
+            "expired": self.expired.strftime("%Y-%m-%dT%H:%M:%S"),
             "whole_store": self.whole_store,
-            "promo_type": self.promo_type,
+            "promo_type": int(self.promo_type),
             "value": float(self.value),
             "products": [product.id for product in self.products],
-            # "created_at": self.created_at.isoformat(),
-            # "updated_at": self.updated_at.isoformat(),
-            "available": self.available
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "available": self.available,
         }
 
         # Optionally include 'created_at'
@@ -188,13 +201,12 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         try:
             self.name = data["name"]
             self.code = data["code"]
-            self.start = data["start"]
-            self.expired = data["expired"]
-            self.whole_store = data["whole_store"]
-            self.promo_type = data["promo_type"]
-            self.value = data["value"]
-            self.available = data["available"]
-
+            self.start = datetime.strptime(data["start"], "%Y-%m-%dT%H:%M:%S")
+            self.expired = datetime.strptime(data["expired"], "%Y-%m-%dT%H:%M:%S")
+            self.whole_store = bool(data["whole_store"])
+            self.promo_type = int(data["promo_type"])
+            self.value = float(data["value"])
+            self.available = int(data["available"])
         except KeyError as error:
             raise DataValidationError(
                 "Invalid PromotionModel: missing " + error.args[0]
@@ -204,7 +216,28 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
                 "Invalid PromotionModel: body of request contained bad or no data - "
                 "Error message: " + error.args[0]
             ) from error
+        except ValueError as error:
+            raise DataValidationError(
+                "Invalid PromotionModel: body of request contained "
+                "malformed data - "
+                "Error message: " + error.args[0]
+            ) from error
         return self
+
+    def bind_product(self, product_id):
+        """Bind a product to a promotion
+        Args:
+            product_id (int): the id of the product
+        """
+        product = Product.find(product_id)
+        if product is None:
+            product = Product(id=product_id)
+            product.create()
+        if product_id not in self.products:
+            self.products.append(product)
+        else:
+            self.app.logger.info(f"Product with id '{id}' is already in the promotion.")
+        db.session.commit()
 
     def unbind_product(self, product_id):
         """Unbind a product to a promotion
@@ -215,13 +248,17 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         if product is None:
             raise DataValidationError(f"Product with id '{id}' was not found.")
 
-        if product_id in self.products:
+        if product in self.products:
             self.products.remove(product)
         else:
             raise DataValidationError(
                 f"Product with id '{id}' is not in the promotion."
             )
         db.session.commit()
+
+    def product_ids(self):
+        """Returns all product ids"""
+        return [str(product.id) for product in self.products]
 
     @classmethod
     def init_db(cls, _app):
@@ -295,9 +332,6 @@ class Product(db.Model):
         onupdate=db.func.current_timestamp(),
     )
 
-    def __repr__(self):
-        return f"<ProductModel {self.name} id=[{self.id}]>"
-
     def create(self):
         """
         Creates a PromotionModel to the database
@@ -308,11 +342,8 @@ class Product(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self, confirm=False):
+    def delete(self):
         """Removes a PromotionModel from the data store"""
-        if not confirm:
-            raise DataValidationError("Please confirm deletion")
-
         self.app.logger.info("Deleting Product[id: %s]", self.id)
         db.session.delete(self)
         db.session.commit()
