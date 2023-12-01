@@ -4,14 +4,11 @@ My Service
 Describe what your service does here
 """
 from datetime import datetime
-from flask import request, render_template
+from flask import request, render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 from . import app, api
-
-from flask import jsonify
-
 
 # Define the model for Promotion
 create_model = api.model(
@@ -120,6 +117,7 @@ def index():
 
 @app.route('/health', methods=['GET'])
 def health():
+    """health check"""
     return jsonify({"status": "OK"}), 200
 
 
