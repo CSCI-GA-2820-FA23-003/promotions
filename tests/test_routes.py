@@ -544,3 +544,9 @@ class TestPromotionResourceModel(TestCase):
         """It should not edit the promotion"""
         response = self.client.get("promotions/0/edit")
         self.assertEqual(response.status_code, 404)
+
+    def test_health_k8s(self):
+        """should return status_code as 200_OK, JSON content as status: OK Passing with indication to health of kubernetes"""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json, {"status": "OK"})

@@ -10,6 +10,9 @@ from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
 from . import app, api
 
+from flask import jsonify
+
+
 # Define the model for Promotion
 create_model = api.model(
     "Promotion",
@@ -108,6 +111,16 @@ product_args.add_argument(
 def index():
     """Index page"""
     return app.send_static_file("index.html")
+
+
+######################################################################
+# Health Check Endpoint
+# Returns status OK for Kubernetes health check
+######################################################################
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "OK"}), 200
 
 
 ######################################################################
