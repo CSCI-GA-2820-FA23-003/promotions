@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import datetime
-from flask import request, render_template
+from flask import request, render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
@@ -108,6 +108,17 @@ product_args.add_argument(
 def index():
     """Index page"""
     return app.send_static_file("index.html")
+
+
+######################################################################
+# Health Check Endpoint
+# Returns status OK for Kubernetes health check
+######################################################################
+
+@app.route('/health', methods=['GET'])
+def health():
+    """health check"""
+    return jsonify({"status": "OK"}), 200
 
 
 ######################################################################
