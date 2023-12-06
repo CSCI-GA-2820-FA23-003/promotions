@@ -158,7 +158,7 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             self.available > 0
             and self.start <= today  # noqa: R1716
             and self.expired >= today
-    )
+        )
 
     def serialize(self):
         """Serializes a PromotionModel into a dictionary"""
