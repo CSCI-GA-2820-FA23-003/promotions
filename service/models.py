@@ -3,7 +3,7 @@ Models for PromotionModel
 
 All of the models are stored in this module
 """
-from datetime import datetime, date
+from datetime import date
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
