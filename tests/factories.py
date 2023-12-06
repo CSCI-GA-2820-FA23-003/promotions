@@ -1,7 +1,7 @@
 """
 Test Factory to make fake objects for testing
 """
-from datetime import datetime, timedelta, timezone, date
+from datetime import timedelta, timezone, date
 
 # from venv import create
 import factory
