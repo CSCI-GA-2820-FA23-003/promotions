@@ -3,7 +3,7 @@ My Service
 
 Describe what your service does here
 """
-from datetime import datetime, date
+from datetime import date
 from flask import request, render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
