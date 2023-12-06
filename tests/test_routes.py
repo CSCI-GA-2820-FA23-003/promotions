@@ -112,8 +112,8 @@ class TestPromotionResourceModel(TestCase):
             "whole_store": False,
             "promo_type": 1,  # Use a valid integer value for promo_type
             "value": 10.0,
-            "created_at": datetime.now().isoformat(),  # Include 'created_at' field
-            "updated_at": datetime.now().isoformat(),  # Include 'created_at' field
+            "created_at": date.today().isoformat(),  # Include 'created_at' field
+            "updated_at": date.today().isoformat(),  # Include 'created_at' field
             "available": 10,
         }
 
@@ -470,7 +470,7 @@ class TestPromotionResourceModel(TestCase):
     def test_apply_promotion(self):
         """It should apply the promotion"""
         promotion = PromotionFactory()
-        promotion.start = datetime.now() - timedelta(days=1)
+        promotion.start = date.today() - timedelta(days=1)
         promotion.available = 1
         promotion.create()
         response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")

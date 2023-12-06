@@ -412,7 +412,7 @@ class PromotionResource(Resource):
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
             )
-        if datetime.now() > promotion.expired:
+        if date.today() > promotion.expired:
             app.logger.warning("Received request to update an expired promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -491,13 +491,13 @@ class PromotionApply(Resource):
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
             )
-        if datetime.now() > promotion.expired:
+        if date.today() > promotion.expired:
             app.logger.warning("Received request to apply an expired promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,
                 "Applying expired promotions is not supported",
             )
-        elif datetime.now() < promotion.start:
+        elif date.today() < promotion.start:
             app.logger.warning("Received request to apply an Inactive promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,

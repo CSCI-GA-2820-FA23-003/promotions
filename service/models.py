@@ -153,10 +153,11 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
 
     def is_valid(self):
         """Check if the promotion is valid"""
+        today = date.today()
         return (
             self.available > 0
-            and self.start <= datetime.now()
-            and self.expired >= datetime.now()
+            and self.start <= today
+            and self.expired >= today
         )
 
     def serialize(self):

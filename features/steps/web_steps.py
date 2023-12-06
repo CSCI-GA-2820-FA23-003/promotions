@@ -66,19 +66,19 @@ def step_impl(context, element_name, text_string):
 def step_impl(context, text, element_name):
     # Generate the element ID
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    print(f"Dropdown ID: {element_id}")  # Debug print
+    #print(f"Dropdown ID: {element_id}")  # Debug print
 
     # Find the dropdown element
     dropdown_element = context.driver.find_element(By.ID, element_id)
-    print(f"Dropdown element found: {dropdown_element}")  # Debug print
+    #print(f"Dropdown element found: {dropdown_element}")  # Debug print
     
     # Create a Select object
     select = Select(dropdown_element)
-    print(f"Select object created: {select}")  # Debug print
+    #print(f"Select object created: {select}")  # Debug print
 
     # Select the option by visible text
     select.select_by_visible_text(text)
-    print(f"Option selected: {text}")  # Debug print
+    #print(f"Option selected: {text}")  # Debug print
 
 
 

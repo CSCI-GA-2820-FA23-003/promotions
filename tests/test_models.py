@@ -411,8 +411,8 @@ class TestPromotionResourceModel(unittest.TestCase):
         fetched_promotion = Promotion.find(promotion.id)
         self.assertEqual(fetched_promotion.name, create_data["name"])
         self.assertEqual(fetched_promotion.code, create_data["code"])
-        self.assertEqual(fetched_promotion.start, datetime(2023, 1, 1))
-        self.assertEqual(fetched_promotion.expired, datetime(2023, 2, 1))
+        self.assertEqual(fetched_promotion.start, date(2023, 1, 1))
+        self.assertEqual(fetched_promotion.expired, date(2023, 2, 1))
         self.assertTrue(fetched_promotion.whole_store)
         self.assertEqual(fetched_promotion.promo_type, 1)
         self.assertEqual(fetched_promotion.value, 10.0)
@@ -774,7 +774,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion.invalidate()
         self.assertEqual(promotion.available, 0)
         self.assertEqual(
-            promotion.expired.date(), datetime.utcnow().date()
+            promotion.expired, datetime.utcnow().date()
         )  # Compare only dates
 
     def test_cancel_promotion_with_products(self):
@@ -787,7 +787,7 @@ class TestPromotionResourceModel(unittest.TestCase):
         promotion.invalidate()
         self.assertEqual(promotion.available, 0)
         self.assertEqual(
-            promotion.expired.date(), datetime.utcnow().date()
+            promotion.expired, datetime.utcnow().date()
         )  # Compare only dates
         self.assertEqual(len(promotion.products), 0)
 
