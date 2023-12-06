@@ -3,7 +3,7 @@ Models for PromotionModel
 
 All of the models are stored in this module
 """
-from datetime import datetime
+from datetime import datetime, date
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
@@ -17,8 +17,8 @@ promotion_product = db.Table(
     "promotion_product",
     db.Column("promotion_id", db.Integer, db.ForeignKey("promotion.id")),
     db.Column("product_id", db.Integer, db.ForeignKey("product.id")),
-    db.Column("created_at", db.DateTime, nullable=False, default=db.func.now()),
-    db.Column("updated_at", db.DateTime, nullable=False, default=db.func.now()),
+    db.Column("created_at", db.Date, nullable=False, default=db.func.now()),
+    db.Column("updated_at", db.Date, nullable=False, default=db.func.now()),
 )
 
 
@@ -48,8 +48,8 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     code = db.Column(db.String(36), unique=True, nullable=False)
     name = db.Column(db.String(63), nullable=False)
-    start = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
-    expired = db.Column(db.DateTime, nullable=False)
+    start = db.Column(db.Date, nullable=False, default=db.func.current_timestamp())
+    expired = db.Column(db.Date, nullable=False)
     available = db.Column(db.Integer, nullable=False, default=1)
     whole_store = db.Column(db.Boolean, nullable=False, default=False)
     promo_type = db.Column(db.Integer, nullable=False)
@@ -62,11 +62,9 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         backref="promotions",
         cascade="all, delete",
     )
-    created_at = db.Column(
-        db.DateTime, nullable=False, default=db.func.current_timestamp()
-    )
+    created_at = db.Column(db.Date, nullable=False, default=db.func.current_timestamp())
     updated_at = db.Column(
-        db.DateTime,
+        db.Date,
         nullable=False,
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp(),
@@ -167,8 +165,8 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             "id": self.id,
             "name": self.name,
             "code": self.code,
-            "start": self.start.strftime("%Y-%m-%dT%H:%M:%S"),
-            "expired": self.expired.strftime("%Y-%m-%dT%H:%M:%S"),
+            "start": self.start.isoformat(),
+            "expired": self.expired.isoformat(),
             "whole_store": self.whole_store,
             "promo_type": int(self.promo_type),
             "value": float(self.value),
@@ -201,8 +199,8 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         try:
             self.name = data["name"]
             self.code = data["code"]
-            self.start = datetime.strptime(data["start"], "%Y-%m-%dT%H:%M:%S")
-            self.expired = datetime.strptime(data["expired"], "%Y-%m-%dT%H:%M:%S")
+            self.start = date.fromisoformat(data["start"])
+            self.expired = date.fromisoformat(data["expired"])
             self.whole_store = bool(data["whole_store"])
             self.promo_type = int(data["promo_type"])
             self.value = float(data["value"])

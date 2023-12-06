@@ -3,7 +3,7 @@ My Service
 
 Describe what your service does here
 """
-from datetime import datetime
+from datetime import datetime, date
 from flask import request, render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
@@ -115,7 +115,8 @@ def index():
 # Returns status OK for Kubernetes health check
 ######################################################################
 
-@app.route('/health', methods=['GET'])
+
+@app.route("/health", methods=["GET"])
 def health():
     """health check"""
     return jsonify({"status": "OK"}), 200
