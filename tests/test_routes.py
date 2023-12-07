@@ -10,7 +10,7 @@ import json
 import logging
 
 from unittest import TestCase
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from urllib.parse import quote_plus
 from service import app
 from service.models import db, Promotion, init_db, promotion_product, Product
@@ -107,15 +107,13 @@ class TestPromotionResourceModel(TestCase):
         updated_data = {
             "name": "Updated Promotion Name",
             "code": promotion.code,
-            "start": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            "expired": (datetime.now() + timedelta(days=1)).strftime(
-                "%Y-%m-%dT%H:%M:%S"
-            ),
+            "start": date.today().isoformat(),
+            "expired": (date.today() + timedelta(days=1)).isoformat(),
             "whole_store": False,
             "promo_type": 1,  # Use a valid integer value for promo_type
             "value": 10.0,
-            "created_at": datetime.now().isoformat(),  # Include 'created_at' field
-            "updated_at": datetime.now().isoformat(),  # Include 'created_at' field
+            "created_at": date.today().isoformat(),  # Include 'created_at' field
+            "updated_at": date.today().isoformat(),  # Include 'created_at' field
             "available": 10,
         }
 
@@ -472,7 +470,7 @@ class TestPromotionResourceModel(TestCase):
     def test_apply_promotion(self):
         """It should apply the promotion"""
         promotion = PromotionFactory()
-        promotion.start = datetime.now() - timedelta(days=1)
+        promotion.start = date.today() - timedelta(days=1)
         promotion.available = 1
         promotion.create()
         response = self.client.post(f"{API_PROMOTION_URL}/{promotion.id}/apply")
@@ -544,3 +542,9 @@ class TestPromotionResourceModel(TestCase):
         """It should not edit the promotion"""
         response = self.client.get("promotions/0/edit")
         self.assertEqual(response.status_code, 404)
+
+    def test_health_k8s(self):
+        """should return status_code as 200_OK, JSON content as status: OK Passing with indication to health of kubernetes"""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json, {"status": "OK"})

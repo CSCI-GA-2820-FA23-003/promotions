@@ -3,8 +3,8 @@ My Service
 
 Describe what your service does here
 """
-from datetime import datetime
-from flask import request, render_template
+from datetime import date
+from flask import request, render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
@@ -108,6 +108,18 @@ product_args.add_argument(
 def index():
     """Index page"""
     return app.send_static_file("index.html")
+
+
+######################################################################
+# Health Check Endpoint
+# Returns status OK for Kubernetes health check
+######################################################################
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    """health check"""
+    return jsonify({"status": "OK"}), 200
 
 
 ######################################################################
@@ -400,7 +412,7 @@ class PromotionResource(Resource):
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
             )
-        if datetime.now() > promotion.expired:
+        if date.today() > promotion.expired:
             app.logger.warning("Received request to update an expired promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -479,13 +491,13 @@ class PromotionApply(Resource):
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
             )
-        if datetime.now() > promotion.expired:
+        if date.today() > promotion.expired:
             app.logger.warning("Received request to apply an expired promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,
                 "Applying expired promotions is not supported",
             )
-        elif datetime.now() < promotion.start:
+        elif date.today() < promotion.start:
             app.logger.warning("Received request to apply an Inactive promotion.")
             abort(
                 status.HTTP_405_METHOD_NOT_ALLOWED,
