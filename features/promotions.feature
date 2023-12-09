@@ -28,4 +28,18 @@ Scenario: Creating a new promotion
     And I press the "Create" button
     Then I should see the message "Promotion created successfully"
 
-
+Scenario: Search via Promotion Code
+    When I visit the "Home Page"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Code" field
+    And I press the "Clear" button
+    Then the "Code" field should be empty
+    And the "Name" field should be empty      
+    And the "Available" field should be empty                               
+    When I paste the "Code" field
+    And I press the "Search" button   
+    Then I should see the message "Success"
+    And I should see "SAVE10" in the "Code" field
+    And I should see "q" in the "Name" field
+    And I should see "100" in the "Available" field
