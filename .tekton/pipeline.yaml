@@ -22,7 +22,7 @@ spec:
       name: APP_NAME
       type: string
     - default: >-
-        image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.kaiwangke-dev)/$(params.APP_NAME):latest
+        image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest
       description: The name of the image to build
       name: IMAGE_NAME
       type: string
