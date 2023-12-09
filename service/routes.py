@@ -128,9 +128,9 @@ def health():
 
 
 @app.route("/promotions/<int:promotion_id>/edit", methods=["GET"])
-def promotion_detail_view(promotion_id):
+def promotion_detail_view_id(promotion_id):
     """Root URL response"""
-    app.logger.info("Request for Root URL")
+    app.logger.info("Request for ID URL")
     promotion = Promotion.find(promotion_id)
     pruducts = Product.all()
 
@@ -147,6 +147,33 @@ def promotion_detail_view(promotion_id):
         }
         for product in pruducts
     ]
+
+    return render_template(
+        "promotion.html", promotion=promotion, products=bind_products
+    )
+
+
+@app.route("/promotions/<string:promotion_id>/edit", methods=["GET"])
+def promotion_detail_view_code(promotion_id):
+    """Root URL response"""
+    app.logger.info("Request for Code URL")
+    promotion = Promotion.find_by_code(promotion_id).first()
+    products = Product.all()
+
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with code {promotion_id} was not found.",
+        )
+
+    bind_products = [
+        {
+            "id": product.id,
+            "selected": product in promotion.products,
+        }
+        for product in products
+    ]
+
     return render_template(
         "promotion.html", promotion=promotion, products=bind_products
     )

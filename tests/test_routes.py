@@ -538,6 +538,9 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.get(f"promotions/{promotion.id}/edit")
         self.assertEqual(response.status_code, 200)
 
+        response = self.client.get(f"promotions/{promotion.code}/edit")
+        self.assertEqual(response.status_code, 200)
+
     def test_edit_nonexistent_promotion(self):
         """It should not edit the promotion"""
         response = self.client.get("promotions/0/edit")
