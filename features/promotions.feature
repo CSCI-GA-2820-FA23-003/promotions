@@ -67,3 +67,21 @@ Scenario: delete a promotion
     And the "Name" field should be empty      
     And the "Available" field should be empty
 
+
+Scenario: Retrieve a promotion
+    When I visit the "Home Page"
+    And I set the "Code" to "SAVE10"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "ID" field
+    And I press the "Clear" button
+    Then the "ID" field should be empty
+    And the "Code" field should be empty
+    When I paste the "ID" field
+    When I press the "Retrieve" button
+    Then I should see the message "Success"
+    And I should see "SAVE10" in the "Code" field
+    And I should see "promo_s10" in the "Name" field
+    And I should see "100" in the "Available" field
+
+
