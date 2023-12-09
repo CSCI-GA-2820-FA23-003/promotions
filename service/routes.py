@@ -395,8 +395,8 @@ class PromotionResource(Resource):
 
         This function removes a promotion from the database if it exists and has not expired.
         If the promotion does not exist, a 404 error is returned.
-        If the promotion has expired, a 405 error is returned indicating that deletion of expired promotions is not supported.
-
+        If the promotion has expired, a 405 error is returned indicating that deletion of
+        expired promotions is not supported.
         Args:
             promotion_id (int): Unique identifier of the promotion to be deleted.
 
