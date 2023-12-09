@@ -102,14 +102,11 @@ data:
 #     --from-literal=password=$POSTGRES_PASSWORD
 #     --from-literal=database_uri=$DATABASE_URI
 #
-
 apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-creds
 data:
-  password: cHJvbW90aW9ucGFzc3dvcmQ=
-  database_uri: cG9zdGdyZXNxbDovL3Bvc3RncmVzOnByb21vdGlvbnBhc3N3b3JkQHBvc3RncmVzOjU0MzIvcHJvbW90aW9uc3RvcmU=
-
-# promotionpassword
-# postgresql+psycopg://postgres:promotionpassword@postgres:5432/promotionstore
+  password: cGdzM2NyM3Q=
+  database_uri: |
+    cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBnczNjcjN0QHBvc3RncmVzOjU0MzIvcHJvbW90aW9uc3RvcmU=
