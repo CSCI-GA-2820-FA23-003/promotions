@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import date
-from flask import request, render_template, jsonify
+from flask import render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
@@ -452,11 +452,12 @@ class PromotionResource(Resource):
         except DataValidationError as error:
             app.logger.warning("Bad request data: %s", str(error))
             abort(status.HTTP_400_BAD_REQUEST, str(error))
-        if not request.is_json:
-            abort(
-                status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                "Unsupported media type: Request is not JSON",
-            )
+
+        # if not request.is_json:
+        #     abort(
+        #         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        #         "Unsupported media type: Request is not JSON",
+        #     )
         promotion.id = promotion_id
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
@@ -685,13 +686,3 @@ def abort(error_code: int, message: str):
     """Logs errors before aborting"""
     app.logger.error(message)
     api.abort(error_code, message)
-
-
-def init_db(dbname="promotions"):
-    """Initialize the model"""
-    Promotion.init_db(dbname)
-
-
-def data_reset():
-    """Removes all Promotions from the database"""
-    Promotion.remove_all()

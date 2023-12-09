@@ -467,6 +467,16 @@ class TestPromotionResourceModel(TestCase):
         )
         self.assertEqual(response.status_code, 409)
 
+    def test_unbind_nonexist_promition_from_product(self):
+        """It should not unbind a promotion from a product"""
+        # Create a product
+        product = ProductFactory()
+        product.create()
+
+        # Unbind the product from the promotion
+        response = self.client.delete(f"{API_PROMOTION_URL}/0/unbind/{product.id}")
+        self.assertEqual(response.status_code, 404)
+
     def test_apply_promotion(self):
         """It should apply the promotion"""
         promotion = PromotionFactory()
