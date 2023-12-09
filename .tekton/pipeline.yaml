@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: cd-pipeline
+  name: cd-pipeline-promotion
 spec:
   workspaces:
-    - name: pipeline-workspace
+    - name: pipeline-workspace-promotion
   params:
     - description: The URL to the git repo
       name: GIT_REPO
@@ -17,12 +17,12 @@ spec:
       description: Arguments for green testing
       name: GREEN_ARGS
       type: string
-    - default: petshop
+    - default: promotions
       description: Name of the application
       name: APP_NAME
       type: string
     - default: >-
-        image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest
+        image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.kaiwangke-dev)/$(params.APP_NAME):latest
       description: The name of the image to build
       name: IMAGE_NAME
       type: string
@@ -67,7 +67,7 @@ spec:
         name: git-clone
       workspaces:
         - name: output
-          workspace: pipeline-workspace
+          workspace: pipeline-workspace-promotion
     - name: pylint
       params:
         - name: image
@@ -87,7 +87,7 @@ spec:
         name: pylint
       workspaces:
         - name: source
-          workspace: pipeline-workspace
+          workspace: pipeline-workspace-promotion
     - name: testing
       params:
         - name: ARGS
@@ -103,7 +103,7 @@ spec:
         name: green
       workspaces:
         - name: source
-          workspace: pipeline-workspace
+          workspace: pipeline-workspace-promotion
     - name: buildah
       params:
         - name: IMAGE
@@ -135,11 +135,11 @@ spec:
         name: buildah
       workspaces:
         - name: source
-          workspace: pipeline-workspace
+          workspace: pipeline-workspace-promotion
     - name: deploy-image
       params:
         - name: old_image_name
-          value: 'cluster-registry:32000/petshop:latest'
+          value: 'cluster-registry:32000/promotions:latest'
         - name: image_name
           value: $(params.IMAGE_NAME)
         - name: manifest_dir
@@ -151,4 +151,4 @@ spec:
         name: deploy-image
       workspaces:
         - name: source
-          workspace: pipeline-workspace
+          workspace: pipeline-workspace-promotion
