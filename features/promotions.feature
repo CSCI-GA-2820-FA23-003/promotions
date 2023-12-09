@@ -51,3 +51,8 @@ Scenario: Revoke a promotion
     And I press the "Revoke" button in detail page
     When I visit the "Detail Page" for "SAVE10"
     Then I should see warning "Invalid Promotion" in message of detail page
+
+Scenario: Delete a promotion
+    When I visit the "Detail Page" for "SAVE10"
+    And I press the "Del" button in detail page
+    Then I should see "Promotions RESTful Service" in the title
