@@ -34,13 +34,12 @@
 
             <div class="field">
                 <label>Start</label>
-                <input type="datetime-local" name="start" value="{{ promotion.start.strftime('%Y-%m-%dT%H:%M:%S') }}">
+                <input type="date" name="start" value="{{ promotion.start }}">
             </div>
 
             <div class="field">
                 <label>End</label>
-                <!-- format: 2023-12-01T00:03:09.643599 convert to local time -->
-                <input type="datetime-local" name="end" value="{{ promotion.expired.strftime('%Y-%m-%dT%H:%M:%S') }}">
+                <input type="date" name="end" value="{{ promotion.expired }}">
             </div>
 
             <div class="field">
