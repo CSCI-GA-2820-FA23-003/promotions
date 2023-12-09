@@ -20,12 +20,19 @@ Scenario: Creating a new promotion
     And I set the "Code" to "SUMMER2022"
     And I set the "Name" to "promo_50"
     And I set the "Start" to "06-01-2022"
-    And I set the "Expired" to "09-09-2022"
+    And I set the "Expired" to "09-01-2022"
     And I set the "Available" to "100"
     And I select "True" in the "WholeStore" dropdown
     And I select "50%" in the "Type" dropdown
     And I press the "Create" button
     Then I should see the message "Promotion created successfully"
+    And I should see "SUMMER2022" in the "Code" field
+    And I should see "promo_50" in the "Name" field
+    And I should see "100" in the "Available" field
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "50%" in the "Type" dropdown
+    And I should see "2022-06-01" in the "Start" field
+    And I should see "2022-09-01" in the "Expired" field
 
 Scenario: List all promotions
     When I visit the "Home Page"
@@ -35,6 +42,7 @@ Scenario: List all promotions
     And I should see "promo_b1g1" in the results
     And I should see "promo_free" in the results
     And I should not see "promo_b3g3" in the results
+
 
 Scenario: Search via Promotion Code
     When I visit the "Home Page"
@@ -51,7 +59,10 @@ Scenario: Search via Promotion Code
     And I should see "SAVE10" in the "Code" field
     And I should see "promo_s10" in the "Name" field
     And I should see "100" in the "Available" field
-
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "20%" in the "Type" dropdown
+    And I should see "2023-06-01" in the "Start" field
+    And I should see "2023-06-30" in the "Expired" field
 
 Scenario: delete a promotion
     When I visit the "Home Page"
@@ -61,6 +72,10 @@ Scenario: delete a promotion
     And I should see "SAVE10" in the "Code" field
     And I should see "promo_s10" in the "Name" field
     And I should see "100" in the "Available" field
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "20%" in the "Type" dropdown
+    And I should see "2023-06-01" in the "Start" field
+    And I should see "2023-06-30" in the "Expired" field
     When I press the "Delete" button
     Then I should see the message "Promotion has been Deleted!"
     And the "Code" field should be empty
@@ -83,5 +98,34 @@ Scenario: Retrieve a promotion
     And I should see "SAVE10" in the "Code" field
     And I should see "promo_s10" in the "Name" field
     And I should see "100" in the "Available" field
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "20%" in the "Type" dropdown
+    And I should see "2023-06-01" in the "Start" field
+    And I should see "2023-06-30" in the "Expired" field
 
 
+Scenario: Query a Promotion by name
+    When I visit the "Home Page"
+    And I set the "Name" to "promo_s10"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "SAVE10" in the "Code" field
+    And I should see "promo_s10" in the "Name" field
+    And I should see "100" in the "Available" field
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "20%" in the "Type" dropdown
+    And I should see "2023-06-01" in the "Start" field
+    And I should see "2023-06-30" in the "Expired" field
+
+Scenario: Search via Promotion Available
+    When I visit the "Home Page"
+    And I set the "Available" to "100"
+    And I press the "Search" button   
+    Then I should see the message "Success"
+    And I should see "SAVE10" in the "Code" field
+    And I should see "promo_s10" in the "Name" field
+    And I should see "100" in the "Available" field
+    And I should see "True" in the "WholeStore" dropdown
+    And I should see "20%" in the "Type" dropdown
+    And I should see "2023-06-01" in the "Start" field
+    And I should see "2023-06-30" in the "Expired" field
