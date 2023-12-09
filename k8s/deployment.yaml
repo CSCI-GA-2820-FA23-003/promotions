@@ -5,7 +5,7 @@ metadata:
   labels:
     app: promotions
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -24,7 +24,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: promotions
-        image: cluster-registry:32000/promotions:1.0
+        image: cluster-registry.local:32000/promotions:1.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
