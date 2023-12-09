@@ -51,3 +51,19 @@ Scenario: Search via Promotion Code
     And I should see "SAVE10" in the "Code" field
     And I should see "promo_s10" in the "Name" field
     And I should see "100" in the "Available" field
+
+
+Scenario: delete a promotion
+    When I visit the "Home Page"
+    And I set the "Code" to "SAVE10"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "SAVE10" in the "Code" field
+    And I should see "promo_s10" in the "Name" field
+    And I should see "100" in the "Available" field
+    When I press the "Delete" button
+    Then I should see the message "Promotion has been Deleted!"
+    And the "Code" field should be empty
+    And the "Name" field should be empty      
+    And the "Available" field should be empty
+
