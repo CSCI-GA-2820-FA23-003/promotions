@@ -44,7 +44,10 @@ Scenario: Update a existing promotion
     And I set the "fld Available" to "50" in detail page
     And I press the "submit" button in detail page
     Then I should see the message "Promotion SAVE10 updated" in toast of detail page
-    
+  
 
-
-
+Scenario: Revoke a promotion
+    When I visit the "Detail Page" for "SAVE10"
+    And I press the "Revoke" button in detail page
+    When I visit the "Detail Page" for "SAVE10"
+    Then I should see warning "Invalid Promotion" in message of detail page

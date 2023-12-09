@@ -130,6 +130,17 @@ def check_message(context, message):
     assert found and found.text == message
 
 
+@then('I should see warning "{message}" in message of detail page')
+def check_message(context, message):
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.visibility_of_element_located(
+            (By.ID, "error-invalid-title")
+        )
+    )
+    print(f"Toast message: {found.text}")
+    assert found and found.text == message
+
+
 ##################################################################
 # This code works because of the following naming convention:
 # The id field for text input in the html is the element name

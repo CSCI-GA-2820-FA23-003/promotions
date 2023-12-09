@@ -12,12 +12,12 @@
     <div class="rounded-lg bg-gray-100 p-5">
         <form id="form_data" class="ui form">
             {% if not promotion.is_valid() %}
-            <div class="ui negative message" id="error-invalid-pormotion">
+            <div class="ui negative message" id="error-invalid-promotion">
                 <i class="close icon"></i>
-                <div class="header">
+                <div class="header" id="error-invalid-title">
                   Invalid Promotion
                 </div>
-                <p>Please update the available count, start time and expired time to re-active the promotion</p>
+                <p id="error-invalid-message">Please update the available count, start time and expired time to re-active the promotion</p>
               </div>
             {% endif %}
 
@@ -233,6 +233,7 @@ $(document).ready(function(){
                     class: 'success',
                     message: `Promotion {{ promotion.code }} deleted`,
                   });
+                  window.location.href = '/';
             },
             error: function(result) {
                 $.toast({
@@ -252,11 +253,13 @@ $(document).ready(function(){
                     class: 'success',
                     message: `Promotion {{ promotion.code }} revoked`,
                   });
+
+                window.location.href = '/';
             },
             error: function(result) {
                 $.toast({
                     class: 'error',
-                    message: `Failed to revoke promotion {{ promotion.code }}: ${result}`,
+                    message: `Failed to revoke promotion {{ promotion.code }}: ${result.responseText}`,
                   });
             }
         });
