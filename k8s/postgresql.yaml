@@ -1,5 +1,6 @@
 # The promotionstore database should be created for you, if not here is the command:
 # psql -c "create database promotionstore;" -U postgres
+# 16:03
 ---
 apiVersion: apps/v1
 kind: StatefulSet
