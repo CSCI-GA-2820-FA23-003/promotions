@@ -4,14 +4,14 @@ $(function () {
     //  U T I L I T Y   F U N C T I O N S
     // ****************************************
 
-    // Updates the form with data from the response
+    // Updates the form with data from the  ponse
     function update_form_data(res) {
         console.log(res.start)
         $("#promotion_id").val(res.id);
         $("#promotion_code").val(res.code);
         $("#promotion_name").val(res.name);
         $("#promotion_start").val((res.start).slice(0,10));
-        $("#promotion_expired").val((res.expired).slice(0,10));
+        $("#promotion_expired").val((res.start).slice(0,10));
         $("#promotion_available").val(res.available);
         $("#promotion_wholestore").val(res.whole_store.toString());
         $("#promotion_type").val(res.promo_type);
@@ -23,7 +23,6 @@ $(function () {
         $("#promotion_name").val("");
         $("#promotion_start").val("");
         $("#promotion_expired").val("");
-        $("#promotion_category").val("");
         $("#promotion_available").val("");
         $("#promotion_wholestore").val("");
         $("#promotion_type").val("");
@@ -93,7 +92,6 @@ $(function () {
         let name = $("#promotion_name").val();
         let start_date = $("#promotion_start_date").val();
         let end_date = $("#promotion_end_date").val();
-        let category = $("#promotion_category").val();
         let available = $("#promotion_available").val();
         let whole_store = $("#promotion_whole_store").val() == "true";
         let promo_type = $("#promotion_promo_type").val();
@@ -103,7 +101,6 @@ $(function () {
             "name": name,
             "start_date": start_date,
             "end_date": end_date,
-            "category": category,
             "available": available,
             "whole_store": whole_store,
             "promo_type": promo_type
@@ -206,28 +203,33 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
+        let code = $("#promo_code").val();
+        let name = $("#promo_name").val();
+        let available = $("#promo_available").val();
 
-        let code = $("#promotion_code").val();
-        let category = $("#promotion_category").val();
-        let available = $("#promotion_available").val();
-
-        let queryString = ""
+        let queryString = "";
 
         if (code) {
-            queryString += 'code=' + code
-        }
-        if (category) {
             if (queryString.length > 0) {
-                queryString += '&category=' + category
+                queryString += '&code=' + code;
             } else {
-                queryString += 'category=' + category
+                queryString += 'code=' + code;
             }
         }
+
+        if (name) {
+            if (queryString.length > 0) {
+                queryString += '&name=' + name;
+            } else {
+                queryString += 'name=' + name;
+            }
+        }
+
         if (available) {
             if (queryString.length > 0) {
-                queryString += '&available=' + available
+                queryString += '&available=' + available;
             } else {
-                queryString += 'available=' + available
+                queryString += 'available=' + available;
             }
         }
 
@@ -238,18 +240,59 @@ $(function () {
             url: `/api/promotions?${queryString}`,
             contentType: "application/json",
             data: ''
-        })
+        });
 
         ajax.done(function(res){
             $("#search_results").empty();
-            flash_message("Success")
+            let table = '<table class="table table-striped" cellpadding="10">';
+            table += '<thead><tr>';
+            table += '<th class="col-md-2">ID</th>';
+            table += '<th class="col-md-2">Code</th>';
+            table += '<th class="col-md-2">Name</th>';
+            table += '<th class="col-md-2">Start Date</th>';
+            table += '<th class="col-md-2">End Date</th>';
+            table += '<th class="col-md-2">Available</th>';
+            table += '<th class="col-md-2">Whole Store</th>';
+            table += '<th class="col-md-2">Promo Type</th>';
+            table += '</tr></thead><tbody>';
+            
+            let firstPromo = "";
+
+            for(let i = 0; i < res.length; i++) {
+                let promo = res[i];
+                let start = promo.start.slice(0, 10);
+                let expired = promo.expired.slice(0, 10);
+                table +=  `<tr id="row_${i}">
+                                <td>${promo.id}</td>
+                                <td>${promo.code}</td>
+                                <td>${promo.name}</td>
+                                <td>${start}</td>
+                                <td>${expired}</td>
+                                <td>${promo.available}</td>
+                                <td>${promo.whole_store}</td>
+                                <td>${promo.promo_type}</td>
+                            </tr>`;
+                
+                if (i === 0) {
+                    firstPromo = promo;
+                }
+            }
+
+            table += '</tbody></table>';
+            $("#search_results").append(table);
+
+            // copy the first result to the form
+            if (firstPromo !== "") {
+                update_form_data(firstPromo);
+            }
+
+            flash_message("Success");
         });
 
         ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
+            flash_message(res.responseJSON.message);
         });
-
     });
 
-})
+    })
 
