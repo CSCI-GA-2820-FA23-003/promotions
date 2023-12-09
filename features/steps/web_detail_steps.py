@@ -48,16 +48,17 @@ def check_title(context, message):
 
 @when('I set the "{element_name}" to "{text_string}" in detail page')
 def set_text(context, element_name, text_string):
-    element_id = element_name.lower().replace(" ", "_")
+    element_id = element_name.lower().replace(" ", "-")
     element = context.driver.find_element(By.ID, element_id)
     element.clear()
     element.send_keys(text_string)
+    print(f"Element value: {element.get_attribute('value')}")  # Debug print
 
 
 @when('I select "{text}" in the "{element_name}" dropdown in detail page')
 def set_select(context, text, element_name):
     # Generate the element ID
-    element_id = element_name.lower().replace(" ", "_")
+    element_id = element_name.lower().replace(" ", "-")
     # print(f"Dropdown ID: {element_id}")  # Debug print
 
     # Find the dropdown element
@@ -98,7 +99,7 @@ def check_text_equal(context, element_name, text_string):
 
 @when('I press the "{button}" button in detail page')
 def press_btn(context, button):
-    button_id = button.lower() + "-btn"
+    button_id = "btn-" + button.lower()
     context.driver.find_element(By.ID, button_id).click()
 
 
@@ -118,14 +119,15 @@ def check_not_res(context, name):
     assert name not in element.text
 
 
-@then('I should see the message "{message}" in detail page')
+@then('I should see the message "{message}" in toast of detail page')
 def check_message(context, message):
     found = WebDriverWait(context.driver, context.wait_seconds).until(
-        expected_conditions.text_to_be_present_in_element(
-            (By.ID, "flash_message"), message
+        expected_conditions.visibility_of_element_located(
+            (By.CSS_SELECTOR, ".toast-container .message")
         )
     )
-    assert found
+    print(f"Toast message: {found.text}")  # Debug print
+    assert found and found.text == message
 
 
 ##################################################################

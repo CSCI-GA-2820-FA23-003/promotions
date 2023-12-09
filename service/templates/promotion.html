@@ -86,7 +86,7 @@
 
             <h4 class="ui dividing header">Operation</h4>
             <div>
-                <button class="ui button disabled" id="submit-btn" type="submit">Update</button>
+                <button class="ui button disabled" id="btn-submit" type="submit">Update</button>
                 <button class="ui button red" type="button" id="btn-del">Remove</button>
                 <button class="ui button red" type="button" id="btn-revoke">Revoke</button>
             </div>
@@ -268,10 +268,10 @@ $(document).ready(function(){
 
     // handle the data change
     $('#form_data').on('change', 'input, select', function(){
-        $('#submit-btn').removeClass('disabled');
+        $('#btn-submit').removeClass('disabled');
     });
 
-    $('#submit-btn').click(function(){
+    $('#btn-submit').click(function(){
         submit_promotion();
     });
 
