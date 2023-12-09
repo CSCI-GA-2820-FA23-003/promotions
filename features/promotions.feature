@@ -5,10 +5,10 @@ Feature: The promotion service back-end
 
 Background:
   Given the following promotions
-  | code      | name | start      | expired    | available | whole_store | promo_type    |
-  | SAVE10    | q    | 2023-06-01 | 2023-06-30 | 100       | True        | 20            |
-  | BUY1GET1  | w    | 2023-07-01 | 2023-07-15 | 50        | False       | 30            |
-  | FREESHIP  | e    | 2023-08-01 | 2023-08-31 | 200       | True        | 50            |
+  | code      | name | start      | expired    | available | whole_store | promo_type    | value |
+  | SAVE10    | q    | 2023-06-01 | 2023-06-30 | 100       | True        | 2             |   10  |
+  | BUY1GET1  | w    | 2023-07-01 | 2023-07-15 | 50        | False       | 1             |   0   |
+  | FREESHIP  | e    | 2023-08-01 | 2023-08-31 | 200       | True        | 1             |  50   |
 
 Scenario: The server is running
   When I visit the "Home Page"
@@ -29,12 +29,16 @@ Scenario: Creating a new promotion
 
 Scenario: Update a existing promotion
     When I visit the "Detail Page" for "SAVE10"
-    Then I should see "Promotions SAVE10" in the title of detail page
-    When I set the "Code" to "SAVE10" in the detail page
-    And I set the "Name" to "q" in the detail page
-    And I set the "Start" to "12-01-2023" in the detail page
-    And I set the "End" to "12-03-2023" in the detail page
-    And I set the "Available" to "100" in the detail page
-    And I select "True" in the "WholeStore" dropdown in the detail page
-    And I select "20%" in the "Type" dropdown in the detail page
+    Then I should see the title "Promotions SAVE10" in detail page
+    And I should see "q" in the "fld Name" field in detail page
+    And I should see "SAVE10" in the "fld Code" field in detail page
+    And I should see "2023-06-01" in the "fld Start" field in detail page
+    And I should see "2023-06-30" in the "fld End" field in detail page
+    And I should see "100" in the "fld Available" field in detail page
+    And I should see "10" in the "fld Val" field in detail page
+    And I should see "true" in the "chk Whole Store" field in detail page
+    And I should see "2" in the "sel type" dropdown in detail page
+    
+
+
 
