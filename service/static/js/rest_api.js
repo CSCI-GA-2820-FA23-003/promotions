@@ -11,7 +11,7 @@ $(function () {
         $("#promotion_code").val(res.code);
         $("#promotion_name").val(res.name);
         $("#promotion_start").val((res.start).slice(0,10));
-        $("#promotion_expired").val((res.start).slice(0,10));
+        $("#promotion_expired").val((res.expired).slice(0,10));
         $("#promotion_available").val(res.available);
         $("#promotion_wholestore").val(res.whole_store.toString());
         $("#promotion_type").val(res.promo_type);
