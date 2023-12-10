@@ -4,7 +4,7 @@ My Service
 Describe what your service does here
 """
 from datetime import date
-from flask import request, render_template, jsonify
+from flask import render_template, jsonify
 from flask_restx import Resource, fields, reqparse
 from service.common import status  # HTTP Status Codes
 from service.models import Promotion, DataValidationError, Product
@@ -128,9 +128,9 @@ def health():
 
 
 @app.route("/promotions/<int:promotion_id>/edit", methods=["GET"])
-def promotion_detail_view(promotion_id):
+def promotion_detail_view_id(promotion_id):
     """Root URL response"""
-    app.logger.info("Request for Root URL")
+    app.logger.info("Request for ID URL")
     promotion = Promotion.find(promotion_id)
     pruducts = Product.all()
 
@@ -147,6 +147,33 @@ def promotion_detail_view(promotion_id):
         }
         for product in pruducts
     ]
+
+    return render_template(
+        "promotion.html", promotion=promotion, products=bind_products
+    )
+
+
+@app.route("/promotions/<string:promotion_id>/edit", methods=["GET"])
+def promotion_detail_view_code(promotion_id):
+    """Root URL response"""
+    app.logger.info("Request for Code URL")
+    promotion = Promotion.find_by_code(promotion_id).first()
+    products = Product.all()
+
+    if promotion is None:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with code {promotion_id} was not found.",
+        )
+
+    bind_products = [
+        {
+            "id": product.id,
+            "selected": product in promotion.products,
+        }
+        for product in products
+    ]
+
     return render_template(
         "promotion.html", promotion=promotion, products=bind_products
     )
@@ -425,11 +452,6 @@ class PromotionResource(Resource):
         except DataValidationError as error:
             app.logger.warning("Bad request data: %s", str(error))
             abort(status.HTTP_400_BAD_REQUEST, str(error))
-        if not request.is_json:
-            abort(
-                status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                "Unsupported media type: Request is not JSON",
-            )
         promotion.id = promotion_id
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
@@ -658,13 +680,3 @@ def abort(error_code: int, message: str):
     """Logs errors before aborting"""
     app.logger.error(message)
     api.abort(error_code, message)
-
-
-def init_db(dbname="promotions"):
-    """Initialize the model"""
-    Promotion.init_db(dbname)
-
-
-def data_reset():
-    """Removes all Promotions from the database"""
-    Promotion.remove_all()

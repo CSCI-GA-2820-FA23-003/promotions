@@ -30,42 +30,35 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-ID_PREFIX = "promotion_"
 
-
-@when('I visit the "Home Page"')
-def step_impl(context):
-    """Make a call to the base URL"""
-    context.driver.get(context.base_url)
+@when('I visit the "Detail Page" for "{promotion_id}"')
+def visit_detail_page(context, promotion_id):
+    """Make a call to the Detail URL"""
+    context.driver.get(context.base_url + "/promotions/" + promotion_id + "/edit")
     # Uncomment next line to take a screenshot of the web page
     # context.driver.save_screenshot('home_page.png')
 
 
-@then('I should see "{message}" in the title')
-def step_impl(context, message):
+@then('I should see the title "{message}" in detail page')
+def check_title(context, message):
     """Check the document title for a message"""
-    print("Actual title:", context.driver.title)
-    assert message in context.driver.title
+    # print("Actual title:", context.driver.title)
+    assert message == context.driver.title
 
 
-@then('I should not see "{text_string}"')
-def step_impl(context, text_string):
-    element = context.driver.find_element(By.TAG_NAME, "body")
-    assert text_string not in element.text
-
-
-@when('I set the "{element_name}" to "{text_string}"')
-def step_impl(context, element_name, text_string):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+@when('I set the "{element_name}" to "{text_string}" in detail page')
+def set_text(context, element_name, text_string):
+    element_id = element_name.lower().replace(" ", "-")
     element = context.driver.find_element(By.ID, element_id)
     element.clear()
     element.send_keys(text_string)
+    print(f"Element value: {element.get_attribute('value')}")  # Debug print
 
 
-@when('I select "{text}" in the "{element_name}" dropdown')
-def step_impl(context, text, element_name):
+@when('I select "{text}" in the "{element_name}" dropdown in detail page')
+def set_select(context, text, element_name):
     # Generate the element ID
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+    element_id = element_name.lower().replace(" ", "-")
     # print(f"Dropdown ID: {element_id}")  # Debug print
 
     # Find the dropdown element
@@ -81,41 +74,18 @@ def step_impl(context, text, element_name):
     # print(f"Option selected: {text}")  # Debug print
 
 
-@then('I should see "{text}" in the "{element_name}" dropdown')
-def step_impl(context, text, element_name):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+@then('I should see "{value}" in the "{element_name}" dropdown in detail page')
+def check_select(context, value, element_name):
+    element_id = element_name.lower().replace(" ", "-")
     element = Select(context.driver.find_element(By.ID, element_id))
-    assert element.first_selected_option.text == text
+    assert element.first_selected_option.get_dom_attribute("value") == value
 
 
-@then('the "{element_name}" field should be empty')
-def step_impl(context, element_name):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+@then('the "{element_name}" field should equal "{text_string}" in detail page')
+def check_text_equal(context, element_name, text_string):
+    element_id = element_name.lower().replace(" ", "_")
     element = context.driver.find_element(By.ID, element_id)
-    assert element.get_attribute("value") == ""
-
-
-##################################################################
-# These two function simulate copy and paste
-##################################################################
-@when('I copy the "{element_name}" field')
-def step_impl(context, element_name):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = WebDriverWait(context.driver, context.wait_seconds).until(
-        expected_conditions.presence_of_element_located((By.ID, element_id))
-    )
-    context.clipboard = element.get_attribute("value")
-    logging.info("Clipboard contains: %s", context.clipboard)
-
-
-@when('I paste the "{element_name}" field')
-def step_impl(context, element_name):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = WebDriverWait(context.driver, context.wait_seconds).until(
-        expected_conditions.presence_of_element_located((By.ID, element_id))
-    )
-    element.clear()
-    element.send_keys(context.clipboard)
+    assert element.get_attribute("value") == text_string
 
 
 ##################################################################
@@ -127,14 +97,14 @@ def step_impl(context, element_name):
 ##################################################################
 
 
-@when('I press the "{button}" button')
-def step_impl(context, button):
-    button_id = button.lower() + "-btn"
+@when('I press the "{button}" button in detail page')
+def press_btn(context, button):
+    button_id = "btn-" + button.lower()
     context.driver.find_element(By.ID, button_id).click()
 
 
-@then('I should see "{name}" in the results')
-def step_impl(context, name):
+@then('I should see "{name}" in the results in detail page')
+def check_res(context, name):
     found = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.text_to_be_present_in_element(
             (By.ID, "search_results"), name
@@ -143,20 +113,32 @@ def step_impl(context, name):
     assert found
 
 
-@then('I should not see "{name}" in the results')
-def step_impl(context, name):
+@then('I should not see "{name}" in the results in detail page')
+def check_not_res(context, name):
     element = context.driver.find_element(By.ID, "search_results")
     assert name not in element.text
 
 
-@then('I should see the message "{message}"')
-def step_impl(context, message):
+@then('I should see the message "{message}" in toast of detail page')
+def check_message(context, message):
     found = WebDriverWait(context.driver, context.wait_seconds).until(
-        expected_conditions.text_to_be_present_in_element(
-            (By.ID, "flash_message"), message
+        expected_conditions.visibility_of_element_located(
+            (By.CSS_SELECTOR, ".toast-container .message")
         )
     )
-    assert found
+    print(f"Toast message: {found.text}")  # Debug print
+    assert found and found.text == message
+
+
+@then('I should see warning "{message}" in message of detail page')
+def check_message(context, message):
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.visibility_of_element_located(
+            (By.ID, "error-invalid-title")
+        )
+    )
+    print(f"Toast message: {found.text}")
+    assert found and found.text == message
 
 
 ##################################################################
@@ -167,9 +149,13 @@ def step_impl(context, message):
 ##################################################################
 
 
-@then('I should see "{text_string}" in the "{element_name}" field')
-def step_impl(context, text_string, element_name):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+@then('I should see "{text_string}" in the "{element_name}" field in detail page')
+def check_text(context, text_string, element_name):
+    element_id = element_name.lower().replace(" ", "-")
+    print(f"Element ID: {element_id}")  # Debug print
+    print(
+        f"Element value: {context.driver.find_element(By.ID, element_id).get_attribute('value')}"
+    )  # Debug print
     found = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.text_to_be_present_in_element_value(
             (By.ID, element_id), text_string
@@ -178,9 +164,9 @@ def step_impl(context, text_string, element_name):
     assert found
 
 
-@when('I change "{element_name}" to "{text_string}"')
-def step_impl(context, element_name, text_string):
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+@when('I change "{element_name}" to "{text_string}" in detail page')
+def change_text(context, element_name, text_string):
+    element_id = element_name.lower().replace(" ", "-")
     element = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.presence_of_element_located((By.ID, element_id))
     )
