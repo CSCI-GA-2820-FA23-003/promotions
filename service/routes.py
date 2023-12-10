@@ -452,12 +452,6 @@ class PromotionResource(Resource):
         except DataValidationError as error:
             app.logger.warning("Bad request data: %s", str(error))
             abort(status.HTTP_400_BAD_REQUEST, str(error))
-
-        # if not request.is_json:
-        #     abort(
-        #         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        #         "Unsupported media type: Request is not JSON",
-        #     )
         promotion.id = promotion_id
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
