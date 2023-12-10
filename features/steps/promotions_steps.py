@@ -42,7 +42,7 @@ def step_impl(context):
             "available": row["available"],
             "whole_store": row["whole_store"] in ["True", "true", "1"],
             "promo_type": row["promo_type"],
-            "value": row["promo_type"],
+            "value": row["value"],
         }
         context.resp = requests.post(rest_endpoint, json=payload)
         assert (

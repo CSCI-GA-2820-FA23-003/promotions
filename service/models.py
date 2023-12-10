@@ -92,6 +92,8 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
             self.whole_store = False
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
+        if self.value is None:
+            raise DataValidationError("value attribute is not set")
 
         if product_ids is not None:
             ids = product_ids if isinstance(product_ids, list) else [product_ids]
@@ -126,6 +128,9 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
 
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
+
+        if self.value is None:
+            raise DataValidationError("value attribute is not set")
 
         db.session.commit()
 
