@@ -4,7 +4,7 @@ $(function () {
     //  U T I L I T Y   F U N C T I O N S
     // ****************************************
 
-    // Updates the form with data from the  ponse
+    // Updates the form with data from the 
     function update_form_data(res) {
         console.log(res.start)
         $("#promotion_id").val(res.id);
@@ -15,6 +15,7 @@ $(function () {
         $("#promotion_available").val(res.available);
         $("#promotion_wholestore").val(res.whole_store.toString());
         $("#promotion_type").val(res.promo_type);
+        $("#promotion_value").val(res.value); 
     }
     // Clears all form fields
     function clear_form_data() {
@@ -26,6 +27,7 @@ $(function () {
         $("#promotion_available").val("");
         $("#promotion_wholestore").val("");
         $("#promotion_type").val("");
+        $("#promotion_value").val("");
     }
 
     // Updates the flash message area
@@ -46,8 +48,8 @@ $(function () {
         let expired = $("#promotion_expired").val(); // Adjusted to match model attribute
         let available = parseInt($("#promotion_available").val()); // Ensuring it is an integer
         let whole_store = $("#promotion_wholestore").val()=== 'true'; // Ensuring it is a boolean
-        let value = parseFloat($("#promotion_type").val()); 
-        let promo_type = parseInt($("#promotion_type").val());// Assuming there's an input for value
+        let promo_type = ($("#promotion_type").val());
+        let value = parseInt($("#promotion_value").val()); 
 
         let data = {
             "code": code,
@@ -57,7 +59,7 @@ $(function () {
             "available": available,
             "whole_store": whole_store,
             "promo_type": promo_type,
-            "value": value // Assuming you want to include this, it should be a part of your form
+            "value": value 
         };
 
         $("#flash_message").empty();
@@ -85,50 +87,52 @@ $(function () {
     // Update a Promotion
     // ****************************************
 
-    $("#update-btn").click(function () {
+    // $("#update-btn").click(function () {
 
-        let promotion_id = $("#promotion_id").val();
-        let code = $("#promotion_code").val();
-        let name = $("#promotion_name").val();
-        let start_date = $("#promotion_start_date").val();
-        let end_date = $("#promotion_end_date").val();
-        let available = $("#promotion_available").val();
-        let whole_store = $("#promotion_whole_store").val() == "true";
-        let promo_type = $("#promotion_promo_type").val();
+    //     let promotion_id = $("#promotion_id").val();
+    //     let code = $("#promotion_code").val();
+    //     let name = $("#promotion_name").val();
+    //     let start = $("#promotion_start").val(); // Adjusted to match model attribute
+    //     let expired = $("#promotion_expired").val(); // Adjusted to match model attribute
+    //     let available = parseInt($("#promotion_available").val()); // Ensuring it is an integer
+    //     let whole_store = $("#promotion_wholestore").val()=== 'true'; // Ensuring it is a boolean
+    //     let promo_type = ($("#promotion_type").val());
+    //     let value = parseInt($("#promotion_value").val()); 
 
-        let data = {
-            "code": code,
-            "name": name,
-            "start_date": start_date,
-            "end_date": end_date,
-            "available": available,
-            "whole_store": whole_store,
-            "promo_type": promo_type
-        };
+    //     let data = {
+    //         "code": code,
+    //         "name": name,
+    //         "start": start,
+    //         "expired": expired,
+    //         "available": available,
+    //         "whole_store": whole_store,
+    //         "promo_type": promo_type,
+    //         "value": value
+    //     };
 
-        $("#flash_message").empty();
+    //     $("#flash_message").empty();
 
-        let ajax = $.ajax({
-                type: "PUT",
-                url: `/api/promotions/${promotion_id}`,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
+    //     let ajax = $.ajax({
+    //             type: "PUT",
+    //             url: `/api/promotions/${promotion_id}`,
+    //             contentType: "application/json",
+    //             data: JSON.stringify(data)
+    //         })
 
-        ajax.done(function(res){
-            console.log("This will be output to the console");
-            console.log("Value of start date:", res.start);
-            console.log("Value of expired date:", res.expired);
+    //     ajax.done(function(res){
+    //         console.log("This will be output to the console");
+    //         console.log("Value of start date:", res.start);
+    //         console.log("Value of expired date:", res.expired);
 
-            update_form_data(res)
-            flash_message("Success")
-        });
+    //         update_form_data(res)
+    //         flash_message("Success")
+    //     });
 
-        ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
-        });
+    //     ajax.fail(function(res){
+    //         flash_message(res.responseJSON.message)
+    //     });
 
-    });
+    // });
 
     // ****************************************
     // Retrieve a Promotion
@@ -254,6 +258,7 @@ $(function () {
             table += '<th class="col-md-2">Available</th>';
             table += '<th class="col-md-2">Whole Store</th>';
             table += '<th class="col-md-2">Promo Type</th>';
+            table += '<th class="col-md-2">Promo Value</th>';
             table += '</tr></thead><tbody>';
             
             let firstPromo = "";
@@ -271,6 +276,7 @@ $(function () {
                                 <td>${promo.available}</td>
                                 <td>${promo.whole_store}</td>
                                 <td>${promo.promo_type}</td>
+                                <td>${promo.value}</td>
                             </tr>`;
                 
                 if (i === 0) {

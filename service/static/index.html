@@ -60,7 +60,7 @@
               </div>
             </div>
 
-            <!-- BIRTHDAY -->
+            <!-- START DATE -->
             <div class="form-group">
               <label class="control-label col-sm-2" for="promotion_start">Start:</label>
               <div class="col-sm-10">
@@ -69,7 +69,7 @@
               </div>
             </div>
 
-            <!-- BIRTHDAY -->
+            <!-- END DATE -->
             <div class="form-group">
               <label class="control-label col-sm-2" for="promotion_expired">Expired:</label>
               <div class="col-sm-10">
@@ -97,18 +97,28 @@
                 </select>
             </div></div>
 
+            <hr>
+
             <!-- PROMO TYPE -->
             <div class="form-group">
               <label class="control-label col-sm-2" for="promotion_type">Type:</label>
               <div class="col-sm-10">
                 <select class="form-control" id="promotion_type">
-                  <option value="20">20%</option>
-                  <option value="30">30%</option>
-                  <option value="50" selected>50%</option>
-                  <option value="60">60%</option>
+                  <option value="1" >Percentage</option>
+                  <option value="2" >Fixed Amount</option>
+                  <option value="3" >Buy _ Get 1 Free</option>
                 </select>
               </div>
-            </div>            
+              </div>   
+              
+            <!-- PROMO VALUE -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="promotion_value">Value:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="promotion_value"
+                    placeholder="Enter the Value for this promotion">
+                </div>
+              </div>   
 
             <!-- SUBMIT BUTTONS -->
             <div class="form-group">
@@ -135,6 +145,7 @@
               <th class="col-md-3">Available</th>
               <th class="col-md-4">Whole Store</th>
               <th class="col-md-3">Promo Type</th>
+              <th class="col-md-3">Promo Value</th>
             </tr>
           </thead>
         </table>
