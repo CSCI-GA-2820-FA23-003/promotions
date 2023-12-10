@@ -6,7 +6,7 @@ Feature: The promotion service back-end
 Background:
   Given the following promotions
     | code      | name        | start      | expired    | available | whole_store | promo_type | value |
-    | SAVE10    | promo_s10   | 2023-06-01 | 2023-06-30 | 100       | True        | 1          | 20    |
+    | SAVE10    | promo_s10   | 2023-06-01 | 2023-12-30 | 100       | True        | 1          | 20    |
     | BUY1GET1  | promo_b1g1  | 2023-07-01 | 2023-07-15 | 50        | False       | 2          | 30    |
     | FREESHIP  | promo_free  | 2023-08-01 | 2023-08-31 | 200       | True        | 3          | 50    |
 
@@ -63,7 +63,7 @@ Scenario: Search via Promotion Code
     And I should see "True" in the "WholeStore" dropdown
     And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
-    And I should see "2023-06-30" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
     And I should see "20" in the "Value" field
 
 Scenario: delete a promotion
@@ -77,7 +77,7 @@ Scenario: delete a promotion
     And I should see "True" in the "WholeStore" dropdown
     And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
-    And I should see "2023-06-30" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
     And I should see "20" in the "Value" field
     When I press the "Delete" button
     Then I should see the message "Promotion has been Deleted!"
@@ -103,7 +103,7 @@ Scenario: Retrieve a promotion
     And I should see "True" in the "WholeStore" dropdown
     And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
-    And I should see "2023-06-30" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
     And I should see "20" in the "Value" field
 
 Scenario: Query a Promotion by name
@@ -117,7 +117,7 @@ Scenario: Query a Promotion by name
     And I should see "True" in the "WholeStore" dropdown
     And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
-    And I should see "2023-06-30" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
     And I should see "20" in the "Value" field
 
 Scenario: Search via Promotion Available
@@ -131,7 +131,7 @@ Scenario: Search via Promotion Available
     And I should see "True" in the "WholeStore" dropdown
     And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
-    And I should see "2023-06-30" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
     And I should see "20" in the "Value" field
 
 Scenario: Update a existing promotion
@@ -140,7 +140,7 @@ Scenario: Update a existing promotion
     And I should see "promo_s10" in the "fld Name" field in detail page
     And I should see "SAVE10" in the "fld Code" field in detail page
     And I should see "2023-06-01" in the "fld Start" field in detail page
-    And I should see "2023-06-30" in the "fld End" field in detail page
+    And I should see "2023-12-30" in the "fld End" field in detail page
     And I should see "100" in the "fld Available" field in detail page
     And I should see "20" in the "fld Val" field in detail page
     And I should see "true" in the "chk Whole Store" field in detail page
