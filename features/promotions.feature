@@ -115,7 +115,7 @@ Scenario: Query a Promotion by name
     And I should see "promo_s10" in the "Name" field
     And I should see "100" in the "Available" field
     And I should see "True" in the "WholeStore" dropdown
-    And I should see "Promotion" in the "Type" dropdown
+    And I should see "Percentage" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
     And I should see "2023-06-30" in the "Expired" field
     And I should see "20" in the "Value" field
