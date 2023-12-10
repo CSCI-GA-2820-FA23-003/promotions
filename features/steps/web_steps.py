@@ -44,7 +44,7 @@ def step_impl(context):
 @then('I should see "{message}" in the title')
 def step_impl(context, message):
     """Check the document title for a message"""
-    # print("Actual title:", context.driver.title)
+    print("Actual title:", context.driver.title)
     assert message in context.driver.title
 
 

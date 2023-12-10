@@ -153,6 +153,9 @@ def check_message(context, message):
 def check_text(context, text_string, element_name):
     element_id = element_name.lower().replace(" ", "-")
     print(f"Element ID: {element_id}")  # Debug print
+    print(
+        f"Element value: {context.driver.find_element(By.ID, element_id).get_attribute('value')}"
+    )  # Debug print
     found = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.text_to_be_present_in_element_value(
             (By.ID, element_id), text_string

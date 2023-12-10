@@ -5,10 +5,10 @@ Feature: The promotion service back-end
 
 Background:
   Given the following promotions
-  | code      | name        | start      | expired    | available | whole_store | promo_type    | value |
-  | SAVE10    | promo_s10   | 2023-06-01 | 2023-12-30 | 100       | True        | 2             |   10  |
-  | BUY1GET1  | promo_b1g1  | 2023-07-01 | 2023-12-15 | 50        | False       | 1             |   0   |
-  | FREESHIP  | promo_free  | 2023-08-01 | 2023-12-31 | 200       | True        | 1             |  50   |
+  | code      | name        | start      | expired    | available | whole_store | promo_type   | value  |
+  | SAVE10    | promo_s10   | 2023-06-01 | 2023-12-30 | 100       | True        | 1            |   20   |
+  | BUY1GET1  | promo_b1g1  | 2023-07-01 | 2023-12-15 | 50        | False       | 2            |   30   |
+  | FREESHIP  | promo_free  | 2023-08-01 | 2023-12-31 | 200       | True        | 3            |   50   |
 
 Scenario: The server is running
   When I visit the "Home Page"
@@ -32,7 +32,7 @@ Scenario: Creating a new promotion
     And I should see "True" in the "WholeStore" dropdown
     And I should see "50%" in the "Type" dropdown
     And I should see "2022-06-01" in the "Start" field
-    And I should see "2022-09-01" in the "Expired" field
+    And I should see "2023-12-30" in the "Expired" field
 
 Scenario: List all promotions
     When I visit the "Home Page"
@@ -82,7 +82,6 @@ Scenario: delete a promotion
     And the "Name" field should be empty      
     And the "Available" field should be empty
 
-
 Scenario: Retrieve a promotion
     When I visit the "Home Page"
     And I set the "Code" to "SAVE10"
@@ -102,7 +101,6 @@ Scenario: Retrieve a promotion
     And I should see "20%" in the "Type" dropdown
     And I should see "2023-06-01" in the "Start" field
     And I should see "2023-06-30" in the "Expired" field
-
 
 Scenario: Query a Promotion by name
     When I visit the "Home Page"
@@ -138,9 +136,9 @@ Scenario: Update a existing promotion
     And I should see "2023-06-01" in the "fld Start" field in detail page
     And I should see "2023-12-30" in the "fld End" field in detail page
     And I should see "100" in the "fld Available" field in detail page
-    And I should see "10" in the "fld Val" field in detail page
+    And I should see "20" in the "fld Val" field in detail page
     And I should see "true" in the "chk Whole Store" field in detail page
-    And I should see "2" in the "sel type" dropdown in detail page
+    And I should see "1" in the "sel type" dropdown in detail page
     When I set the "fld Name" to "promo_S10" in detail page
     And I set the "fld Start" to "02-12-2023" in detail page
     And I set the "fld End" to "01-01-2024" in detail page
@@ -148,7 +146,6 @@ Scenario: Update a existing promotion
     And I press the "submit" button in detail page
     Then I should see the message "Promotion SAVE10 updated" in toast of detail page
   
-
 Scenario: Revoke a promotion
     When I visit the "Detail Page" for "SAVE10"
     And I press the "Revoke" button in detail page
