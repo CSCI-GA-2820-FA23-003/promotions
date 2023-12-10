@@ -127,9 +127,6 @@ class Promotion(db.Model):  # pylint: disable=too-many-instance-attributes
         if self.promo_type is None:
             raise DataValidationError("promo_type attribute is not set")
 
-        if self.value is None:
-            raise DataValidationError("value attribute is not set")
-
         db.session.commit()
 
     def delete(self):
