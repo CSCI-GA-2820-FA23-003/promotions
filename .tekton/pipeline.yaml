@@ -71,7 +71,7 @@ spec:
     - name: pylint
       params:
         - name: image
-          value: 'docker.io/python:3.11-slim'
+          value: 'rofrano/nyu-devops-base:fa23'
         - name: path
           value: service
         - name: requirements_file
