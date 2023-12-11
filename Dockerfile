@@ -1,4 +1,4 @@
-FROM quay.io/rofrano/python:3.11-slim
+FROM quay.io/rofrano/python:3.11-slim 
 
 
 # Install PostgreSQL development packages
