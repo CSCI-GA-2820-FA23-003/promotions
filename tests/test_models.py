@@ -55,8 +55,8 @@ class TestPromotionResourceModel(unittest.TestCase):
     ######################################################################
     #  T E S T   C A S E S
     ######################################################################
-    def test_repr(self):
-        """Test the string representation of the PromotionModel."""
+    def test_promotion_repr(self):
+        """Test the string representation of PromotionModel."""
         promotion = Promotion(name="SamplePromotion")
         promotion.id = 123  # Assuming id is set separately, if not adjust accordingly
 
