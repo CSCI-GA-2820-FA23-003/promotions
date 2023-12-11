@@ -203,6 +203,45 @@ $(function () {
     });
 
     // ****************************************
+    // Apply a Promotion
+    // ****************************************
+
+    $("#apply-btn").click(function () {
+        let promotion_id = $("#promotion_id").val();
+        $("#flash_message").empty();
+    
+        let ajax = $.ajax({
+            type: "POST",
+            url: `/api/promotions/${promotion_id}/apply`,
+            contentType: "application/json",
+            data: '',
+        });
+    
+        ajax.done(function(res){
+            update_form_data(res);
+            flash_message("Promotion has been applied! Promotion number minus one!");
+        });
+    
+        ajax.fail(function(jqXHR){
+            // Here we get the response status code and response text
+            let statusCode = jqXHR.status;
+            let statusText = jqXHR.statusText;
+            let responseJSON = jqXHR.responseJSON; // In case the server sends a JSON response
+    
+            // Check the status code and provide a specific message
+            if (statusCode === 404) {
+                flash_message("Promotion not found!");
+            } else if (statusCode === 405) {
+                flash_message(responseJSON.message); // Use the custom message sent from the server
+            } else {
+                // Default error message for other kinds of errors
+                flash_message(`Server error! Status: ${statusText}`);
+            }
+        });
+    });
+    
+
+    // ****************************************
     // Search for a Promotion
     // ****************************************
 
