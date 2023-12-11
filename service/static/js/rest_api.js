@@ -87,52 +87,52 @@ $(function () {
     // Update a Promotion
     // ****************************************
 
-    // $("#update-btn").click(function () {
+    $("#update-btn").click(function () {
 
-    //     let promotion_id = $("#promotion_id").val();
-    //     let code = $("#promotion_code").val();
-    //     let name = $("#promotion_name").val();
-    //     let start = $("#promotion_start").val(); // Adjusted to match model attribute
-    //     let expired = $("#promotion_expired").val(); // Adjusted to match model attribute
-    //     let available = parseInt($("#promotion_available").val()); // Ensuring it is an integer
-    //     let whole_store = $("#promotion_wholestore").val()=== 'true'; // Ensuring it is a boolean
-    //     let promo_type = ($("#promotion_type").val());
-    //     let value = parseInt($("#promotion_value").val()); 
+        let promotion_id = $("#promotion_id").val();
+        let code = $("#promotion_code").val();
+        let name = $("#promotion_name").val();
+        let start = $("#promotion_start").val(); // Adjusted to match model attribute
+        let expired = $("#promotion_expired").val(); // Adjusted to match model attribute
+        let available = parseInt($("#promotion_available").val()); // Ensuring it is an integer
+        let whole_store = $("#promotion_wholestore").val()=== 'true'; // Ensuring it is a boolean
+        let promo_type = ($("#promotion_type").val());
+        let value = parseInt($("#promotion_value").val()); 
 
-    //     let data = {
-    //         "code": code,
-    //         "name": name,
-    //         "start": start,
-    //         "expired": expired,
-    //         "available": available,
-    //         "whole_store": whole_store,
-    //         "promo_type": promo_type,
-    //         "value": value
-    //     };
+        let data = {
+            "code": code,
+            "name": name,
+            "start": start,
+            "expired": expired,
+            "available": available,
+            "whole_store": whole_store,
+            "promo_type": promo_type,
+            "value": value
+        };
 
-    //     $("#flash_message").empty();
+        $("#flash_message").empty();
 
-    //     let ajax = $.ajax({
-    //             type: "PUT",
-    //             url: `/api/promotions/${promotion_id}`,
-    //             contentType: "application/json",
-    //             data: JSON.stringify(data)
-    //         })
+        let ajax = $.ajax({
+                type: "PUT",
+                url: `/api/promotions/${promotion_id}`,
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            })
 
-    //     ajax.done(function(res){
-    //         console.log("This will be output to the console");
-    //         console.log("Value of start date:", res.start);
-    //         console.log("Value of expired date:", res.expired);
+        ajax.done(function(res){
+            console.log("This will be output to the console");
+            console.log("Value of start date:", res.start);
+            console.log("Value of expired date:", res.expired);
 
-    //         update_form_data(res)
-    //         flash_message("Success")
-    //     });
+            update_form_data(res)
+            flash_message("Success")
+        });
 
-    //     ajax.fail(function(res){
-    //         flash_message(res.responseJSON.message)
-    //     });
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
 
-    // });
+    });
 
     // ****************************************
     // Retrieve a Promotion

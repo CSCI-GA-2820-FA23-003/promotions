@@ -162,8 +162,8 @@ def step_impl(context, message):
 ##################################################################
 # This code works because of the following naming convention:
 # The id field for text input in the html is the element name
-# prefixed by ID_PREFIX so the Name field has an id='pet_name'
-# We can then lowercase the name and prefix with pet_ to get the id
+# prefixed by ID_PREFIX so the Name field has an id='promotion_name'
+# We can then lowercase the name and prefix with promotion_ to get the id
 ##################################################################
 
 
@@ -186,3 +186,14 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
+
+
+# Add the following steps to handle changes in dropdowns
+@when('I change "{element_name}" dropdown to "{text}"')
+def step_impl(context, element_name, text):
+    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+    dropdown_element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    select = Select(dropdown_element)
+    select.select_by_visible_text(text)
