@@ -10,8 +10,8 @@ RUN apt-get update \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -U pip wheel && \
-    pip install psycopg2 && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install psycopg2
 
 # Copy the application contents
 COPY service/ ./service/
