@@ -3,7 +3,7 @@ FROM quay.io/rofrano/python:3.11-slim
 
 # Install PostgreSQL development packages
 RUN apt-get update \
-    && apt-get install -y gcc libpq-dev
+    && apt-get install -y gcc libpq-dev postgresql
 
 
 # Create working folder and install dependencies
