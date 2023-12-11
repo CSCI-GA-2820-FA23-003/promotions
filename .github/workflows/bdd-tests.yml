@@ -40,8 +40,8 @@ jobs:
 
       - name: Install OS dependencies
         run: |
-          apt-get update
-          apt-get install -y gcc libpq-dev
+              apt-get update \
+                && apt-get install -y gcc libpq-dev
 
       - name: Install Python packages
         run: |
