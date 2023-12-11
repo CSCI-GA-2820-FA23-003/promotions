@@ -5,7 +5,7 @@ FROM rofrano/pipeline-selenium:latest
 # Set up the Python development environment
 WORKDIR /app
 COPY requirements.txt .
-RUN sudo pip install -r requirements.txt
+RUN sudo pip install -r requirements.txt && sudo pip install psycopg2
 
 # Install user mode tools
 COPY .devcontainer/scripts/install-tools.sh /tmp/

@@ -1,4 +1,4 @@
-FROM quay.io/rofrano/python:3.11-slim
+FROM quay.io/rofrano/python:3.11-slim 
 
 
 # Install PostgreSQL development packages
@@ -10,7 +10,8 @@ RUN apt-get update \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -U pip wheel && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install psycopg2
 
 # Copy the application contents
 COPY service/ ./service/
