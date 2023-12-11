@@ -259,30 +259,32 @@ $(function () {
             table += '<th class="col-md-2">Whole Store</th>';
             table += '<th class="col-md-2">Promo Type</th>';
             table += '<th class="col-md-2">Promo Value</th>';
+            table += '<th class="col-md-2">Promo - Product View</th>';
             table += '</tr></thead><tbody>';
             
             let firstPromo = "";
 
-            for(let i = 0; i < res.length; i++) {
+            for (let i = 0; i < res.length; i++) {
                 let promo = res[i];
                 let start = promo.start.slice(0, 10);
                 let expired = promo.expired.slice(0, 10);
-                table +=  `<tr id="row_${i}">
-                                <td>${promo.id}</td>
-                                <td>${promo.code}</td>
-                                <td>${promo.name}</td>
-                                <td>${start}</td>
-                                <td>${expired}</td>
-                                <td>${promo.available}</td>
-                                <td>${promo.whole_store}</td>
-                                <td>${promo.promo_type}</td>
-                                <td>${promo.value}</td>
-                            </tr>`;
-                
+                table += `<tr id="row_${i}">
+                            <td>${promo.id}</td>
+                            <td>${promo.code}</td>
+                            <td>${promo.name}</td>
+                            <td>${start}</td>
+                            <td>${expired}</td>
+                            <td>${promo.available}</td>
+                            <td>${promo.whole_store}</td>
+                            <td>${promo.promo_type}</td>
+                            <td>${promo.value}</td>
+                            <td><a href="/promotions/${promo.id}/edit">Edit</a></td>
+                        </tr>`;
+            
                 if (i === 0) {
                     firstPromo = promo;
                 }
-            }
+            }            
 
             table += '</tbody></table>';
             $("#search_results").append(table);
