@@ -10,6 +10,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -U pip wheel && \
+    pip install psycopg2==2.9.5 && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the application contents
