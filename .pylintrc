@@ -1,0 +1,2 @@
+[TYPECHECK]
+ignored-modules=psycopg2.errors, sqlalchemy.exc, flask_sqlalchemy, factory.fuzzy
