@@ -439,12 +439,6 @@ class PromotionResource(Resource):
                 status.HTTP_404_NOT_FOUND,
                 f"Promotion with id {promotion_id} was not found.",
             )
-        if date.today() > promotion.expired:
-            app.logger.warning("Received request to update an expired promotion.")
-            abort(
-                status.HTTP_405_METHOD_NOT_ALLOWED,
-                "Updating expired promotions is not supported",
-            )
         app.logger.info("Updating promotion with id %s", promotion_id)
         data = api.payload
         try:
@@ -452,7 +446,6 @@ class PromotionResource(Resource):
         except DataValidationError as error:
             app.logger.warning("Bad request data: %s", str(error))
             abort(status.HTTP_400_BAD_REQUEST, str(error))
-        promotion.id = promotion_id
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
 

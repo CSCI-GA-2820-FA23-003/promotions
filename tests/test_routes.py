@@ -144,18 +144,19 @@ class TestPromotionResourceModel(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_update_expired_promotion(self):
-        """It should not update an expired Promotion"""
+        """It should update an expired Promotion"""
         promotion = PromotionFactory()
         promotion.create()
         promotion.expired = datetime.utcnow() - timedelta(days=1)
         promotion.update()
-        updated_data = {}
+        updated_data = promotion.serialize()
         response = self.client.put(
             f"{API_PROMOTION_URL}/{promotion.id}",
             data=json.dumps(updated_data),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 405)
+        print(response.get_json())
+        self.assertEqual(response.status_code, 200)
 
     def test_unsupported_media_type(self):
         """It should return 415 Unsupported Media Type when Content-Type is not supported"""
