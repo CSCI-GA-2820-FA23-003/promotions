@@ -60,10 +60,10 @@ create_product_model = api.model(
     {
         "id": fields.Integer(required=True, description="Name of the product"),
         "created_at": fields.DateTime(
-            description="Creation date and time of the product"
+            description="Creation date and time of the product", example="2023-12-13"
         ),
         "updated_at": fields.DateTime(
-            description="Last update date and time of the product"
+            description="Last update date and time of the product", example="2024-12-13"
         ),
     },
 )
@@ -190,7 +190,7 @@ class ProductCollection(Resource):
     # LIST ALL PRODUCTS
     ######################################################################
     @api.doc("list_products")
-    @api.marshal_list_with(promotion_model)
+    @api.marshal_list_with(product_model)
     def get(self):
         """Returns all of the Products"""
         app.logger.info("Request for product list")
