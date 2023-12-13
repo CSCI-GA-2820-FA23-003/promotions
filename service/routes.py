@@ -16,10 +16,10 @@ create_model = api.model(
     {
         "code": fields.String(required=True, description="Unique promotion code"),
         "name": fields.String(required=True, description="Name of the promotion"),
-        "start": fields.DateTime(
+        "start": fields.Date(
             required=True, description="Start date and time of the promotion"
         ),
-        "expired": fields.DateTime(
+        "expired": fields.Date(
             required=True, description="Expiration date and time of the promotion"
         ),
         "available": fields.Integer(
@@ -35,12 +35,6 @@ create_model = api.model(
         "products": fields.List(
             fields.Integer,
             description="List of product IDs associated with the promotion",
-        ),
-        "created_at": fields.DateTime(
-            description="Creation date and time of the promotion"
-        ),
-        "updated_at": fields.DateTime(
-            description="Last update date and time of the promotion"
         ),
     },
 )
@@ -78,7 +72,7 @@ promotion_model = api.inherit(
     "PromotionModel",
     create_model,
     {
-        "id": fields.String(
+        "id": fields.Integer(
             readOnly=True, description="The unique id assigned internally by service"
         ),
     },
@@ -223,23 +217,26 @@ class ProductCollection(Resource):
             JSON: The created product as JSON.
         """
         app.logger.info("Request to create a product")
+        try:
+            # Get the JSON data from the request
+            data = api.payload
 
-        # Get the JSON data from the request
-        data = api.payload
+            # Create a new Product with the data
+            product = Product()
+            product.deserialize(data)
+            product.create()
 
-        # Create a new Product with the data
-        product = Product()
-        product.deserialize(data)
-        product.create()
+            app.logger.info("Product with ID [%s] created.", product.id)
 
-        app.logger.info("Product with ID [%s] created.", product.id)
-
-        # Return the new Product as JSON
-        return (
-            product.serialize(),
-            status.HTTP_201_CREATED,
-        )
-
+            # Return the new Product as JSON
+            return (
+                product.serialize(),
+                status.HTTP_201_CREATED,
+            )
+        except DataValidationError as error:
+            # Catch other potential errors and handle them as bad requests
+            app.logger.error("Error updating promotion: %s", str(error))
+            abort(status.HTTP_400_BAD_REQUEST, "Invalid data or operation")
 
 ######################################################################
 # PATH: /product/<int:product_id>
@@ -289,7 +286,6 @@ class ProductResource(Resource):
 
         return "", status.HTTP_204_NO_CONTENT
 
-
 ######################################################################
 # PATH: /promotions
 ######################################################################
@@ -305,7 +301,7 @@ class PromotionCollection(Resource):
     @api.doc("create_promotions")
     @api.response(400, "The posted data was not valid")
     @api.response(415, "Unsupported media type")
-    @api.expect(create_model)
+    @api.expect(create_model, validate=True)
     @api.marshal_with(promotion_model, code=201)
     def post(self):
         """
@@ -318,25 +314,29 @@ class PromotionCollection(Resource):
         """
         app.logger.info("Request to create a promotion")
 
-        # Get the JSON data from the request
-        data = api.payload
+        try:
+            # Get the JSON data from the request
+            data = api.payload
 
-        # Create a new Promotion with the data
-        promotion = Promotion()
-        promotion.deserialize(data)
-        promotion.create()
+            # Create a new Promotion with the data
+            promotion = Promotion()
+            promotion.deserialize(data)
+            promotion.create()
 
-        location_url = api.url_for(
-            PromotionResource, promotion_id=promotion.id, _external=True
-        )
-        app.logger.info("Promotion with ID [%s] created.", promotion.id)
+            location_url = api.url_for(
+                PromotionResource, promotion_id=promotion.id, _external=True
+            )
+            app.logger.info("Promotion with ID [%s] created.", promotion.id)
 
-        # Return the new Promotion as JSON
-        return (
-            promotion.serialize(),
-            status.HTTP_201_CREATED,
-            {"Location": location_url},
-        )
+            # Return the new Promotion as JSON
+            return (
+                promotion.serialize(),
+                status.HTTP_201_CREATED,
+                {"Location": location_url},
+            )
+        except Exception as error:
+            app.logger.error("Error updating promotion: %s", str(error))
+            abort(status.HTTP_400_BAD_REQUEST, "Invalid data or operation")
 
     ######################################################################
     # LIST ALL PROMOTIONS
@@ -422,12 +422,11 @@ class PromotionResource(Resource):
     @api.doc("update_promotions")
     @api.response(404, "Promotion not found")
     @api.response(400, "Bad request")
-    @api.expect(promotion_model)
+    @api.expect(promotion_model, validate=True)
     @api.marshal_with(promotion_model)
     def put(self, promotion_id):
         """Update a Promotion
-
-        This endpoint will update a Promotion based the body that is posted
+        This endpoint will update a Promotion based on the body that is posted
         Args:
             promotion_id (int): ID of the promotion to update
         Returns:
@@ -441,11 +440,8 @@ class PromotionResource(Resource):
             )
         app.logger.info("Updating promotion with id %s", promotion_id)
         data = api.payload
-        try:
-            promotion.deserialize(data)
-        except DataValidationError as error:
-            app.logger.warning("Bad request data: %s", str(error))
-            abort(status.HTTP_400_BAD_REQUEST, str(error))
+        promotion.deserialize(data)
+
         promotion.update()
         return (promotion.serialize(), status.HTTP_200_OK)
 

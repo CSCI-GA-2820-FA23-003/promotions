@@ -90,7 +90,25 @@ class TestPromotionResourceModel(TestCase):
         return products
 
     ######################################################################
-    #  T E S T   C A S E S     ######################################################################
+    #  T E S T   C A S E S
+    ######################################################################
+
+    def test_create_promotions_bad_data(self):
+        """Factory method to create promotions in bulk"""
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "code-err": "SOME_CODE",
+            "name": "Dummy Promotion",
+            "start": "2023-01-01T00:00:00",
+            "expired": "2023-01-31T00:00:00",
+            "available": 1,
+            "whole_store": False,
+            "promo_type": 1,
+            "value": 10.0,
+            "products": [1, 2]
+        }
+        response = self.client.post(f"{API_PROMOTION_URL}", headers=headers, data=json.dumps(data))
+        self.assertEqual(response.status_code, 400)
 
     def test_index(self):
         """It should call the home page"""
@@ -128,7 +146,19 @@ class TestPromotionResourceModel(TestCase):
     def test_promotion_not_found(self):
         """It should return a 404 error if a Promotion is not found by id"""
         invalid_promotion_id = 99999999
-        response = self.client.put(f"{API_PROMOTION_URL}/{invalid_promotion_id}")
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "code": "SOME_CODE",
+            "name": "Dummy Promotion",
+            "start": "2023-01-01T00:00:00",
+            "expired": "2023-01-31T00:00:00",
+            "available": 1,
+            "whole_store": False,
+            "promo_type": 1,
+            "value": 10.0,
+            "products": [1, 2]
+        }
+        response = self.client.put(f"{API_PROMOTION_URL}/{invalid_promotion_id}", headers=headers, data=json.dumps(data))
         self.assertEqual(response.status_code, 404)
 
     def test_bad_request(self):
@@ -155,7 +185,6 @@ class TestPromotionResourceModel(TestCase):
             data=json.dumps(updated_data),
             content_type="application/json",
         )
-        print(response.get_json())
         self.assertEqual(response.status_code, 200)
 
     def test_unsupported_media_type(self):
@@ -319,6 +348,16 @@ class TestPromotionResourceModel(TestCase):
         # check id
         data = response.get_json()
         self.assertEqual(data["id"], 1)
+
+    def test_create_product_bad_request(self):
+        """It should create a new product"""
+        # Create a promotion
+        response = self.client.post(
+            f"{API_PRODUCT_URL}",
+            data=json.dumps({"id-err": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_product(self):
         """It should delete a product"""
