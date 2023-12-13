@@ -27,6 +27,7 @@ For information on Waiting until elements are present in the HTML see:
 import logging
 from behave import when, then
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
@@ -41,9 +42,20 @@ def step_impl(context):
     # context.driver.save_screenshot('home_page.png')
 
 
+# @then('I should see "{message}" in the title')
+# def step_impl(context, message):
+#     """Check the document title for a message"""
+#     print("Actual title:", context.driver.title)
+#     assert message in context.driver.title
+
+
 @then('I should see "{message}" in the title')
 def step_impl(context, message):
     """Check the document title for a message"""
+    WebDriverWait(context.driver, 10).until(
+        EC.title_contains(message),
+        f"Expected title to contain '{message}', but actual title is '{context.driver.title}'",
+    )
     print("Actual title:", context.driver.title)
     assert message in context.driver.title
 
