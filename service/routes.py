@@ -16,10 +16,10 @@ create_model = api.model(
     {
         "code": fields.String(required=True, description="Unique promotion code"),
         "name": fields.String(required=True, description="Name of the promotion"),
-        "start": fields.Date(
+        "start": fields.DateTime(
             required=True, description="Start date and time of the promotion"
         ),
-        "expired": fields.Date(
+        "expired": fields.DateTime(
             required=True, description="Expiration date and time of the promotion"
         ),
         "available": fields.Integer(
