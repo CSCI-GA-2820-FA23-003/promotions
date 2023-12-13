@@ -54,6 +54,7 @@ cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
 	$(info Removing Kubernetes cluster...)
+	k3d cluster delete my-cluster
 
 .PHONY: login
 login: ## Login to IBM Cloud using yur api key
