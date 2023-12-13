@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/CSCI-GA-2820-FA23-003/promotions/graph/badge.svg?token=RMHC0YICQ1)](https://codecov.io/gh/CSCI-GA-2820-FA23-003/promotions)
 
 ## Contents
-
+ 
 The project contains the following:
 
 ```text
