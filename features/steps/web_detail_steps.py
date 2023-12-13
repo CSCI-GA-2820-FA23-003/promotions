@@ -25,7 +25,9 @@ For information on Waiting until elements are present in the HTML see:
     https://selenium-python.readthedocs.io/waits.html
 """
 import logging
+import time
 from behave import when, then
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -72,6 +74,85 @@ def set_select(context, text, element_name):
     # Select the option by visible text
     select.select_by_visible_text(text)
     # print(f"Option selected: {text}")  # Debug print
+
+
+@when("I select product list in detail page")
+def set_select(context):
+    select_root = context.driver.find_element(By.ID, "product-select")
+    select_root.click()
+
+
+@when('I select product "{id}" from list in detail page')
+def set_select(context, id):
+    elements = context.driver.find_element(
+        By.CSS_SELECTOR, f".item.product[data-value='{id}']"
+    )
+    assert elements
+    print(f"ELEMENTS: {elements.text}")
+    elements.click()
+
+
+@when('I create product "{id}" from list in detail page')
+def set_select(context, id):
+    select_root = context.driver.find_element(By.ID, "product-select")
+    search = select_root.find_element(By.CSS_SELECTOR, ".search")
+    search.send_keys(id)
+    search.send_keys(Keys.ENTER)
+    select_root.send_keys(Keys.ENTER)
+
+
+@when('I remove product "{id}" from list in detail page')
+def delete_product(context, id):
+    product = context.driver.find_element(
+        By.CSS_SELECTOR, f".label.visible[data-value='{id}']"
+    )
+    delete_product = product.find_element(By.CSS_SELECTOR, ".delete.icon")
+    delete_product.click()
+
+
+@when('I wait for "{seconds}" seconds in detail page')
+def wait_seconds(context, seconds):
+    time.sleep(int(seconds))
+
+
+@then('I should see product "{id}" in list in detail page')
+def check_product(context, id):
+    product = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.visibility_of_element_located(
+            (By.CSS_SELECTOR, f".item.product[data-value='{id}']")
+        )
+    )
+    assert product and product.text == id
+
+
+@then('I should not see product "{id}" in list in detail page')
+def check_product(context, id):
+    product = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.invisibility_of_element_located(
+            (By.CSS_SELECTOR, f".item.product[data-value='{id}']")
+        )
+    )
+    assert not product or product.text != id
+
+
+@then('I should see product "{id}" selected in detail page')
+def check_product(context, id):
+    product = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.visibility_of_element_located(
+            (By.CSS_SELECTOR, f".label.visible[data-value='{id}']")
+        )
+    )
+    assert product and product.text == id
+
+
+@then('I should not see product "{id}" selected in detail page')
+def check_product(context, id):
+    product = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.visibility_of_element_located(
+            (By.CSS_SELECTOR, f".label.visible[data-value='{id}']")
+        )
+    )
+    assert not product or product.text != id
 
 
 @then('I should see "{value}" in the "{element_name}" dropdown in detail page')
@@ -126,7 +207,8 @@ def check_message(context, message):
             (By.CSS_SELECTOR, ".toast-container .message")
         )
     )
-    print(f"Toast message: {found.text}")  # Debug print
+    if found.text != message:
+        print(f"Toast message: {found.text}")  # Debug print
     assert found and found.text == message
 
 
