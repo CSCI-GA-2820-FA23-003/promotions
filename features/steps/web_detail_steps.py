@@ -45,8 +45,6 @@ def visit_detail_page(context, promotion_id):
 @then('I should see the title "{message}" in detail page')
 def check_title(context, message):
     """Check the document title for a message"""
-    # Wait until the title is as expected or timeout after 10 seconds
-    WebDriverWait(context.driver, 10).until(EC.title_is(message))
     # Now assert that the title is as expected
     assert message == context.driver.title
 
