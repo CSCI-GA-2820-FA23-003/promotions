@@ -34,11 +34,53 @@ tests/              - test cases package
 └── test_routes.py  - test suite for service routes
 ```
 
-## Sprint 1 & 2
-
 ## Description
 
 This service is designed to manage promotions. It offers endpoints to create, retrieve, update, and delete promotions.
+
+
+## Running the tests
+
+Run the tests using `green`. The goal is to have 95% coverage with 100% passing tests.
+
+```bash
+$ green
+```
+
+## Running the service
+
+The project uses honcho which gets it's commands from the Procfile. To start the service simply use:
+
+```bash
+$ honcho start
+```
+
+Service available at: http://localhost:8000. The port that is used is controlled by an environment variable defined in the .flaskenv file which Flask uses to load it's configuration from the environment by default.
+
+## Deploying to Local K8 Cluster
+
+#### Step 1: Create a kubernetes cluster
+This assumes the Makefile has the below command:
+```
+make cluster
+```
+
+#### Step 2: Build image and push to local registry & Deploy the K8 cluster
+```
+make deploy
+```
+
+#### Step 3: Show the services
+```
+make show
+```
+
+#### Optional: Cleanup
+```
+make delete
+make cluster-rm
+```
+
 
 ---
 
