@@ -42,14 +42,18 @@ run: ## Run the service
 	honcho start
 
 .PHONY: cluster
-cluster: ## Create a K3D Kubernetes cluster with load balancer and registry 
+cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster with a registry and 1 node...)
-	k3d cluster create --agents 1 --registry-create cluster-registry:0.0.0.0:32000 --port '8080:80@loadbalancer'
+	echo "127.0.0.1 cluster-registry" | sudo tee -a /etc/hosts 
+	k3d cluster create my-cluster --agents 1 --registry-create cluster-registry:32000 --port '8080:80@loadbalancer'
+	docker build -t promotions:1.0 . 
+	docker tag promotions:1.0 cluster-registry:32000/promotions:1.0
+	docker push cluster-registry:32000/promotions:1.0
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
 	$(info Removing Kubernetes cluster...)
-	k3d cluster delete
+	k3d cluster delete my-cluster
 
 .PHONY: login
 login: ## Login to IBM Cloud using yur api key
@@ -61,7 +65,12 @@ login: ## Login to IBM Cloud using yur api key
 	kubectl cluster-info
 
 .PHONY: deploy
-depoy: ## Deploy the service on local Kubernetes
+deploy: ## Deploy the service on local Kubernetes
 	$(info Deploying service locally...)
-	kubectl apply -f deploy/
+	kubectl create secret generic postgres-creds --from-literal=password=cGdzM2NyM3Q== --from-literal=database_uri=cG9zdGdyZXNxbCtwc3ljb3BnOi8vcG9zdGdyZXM6cGdzM2NyM3RAcG9zdGdyZXM6NTQzMi9wcm9tb3Rpb25zdG9yZQ==
+	kubectl apply -f k8s/ 
 
+.PHONY: show
+show: ## show services on local Kubernetes
+	$(info Deploying service locally...)
+	kubectl get all
