@@ -60,10 +60,10 @@ create_product_model = api.model(
     {
         "id": fields.Integer(required=True, description="Name of the product"),
         "created_at": fields.DateTime(
-            description="Creation date and time of the product"
+            description="Creation date and time of the product", example="2023-12-13"
         ),
         "updated_at": fields.DateTime(
-            description="Last update date and time of the product"
+            description="Last update date and time of the product", example="2024-12-13"
         ),
     },
 )
@@ -190,9 +190,9 @@ class ProductCollection(Resource):
     # LIST ALL PRODUCTS
     ######################################################################
     @api.doc("list_products")
-    @api.marshal_list_with(promotion_model)
+    @api.marshal_list_with(product_model)
     def get(self):
-        """Returns all of the Products"""
+        """For Promotion Internal Use only: Returns all of the Products"""
         app.logger.info("Request for product list")
         products = Product.all()
         results = [p.serialize() for p in products]
@@ -209,7 +209,7 @@ class ProductCollection(Resource):
     @api.marshal_with(product_model, code=201)
     def post(self):
         """
-        Create a new product.
+        For Promotion Internal Use only: Create a new product.
 
         This endpoint creates a new product based on the JSON data provided in the request body.
 
@@ -262,7 +262,7 @@ class ProductResource(Resource):
     @api.response(404, "Product not found")
     def delete(self, product_id):
         """
-        Delete a product by its ID.
+        For Promotion Internal Use only: Delete a product by its ID.
 
         This function removes a product from the database if it exists.
         If the product does not exist, a 404 error is returned.
