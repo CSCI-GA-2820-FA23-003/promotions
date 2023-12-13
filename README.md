@@ -16,7 +16,9 @@ The project contains the following:
 .devcontainers/     - Folder with support for VSCode Remote Containers
 dot-env-example     - copy to .env to use environment variables
 requirements.txt    - list if Python libraries required by your code
-config.py           - configuration parameters
+Dockerfile          - instructions for building a Docker image for the application
+setup.cfg           - configuration file for automated tasks like linting, testing, etc.
+.coverage           - Coverage report file
 
 service/                   - service python package
 ├── __init__.py            - package initializer
@@ -24,14 +26,33 @@ service/                   - service python package
 ├── routes.py              - module with service routes
 └── common                 - common code package
     ├── __init__.py        - package initializer
+    ├── cli_commands.py    - Flask CLI extension for database management commands
     ├── error_handlers.py  - HTTP error handling code
     ├── log_handlers.py    - logging setup code
     └── status.py          - HTTP status constants
 
 tests/              - test cases package
 ├── __init__.py     - package initializer
+├── factories.py     - factories for creating mock objects in tests
+├── test_cli_commands.py     - test suite for CLI command extensions
 ├── test_models.py  - test suite for business models
 └── test_routes.py  - test suite for service routes
+
+features/                     - BDD feature files and accompanying test steps
+├── steps/                    - Step definition modules for feature tests
+│   ├── promotions_steps.py   - Step definitions for promotions feature tests
+│   ├── web_detail_steps.py   - Step definitions for web detail feature tests
+│   ├── web_steps.py          - Step definitions for web feature tests
+│   └── environment.py        - Setup and teardown hooks for BDD tests
+└── promotions.feature        - Feature file describing promotion scenarios
+
+k8s/                         - Kubernetes deployment configurations
+├── deployment.yaml          - Defines the deployment to manage application pods
+├── ingress.yaml             - Configuration for ingress resource to manage external access to the services
+├── postgresql.yaml          - Deployment and service configuration for the PostgreSQL database
+├── pv.yaml                  - Defines persistent volumes for durable storage
+└── service.yaml             - Service configuration to expose the application pods
+
 ```
 
 ## Description
@@ -180,6 +201,27 @@ Example Response:
     > | value | Date | Promotion value according to the type |
     > | created_at | str | The Promotion code |
     > | updated_at | Date | Model lasted updated timestamp |
+    Example Response:
+
+    ```json
+    {
+      {
+        "id": 1234,
+        "code": "string",
+        "name": "string",
+        "start": "2023-12-13",
+        "expired": "2024-12-13",
+        "available": 0,
+        "whole_store": true,
+        "promo_type": 0,
+        "value": 0,
+        "products": [
+          0
+        ]
+      }
+    }
+    ```
+
   - `415 Unsupported Media Type`: If the request is not JSON.
 
 ---
@@ -191,7 +233,6 @@ Example Response:
 - **Description**: Delete a specific promotion by its ID.
 - **Response**:
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
-  - `400 Bad Request`: If the confirmation parameter is missing or false.
   - `204 No Content`: This status is returned regardless of whether the promotion existed or not. The delete operation is idempotent, ensuring consistent behavior.
 
 ---
@@ -227,10 +268,27 @@ Example Response:
     > | value | Date | Promotion value according to the type |
     > | created_at | str | The Promotion code |
     > | updated_at | Date | Model lasted updated timestamp |
-  - `404 Not Found`: If the promotion with the given ID doesn't exist.
-  - `405 Method Not Allowed`: If the promotion is already expired.
-  - `415 Unsupported Media Type`: If the request is not JSON.
+    Example Response:
+
+    ```json
+    {
+      {
+        "id": 2637,
+        "code": "string",
+        "name": "string",
+        "start": "2023-12-13T00:00:00",
+        "expired": "2024-12-13T00:00:00",
+        "available": 0,
+        "whole_store": true,
+        "promo_type": 0,
+        "value": 0,
+        "products": []
+      }
+    }
+    ```
+
   - `400 Bad Request`: For data validation errors.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---
 
@@ -245,6 +303,24 @@ Example Response:
   - `promo_type` (optional): Filter promotions by type.
 - **Response**:
   - `200 OK`: Returns a list of promotions as JSON.
+  Example Response:
+
+    ```json
+    [
+      {
+        "id": 3025,
+        "code": "ac2ef65c-309e-4029-af3f-f69985f628d8",
+        "name": "Updated Promotion Name",
+        "start": "2023-12-13T00:00:00",
+        "expired": "2023-12-14T00:00:00",
+        "available": 10,
+        "whole_store": false,
+        "promo_type": 1,
+        "value": 10,
+        "products": []
+      }
+    ]
+    ```
 
 ---
 
@@ -255,6 +331,23 @@ Example Response:
 - **Description**: Retrieves the details of a specific promotion using its ID.
 - **Response**:
   - `200 OK`: Returns the requested promotion as JSON.
+  Example Response:
+
+    ```json
+    {
+      "id": 3025,
+      "code": "ac2ef65c-309e-4029-af3f-f69985f628d8",
+      "name": "Updated Promotion Name",
+      "start": "2023-12-13T00:00:00",
+      "expired": "2023-12-14T00:00:00",
+      "available": 10,
+      "whole_store": false,
+      "promo_type": 1,
+      "value": 10,
+      "products": []
+    }
+    ```
+
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---
