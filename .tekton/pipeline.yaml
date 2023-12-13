@@ -3,10 +3,9 @@ kind: Pipeline
 metadata:
   name: cd-pipeline-promotion
 spec:
-  workspaces:
-    - name: pipeline-workspace-promotion
   params:
-    - description: The URL to the git repo
+    - default: 'https://github.com/CSCI-GA-2820-FA23-003/promotions.git'
+      description: The URL to the git repo
       name: GIT_REPO
       type: string
     - default: master
@@ -67,11 +66,11 @@ spec:
         name: git-clone
       workspaces:
         - name: output
-          workspace: pipeline-workspace-promotion
+          workspace: pipeline-workspace
     - name: pylint
       params:
         - name: image
-          value: 'rofrano/nyu-devops-base:fa23'
+          value: 'docker.io/python:3.11-slim'
         - name: path
           value: service
         - name: requirements_file
@@ -87,7 +86,7 @@ spec:
         name: pylint
       workspaces:
         - name: source
-          workspace: pipeline-workspace-promotion
+          workspace: pipeline-workspace
     - name: testing
       params:
         - name: ARGS
@@ -103,7 +102,7 @@ spec:
         name: green
       workspaces:
         - name: source
-          workspace: pipeline-workspace-promotion
+          workspace: pipeline-workspace
     - name: buildah
       params:
         - name: IMAGE
@@ -135,7 +134,7 @@ spec:
         name: buildah
       workspaces:
         - name: source
-          workspace: pipeline-workspace-promotion
+          workspace: pipeline-workspace
     - name: deploy-image
       params:
         - name: old_image_name
@@ -145,10 +144,37 @@ spec:
         - name: manifest_dir
           value: k8s
       runAfter:
-        - buildah
+        - apply-manifests
       taskRef:
         kind: Task
         name: deploy-image
       workspaces:
         - name: source
-          workspace: pipeline-workspace-promotion
+          workspace: pipeline-workspace
+    - name: apply-manifests
+      params:
+        - name: manifest_dir
+          value: k8s
+      runAfter:
+        - buildah
+      taskRef:
+        kind: Task
+        name: apply-manifests
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: bdd-test
+      params:
+        - name: BASE_URL
+          value: >-
+            https://promotions-kaiwangke-dev.apps.sandbox-m3.1530.p1.openshiftapps.com/
+      runAfter:
+        - deploy-image
+      taskRef:
+        kind: Task
+        name: bdd-test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+  workspaces:
+    - name: pipeline-workspace
