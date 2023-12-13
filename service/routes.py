@@ -192,7 +192,7 @@ class ProductCollection(Resource):
     @api.doc("list_products")
     @api.marshal_list_with(product_model)
     def get(self):
-        """Returns all of the Products"""
+        """For Promotion Internal Use only: Returns all of the Products"""
         app.logger.info("Request for product list")
         products = Product.all()
         results = [p.serialize() for p in products]
@@ -209,7 +209,7 @@ class ProductCollection(Resource):
     @api.marshal_with(product_model, code=201)
     def post(self):
         """
-        Create a new product.
+        For Promotion Internal Use only: Create a new product.
 
         This endpoint creates a new product based on the JSON data provided in the request body.
 
@@ -262,7 +262,7 @@ class ProductResource(Resource):
     @api.response(404, "Product not found")
     def delete(self, product_id):
         """
-        Delete a product by its ID.
+        For Promotion Internal Use only: Delete a product by its ID.
 
         This function removes a product from the database if it exists.
         If the product does not exist, a 404 error is returned.
