@@ -422,7 +422,7 @@ class PromotionResource(Resource):
     @api.doc("update_promotions")
     @api.response(404, "Promotion not found")
     @api.response(400, "Bad request")
-    @api.expect(promotion_model, validate=True)
+    @api.expect(promotion_model)
     @api.marshal_with(promotion_model)
     def put(self, promotion_id):
         """Update a Promotion

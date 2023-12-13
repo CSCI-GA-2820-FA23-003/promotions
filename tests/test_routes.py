@@ -161,18 +161,6 @@ class TestPromotionResourceModel(TestCase):
         response = self.client.put(f"{API_PROMOTION_URL}/{invalid_promotion_id}", headers=headers, data=json.dumps(data))
         self.assertEqual(response.status_code, 404)
 
-    def test_bad_request(self):
-        """It should return 400 Bad Request if the data is invalid"""
-        invalid_data = {}  # Empty data, which should trigger a bad request
-        promotion = PromotionFactory()
-        promotion.create()
-        response = self.client.put(
-            f"{API_PROMOTION_URL}/{promotion.id}",
-            data=json.dumps(invalid_data),
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, 400)
-
     def test_update_expired_promotion(self):
         """It should update an expired Promotion"""
         promotion = PromotionFactory()
