@@ -301,7 +301,7 @@ class PromotionCollection(Resource):
     @api.doc("create_promotions")
     @api.response(400, "The posted data was not valid")
     @api.response(415, "Unsupported media type")
-    @api.expect(create_model, validate=True)
+    @api.expect(create_model)
     @api.marshal_with(promotion_model, code=201)
     def post(self):
         """
