@@ -20,7 +20,7 @@ create_model = api.model(
             required=True, description="Start date and time of the promotion", example="2023-12-13"
         ),
         "expired": fields.DateTime(
-            required=True, description="Expiration date and time of the promotion", example="2024-12-13"
+            required=True, description="Expiration date/time of the promotion", example="2024-12-13"
         ),
         "available": fields.Integer(
             required=True, description="Availability status of the promotion"
