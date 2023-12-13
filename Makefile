@@ -45,15 +45,15 @@ run: ## Run the service
 cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster with a registry and 1 node...)
 	echo "127.0.0.1 cluster-registry" | sudo tee -a /etc/hosts 
+	k3d cluster delete my-cluster
 	k3d cluster create my-cluster --agents 1 --registry-create cluster-registry:32000 --port '8080:80@loadbalancer'
-	docker build -t promotions:1.0 . 
-	docker tag promotions:1.0 cluster-registry:32000/promotions:1.0
-	docker push cluster-registry:32000/promotions:1.0
+	docker build -t promotions:latest . 
+	docker tag promotions:latest cluster-registry:32000/promotions:latest
+	docker push cluster-registry:32000/promotions:latest
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
 	$(info Removing Kubernetes cluster...)
-	k3d cluster delete my-cluster
 
 .PHONY: login
 login: ## Login to IBM Cloud using yur api key
@@ -74,3 +74,14 @@ deploy: ## Deploy the service on local Kubernetes
 show: ## show services on local Kubernetes
 	$(info Deploying service locally...)
 	kubectl get all
+
+
+.PHONY: delete
+delete: ## show services on local Kubernetes
+	$(info Deploying service locally...)
+	kubectl delete deployments --all
+	kubectl delete services --all
+	kubectl delete statefulsets --all
+	kubectl delete pvc --all
+	kubectl delete secrets --all 
+
