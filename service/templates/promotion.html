@@ -78,7 +78,7 @@
                     <div class="default text">Product(s)</div>
                     <div class="menu">
                         {% for product in products %}
-                            <div class="item" data-value="{{product.id}}" value="{{ product.id }}" {{ 'selected' if promotion.selected else '' }}>{{ product.id }}</div>
+                            <div class="item product" data-value="{{product.id}}" value="{{ product.id }}" {{ 'selected' if promotion.selected else '' }}>{{ product.id }}</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -101,7 +101,8 @@ $('.ui.checkbox').checkbox();
 
 $('select').dropdown();
 
-$('#product-select').dropdown({
+$products = $('#product-select');
+$products.dropdown({
     hideAdditions: false,
     allowAdditions: true,
     onAdd: function(value, text, $selectedItem) {
@@ -113,11 +114,10 @@ $('#product-select').dropdown({
                     class: 'success',
                     message: `Product ${value} added and bound to promotion {{ promotion.code }}`,
                   });
-                
-                  $('#product-select').dropdown('save defaults');
+                  $products.dropdown('save defaults');
             },
             error: function(result) {
-                $('#product-select').dropdown('restore defaults', true);
+                $products.dropdown('restore defaults', true);
                 console.error(result);
                 $.toast({
                     class: 'error',
@@ -136,10 +136,10 @@ $('#product-select').dropdown({
                     message: `Product ${value} removed and unbound from promotion {{ promotion.code }}`,
                   });
 
-                $('#product-select').dropdown('save defaults');
+                $products.dropdown('save defaults');
             },
             error: function(result) {
-                $('#product-select').dropdown('restore defaults', true);
+                $products.dropdown('restore defaults', true);
                 $.toast({
                     class: 'error',
                     message: `Failed to remove product ${value} from ${result.responseJSON.message}`,
@@ -157,10 +157,10 @@ $('#product-select').dropdown({
                     message: `Product ${label} bound to promotion {{ promotion.code }}`,
                   });
 
-                $('#product-select').dropdown('save defaults');
+                  $products.dropdown('save defaults');
             },
             error: function(result) {
-                $('#product-select').dropdown('restore defaults', true);
+                $products.dropdown('restore defaults', true);
                 $.toast({
                     class: 'error',
                     message: `Failed to add product ${label} to ${result.responseJSON.message}`,

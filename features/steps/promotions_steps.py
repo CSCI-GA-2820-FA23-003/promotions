@@ -48,3 +48,31 @@ def step_impl(context):
         assert (
             context.resp.status_code == HTTP_201_CREATED
         ), f"Expected 201 Created, got {context.resp.status_code}"
+
+
+# product
+@given("the following products")
+def step_product(context):
+    """Delete all Products and load new ones"""
+
+    # List all of the products and delete them one by one
+    rest_endpoint = f"{context.base_url}/api/products"
+    context.resp = requests.get(rest_endpoint)
+    assert (
+        context.resp.status_code == HTTP_200_OK
+    ), f"Expected 200 OK, got {context.resp.status_code}"
+    for product in context.resp.json():
+        context.resp = requests.delete(f"{rest_endpoint}/{product['id']}")
+        assert (
+            context.resp.status_code == HTTP_204_NO_CONTENT
+        ), f"Expected 204 No Content, got {context.resp.status_code}"
+
+    # load the database with new products
+    for row in context.table:
+        payload = {
+            "id": row["id"],
+        }
+        context.resp = requests.post(rest_endpoint, json=payload)
+        assert (
+            context.resp.status_code == HTTP_201_CREATED
+        ), f"Expected 201 Created, got {context.resp.status_code}"
