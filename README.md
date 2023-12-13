@@ -16,7 +16,9 @@ The project contains the following:
 .devcontainers/     - Folder with support for VSCode Remote Containers
 dot-env-example     - copy to .env to use environment variables
 requirements.txt    - list if Python libraries required by your code
-config.py           - configuration parameters
+Dockerfile          - instructions for building a Docker image for the application
+setup.cfg           - configuration file for automated tasks like linting, testing, etc.
+.coverage           - Coverage report file
 
 service/                   - service python package
 ├── __init__.py            - package initializer
@@ -24,14 +26,33 @@ service/                   - service python package
 ├── routes.py              - module with service routes
 └── common                 - common code package
     ├── __init__.py        - package initializer
+    ├── cli_commands.py    - Flask CLI extension for database management commands
     ├── error_handlers.py  - HTTP error handling code
     ├── log_handlers.py    - logging setup code
     └── status.py          - HTTP status constants
 
 tests/              - test cases package
 ├── __init__.py     - package initializer
+├── factories.py     - factories for creating mock objects in tests
+├── test_cli_commands.py     - test suite for CLI command extensions
 ├── test_models.py  - test suite for business models
 └── test_routes.py  - test suite for service routes
+
+features/                     - BDD feature files and accompanying test steps
+├── steps/                    - Step definition modules for feature tests
+│   ├── promotions_steps.py   - Step definitions for promotions feature tests
+│   ├── web_detail_steps.py   - Step definitions for web detail feature tests
+│   ├── web_steps.py          - Step definitions for web feature tests
+│   └── environment.py        - Setup and teardown hooks for BDD tests
+└── promotions.feature        - Feature file describing promotion scenarios
+
+k8s/                         - Kubernetes deployment configurations
+├── deployment.yaml          - Defines the deployment to manage application pods
+├── ingress.yaml             - Configuration for ingress resource to manage external access to the services
+├── postgresql.yaml          - Deployment and service configuration for the PostgreSQL database
+├── pv.yaml                  - Defines persistent volumes for durable storage
+└── service.yaml             - Service configuration to expose the application pods
+
 ```
 
 ## Sprint 1 & 2
