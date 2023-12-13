@@ -17,10 +17,10 @@ create_model = api.model(
         "code": fields.String(required=True, description="Unique promotion code"),
         "name": fields.String(required=True, description="Name of the promotion"),
         "start": fields.DateTime(
-            required=True, description="Start date and time of the promotion"
+            required=True, description="Start date and time of the promotion", example="2023-12-13"
         ),
         "expired": fields.DateTime(
-            required=True, description="Expiration date and time of the promotion"
+            required=True, description="Expiration date and time of the promotion", example="2024-12-13"
         ),
         "available": fields.Integer(
             required=True, description="Availability status of the promotion"
@@ -299,7 +299,6 @@ class PromotionCollection(Resource):
     # CREATE A PROMOTIONS
     ######################################################################
     @api.doc("create_promotions")
-    @api.response(400, "The posted data was not valid")
     @api.response(415, "Unsupported media type")
     @api.expect(create_model)
     @api.marshal_with(promotion_model, code=201)
@@ -389,6 +388,7 @@ class PromotionResource(Resource):
     ######################################################################
     @api.doc("delete_promotions")
     @api.response(204, "Promotion deleted")
+    @api.response(404, "Promotion not found")
     def delete(self, promotion_id):
         """
         Delete a promotion by its ID.
@@ -422,7 +422,7 @@ class PromotionResource(Resource):
     @api.doc("update_promotions")
     @api.response(404, "Promotion not found")
     @api.response(400, "Bad request")
-    @api.expect(promotion_model)
+    @api.expect(create_model)
     @api.marshal_with(promotion_model)
     def put(self, promotion_id):
         """Update a Promotion

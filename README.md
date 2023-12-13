@@ -159,6 +159,27 @@ Example Response:
     > | value | Date | Promotion value according to the type |
     > | created_at | str | The Promotion code |
     > | updated_at | Date | Model lasted updated timestamp |
+    Example Response:
+
+    ```json
+    {
+      {
+        "id": 1234,
+        "code": "string",
+        "name": "string",
+        "start": "2023-12-13",
+        "expired": "2024-12-13",
+        "available": 0,
+        "whole_store": true,
+        "promo_type": 0,
+        "value": 0,
+        "products": [
+          0
+        ]
+      }
+    }
+    ```
+
   - `415 Unsupported Media Type`: If the request is not JSON.
 
 ---
@@ -170,7 +191,6 @@ Example Response:
 - **Description**: Delete a specific promotion by its ID.
 - **Response**:
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
-  - `400 Bad Request`: If the confirmation parameter is missing or false.
   - `204 No Content`: This status is returned regardless of whether the promotion existed or not. The delete operation is idempotent, ensuring consistent behavior.
 
 ---
@@ -206,10 +226,27 @@ Example Response:
     > | value | Date | Promotion value according to the type |
     > | created_at | str | The Promotion code |
     > | updated_at | Date | Model lasted updated timestamp |
-  - `404 Not Found`: If the promotion with the given ID doesn't exist.
-  - `405 Method Not Allowed`: If the promotion is already expired.
-  - `415 Unsupported Media Type`: If the request is not JSON.
+    Example Response:
+
+    ```json
+    {
+      {
+        "id": 2637,
+        "code": "string",
+        "name": "string",
+        "start": "2023-12-13T00:00:00",
+        "expired": "2024-12-13T00:00:00",
+        "available": 0,
+        "whole_store": true,
+        "promo_type": 0,
+        "value": 0,
+        "products": []
+      }
+    }
+    ```
+
   - `400 Bad Request`: For data validation errors.
+  - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---
 
@@ -224,6 +261,24 @@ Example Response:
   - `promo_type` (optional): Filter promotions by type.
 - **Response**:
   - `200 OK`: Returns a list of promotions as JSON.
+  Example Response:
+
+    ```json
+    [
+      {
+        "id": 3025,
+        "code": "ac2ef65c-309e-4029-af3f-f69985f628d8",
+        "name": "Updated Promotion Name",
+        "start": "2023-12-13T00:00:00",
+        "expired": "2023-12-14T00:00:00",
+        "available": 10,
+        "whole_store": false,
+        "promo_type": 1,
+        "value": 10,
+        "products": []
+      }
+    ]
+    ```
 
 ---
 
@@ -234,6 +289,23 @@ Example Response:
 - **Description**: Retrieves the details of a specific promotion using its ID.
 - **Response**:
   - `200 OK`: Returns the requested promotion as JSON.
+  Example Response:
+
+    ```json
+    {
+      "id": 3025,
+      "code": "ac2ef65c-309e-4029-af3f-f69985f628d8",
+      "name": "Updated Promotion Name",
+      "start": "2023-12-13T00:00:00",
+      "expired": "2023-12-14T00:00:00",
+      "available": 10,
+      "whole_store": false,
+      "promo_type": 1,
+      "value": 10,
+      "products": []
+    }
+    ```
+
   - `404 Not Found`: If the promotion with the given ID doesn't exist.
 
 ---

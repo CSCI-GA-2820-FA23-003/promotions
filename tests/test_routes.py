@@ -121,7 +121,6 @@ class TestPromotionResourceModel(TestCase):
         promotion = PromotionFactory()
         promotion.create()
 
-        # Update the promotion with valid data, including 'created_at'
         updated_data = {
             "name": "Updated Promotion Name",
             "code": promotion.code,
@@ -130,8 +129,8 @@ class TestPromotionResourceModel(TestCase):
             "whole_store": False,
             "promo_type": 1,  # Use a valid integer value for promo_type
             "value": 10.0,
-            "created_at": date.today().isoformat(),  # Include 'created_at' field
-            "updated_at": date.today().isoformat(),  # Include 'created_at' field
+            "created_at": date.today().isoformat(),
+            "updated_at": date.today().isoformat(),
             "available": 10,
         }
 
