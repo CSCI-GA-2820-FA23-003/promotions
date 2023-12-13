@@ -236,7 +236,7 @@ class ProductCollection(Resource):
         except DataValidationError as error:
             # Catch other potential errors and handle them as bad requests
             app.logger.error("Error updating promotion: %s", str(error))
-            abort(status.HTTP_400_BAD_REQUEST, "Invalid data or operation")
+            return {"message": "Invalid data or operation"}, status.HTTP_400_BAD_REQUEST
 
 ######################################################################
 # PATH: /product/<int:product_id>
@@ -334,9 +334,9 @@ class PromotionCollection(Resource):
                 status.HTTP_201_CREATED,
                 {"Location": location_url},
             )
-        except Exception as error:
+        except DataValidationError as error:
             app.logger.error("Error updating promotion: %s", str(error))
-            abort(status.HTTP_400_BAD_REQUEST, "Invalid data or operation")
+            return {"message": "Invalid data or operation"}, status.HTTP_400_BAD_REQUEST
 
     ######################################################################
     # LIST ALL PROMOTIONS
