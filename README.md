@@ -99,7 +99,7 @@ make show
 #### Optional: Cleanup
 ```
 make delete
-make cluster-rm
+make cluster-rm 
 ```
 
 
