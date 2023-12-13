@@ -1,323 +1,150 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: >
-      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Testing","tekton.dev/displayName":"green
-      tests","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"python,
-      green"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"green","namespace":"kaiwangke-dev"},"spec":{"description":"This
-      task can be used to perform unit tests with green.\nIf you define a secret
-      with the key `database_uri` it will create an environment variable named
-      DATABASE_URI that can be used to connect to a test
-      database.","params":[{"default":"-vvv --processes=1 --run-coverage
-      --minimum-coverage=95","description":"The additional arguments to be used
-      with
-      green","name":"ARGS","type":"string"},{"default":"postgres-creds","description":"The
-      name of the secret containing a database_uri
-      key","name":"SECRET_NAME","type":"string"},{"default":"database_uri","description":"The
-      name of the key that contains the database
-      uri","name":"SECRET_KEY","type":"string"}],"steps":[{"env":[{"name":"DATABASE_URI","valueFrom":{"secretKeyRef":{"key":"$(params.SECRET_KEY)","name":"$(params.SECRET_NAME)"}}}],"image":"python:3.11-slim","name":"green","script":"#!/bin/bash\nset
-      -e\n\necho \"***** Installing dependencies *****\"\npython -m pip install
-      --upgrade pip wheel\npip install -qr requirements.txt\n\necho \"*****
-      Running Tests *****\"\ngreen
-      $(params.ARGS)\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
-    tekton.dev/categories: Testing
-    tekton.dev/displayName: green tests
-    tekton.dev/pipelines.minVersion: 0.17.0
-    tekton.dev/platforms: linux/amd64
-    tekton.dev/tags: 'python, green'
-  resourceVersion: '1617511060'
   name: green
-  uid: 376dd6f8-eb46-4e4b-ab77-3d373684590e
-  creationTimestamp: '2023-12-08T20:10:43Z'
-  generation: 2
-  managedFields:
-    - apiVersion: tekton.dev/v1beta1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-            'f:tekton.dev/categories': {}
-            'f:tekton.dev/displayName': {}
-            'f:tekton.dev/pipelines.minVersion': {}
-            'f:tekton.dev/platforms': {}
-            'f:tekton.dev/tags': {}
-          'f:labels':
-            .: {}
-            'f:app.kubernetes.io/version': {}
-        'f:spec':
-          .: {}
-          'f:description': {}
-          'f:params': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2023-12-13T06:51:22Z'
-    - apiVersion: tekton.dev/v1beta1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:spec':
-          'f:steps': {}
-      manager: Mozilla
-      operation: Update
-      time: '2023-12-13T07:54:00Z'
-  namespace: kaiwangke-dev
   labels:
-    app.kubernetes.io/version: '0.1'
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/pipelines.minVersion: "0.17.0"
+    tekton.dev/tags: python, green
+    tekton.dev/displayName: "green tests"
+    tekton.dev/platforms: "linux/amd64"
 spec:
+  workspaces:
+    - name: source
   description: >-
     This task can be used to perform unit tests with green.
 
-    If you define a secret with the key `database_uri` it will create an
-    environment variable named DATABASE_URI that can be used to connect to a
-    test database.
+    If you define a secret with the key `database_uri`
+    it will create an environment variable named DATABASE_URI
+    that can be used to connect to a test database.
   params:
-    - default: '-vvv --processes=1 --run-coverage --minimum-coverage=95'
+    - name: ARGS
       description: The additional arguments to be used with green
-      name: ARGS
       type: string
-    - default: postgres-creds
+      default: "-vvv --processes=1 --run-coverage --minimum-coverage=95"
+    - name: SECRET_NAME
       description: The name of the secret containing a database_uri key
-      name: SECRET_NAME
       type: string
-    - default: database_uri
+      default: "postgres-creds"
+    - name: SECRET_KEY
       description: The name of the key that contains the database uri
-      name: SECRET_KEY
       type: string
+      default: "database_uri"
   steps:
-    - env:
-        - name: DATABASE_URI
-          valueFrom:
-            secretKeyRef:
-              key: $(params.SECRET_KEY)
-              name: $(params.SECRET_NAME)
-      image: 'python:3.11-slim'
-      name: green
-      resources: {}
+    - name: green
+      image: python:3.11-slim
+      workingDir: $(workspaces.source.path)
+      env:
+       - name: DATABASE_URI
+         valueFrom:
+           secretKeyRef:
+             name: $(params.SECRET_NAME)
+             key: $(params.SECRET_KEY)
       script: |
         #!/bin/bash
         set -e
-        apt-get update && apt-get install -y gcc libpq-dev
+
         echo "***** Installing dependencies *****"
         python -m pip install --upgrade pip wheel
         pip install -qr requirements.txt
 
         echo "***** Running Tests *****"
         green $(params.ARGS)
-      workingDir: $(workspaces.source.path)
-  workspaces:
-    - name: source
 
 ---
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: >
-      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Deployment","tekton.dev/displayName":"deploy
-      image","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"openshift,
-      deploy"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"deploy-image","namespace":"kaiwangke-dev"},"spec":{"description":"This
-      task will update the deployment.yaml with the latest image name and then
-      apply that yaml file and it's service file.","params":[{"description":"The
-      fully qualified name of the old image to
-      replace","name":"old_image_name","type":"string"},{"description":"The
-      fully qualified name of the new image to
-      deploy","name":"image_name","type":"string"},{"default":"k8s","description":"The
-      directory in source that contains yaml
-      manifests","name":"manifest_dir","type":"string"}],"steps":[{"args":["#!/bin/bash\nset
-      -e\n\necho Applying manifests in $(inputs.params.manifest_dir)
-      directory\n\necho \"*********************  DEPLOYMENT 
-      ***********************\"\necho \"Deploying $(inputs.params.image_name)
-      ...\"\n\nsed -i
-      's|'\"$(inputs.params.old_image_name)\"'|'\"$(inputs.params.image_name)\"'|g'
-      $(inputs.params.manifest_dir)/deployment.yaml\ncat
-      $(inputs.params.manifest_dir)/deployment.yaml\n\necho
-      \"************************************************************\"\necho
-      \"OC APPLY...\"\noc apply -f
-      $(inputs.params.manifest_dir)/deployment.yaml\noc apply -f
-      $(inputs.params.manifest_dir)/service.yaml\n\necho
-      \"************************************************************\"\nsleep
-      3\necho \"Pods:\"\noc get pods\necho
-      \"\""],"command":["/bin/bash","-c"],"image":"quay.io/openshift/origin-cli:latest","name":"deploy","workingDir":"/workspace/source"}],"workspaces":[{"name":"source"}]}}
-    tekton.dev/categories: Deployment
-    tekton.dev/displayName: deploy image
-    tekton.dev/pipelines.minVersion: 0.17.0
-    tekton.dev/platforms: linux/amd64
-    tekton.dev/tags: 'openshift, deploy'
-  resourceVersion: '1617324790'
   name: deploy-image
-  uid: 2b49d104-5edf-4f5c-afab-2c20370a8633
-  creationTimestamp: '2023-12-08T20:10:43Z'
-  generation: 1
-  managedFields:
-    - apiVersion: tekton.dev/v1beta1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-            'f:tekton.dev/categories': {}
-            'f:tekton.dev/displayName': {}
-            'f:tekton.dev/pipelines.minVersion': {}
-            'f:tekton.dev/platforms': {}
-            'f:tekton.dev/tags': {}
-          'f:labels':
-            .: {}
-            'f:app.kubernetes.io/version': {}
-        'f:spec':
-          .: {}
-          'f:description': {}
-          'f:params': {}
-          'f:steps': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2023-12-13T06:51:22Z'
-  namespace: kaiwangke-dev
   labels:
-    app.kubernetes.io/version: '0.1'
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Deployment
+    tekton.dev/pipelines.minVersion: "0.17.0"
+    tekton.dev/tags: openshift, deploy
+    tekton.dev/displayName: "deploy image"
+    tekton.dev/platforms: "linux/amd64"
 spec:
+  workspaces:
+  - name: source  
   description: >-
-    This task will update the deployment.yaml with the latest image name and
-    then apply that yaml file and it's service file.
+    This task will update the deployment.yaml with the latest image name
+    and then apply that yaml file and it's service file.
   params:
-    - description: The fully qualified name of the old image to replace
-      name: old_image_name
-      type: string
-    - description: The fully qualified name of the new image to deploy
-      name: image_name
-      type: string
-    - default: k8s
-      description: The directory in source that contains yaml manifests
-      name: manifest_dir
-      type: string
+  - name: old_image_name
+    description: The fully qualified name of the old image to replace
+    type: string
+  - name: image_name
+    description: The fully qualified name of the new image to deploy
+    type: string
+  - name: manifest_dir
+    description: The directory in source that contains yaml manifests
+    type: string
+    default: "k8s"
   steps:
-    - args:
-        - >-
+    - name: deploy
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/source 
+      command: ["/bin/bash", "-c"]
+      args:
+        - |-
           #!/bin/bash
-
           set -e
-
 
           echo Applying manifests in $(inputs.params.manifest_dir) directory
 
-
           echo "*********************  DEPLOYMENT  ***********************"
-
           echo "Deploying $(inputs.params.image_name) ..."
 
-
-          sed -i
-          's|'"$(inputs.params.old_image_name)"'|'"$(inputs.params.image_name)"'|g'
-          $(inputs.params.manifest_dir)/deployment.yaml
-
+          sed -i 's|'"$(inputs.params.old_image_name)"'|'"$(inputs.params.image_name)"'|g' $(inputs.params.manifest_dir)/deployment.yaml
           cat $(inputs.params.manifest_dir)/deployment.yaml
 
-
           echo "************************************************************"
-
           echo "OC APPLY..."
-
           oc apply -f $(inputs.params.manifest_dir)/deployment.yaml
-
           oc apply -f $(inputs.params.manifest_dir)/service.yaml
 
-
           echo "************************************************************"
-
           sleep 3
-
           echo "Pods:"
-
           oc get pods
-
           echo ""
-      command:
-        - /bin/bash
-        - '-c'
-      computeResources: {}
-      image: 'quay.io/openshift/origin-cli:latest'
-      name: deploy
-      workingDir: /workspace/source
-  workspaces:
-    - name: source
 
 ---
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: >
-      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Deployment","tekton.dev/displayName":"deploy","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"openshift,
-      deploy"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"apply-manifests","namespace":"kaiwangke-dev"},"spec":{"description":"This
-      task will deploy all of the yaml files in the manifest
-      folder.","params":[{"default":"k8s","description":"The directory in source
-      that contains yaml
-      manifests","name":"manifest_dir","type":"string"}],"steps":[{"args":["echo
-      Applying manifests in $(inputs.params.manifest_dir) directory\noc apply -f
-      $(inputs.params.manifest_dir)"],"command":["/bin/bash","-c"],"image":"quay.io/openshift/origin-cli:latest","name":"apply","workingDir":"/workspace/source"}],"workspaces":[{"name":"source"}]}}
-    tekton.dev/categories: Deployment
-    tekton.dev/displayName: deploy
-    tekton.dev/pipelines.minVersion: 0.17.0
-    tekton.dev/platforms: linux/amd64
-    tekton.dev/tags: 'openshift, deploy'
-  resourceVersion: '1617324793'
   name: apply-manifests
-  uid: ac7991b3-9612-401a-8f68-ba19557973e5
-  creationTimestamp: '2023-12-08T20:10:43Z'
-  generation: 2
-  managedFields:
-    - apiVersion: tekton.dev/v1beta1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-            'f:tekton.dev/categories': {}
-            'f:tekton.dev/displayName': {}
-            'f:tekton.dev/pipelines.minVersion': {}
-            'f:tekton.dev/platforms': {}
-            'f:tekton.dev/tags': {}
-          'f:labels':
-            .: {}
-            'f:app.kubernetes.io/version': {}
-        'f:spec':
-          .: {}
-          'f:description': {}
-          'f:params': {}
-          'f:steps': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2023-12-13T06:51:22Z'
-  namespace: kaiwangke-dev
   labels:
-    app.kubernetes.io/version: '0.1'
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Deployment
+    tekton.dev/pipelines.minVersion: "0.17.0"
+    tekton.dev/tags: openshift, deploy
+    tekton.dev/displayName: "deploy"
+    tekton.dev/platforms: "linux/amd64"
 spec:
-  description: This task will deploy all of the yaml files in the manifest folder.
+  workspaces:
+  - name: source  
+  description: >-
+    This task will deploy all of the yaml files in the manifest folder.
   params:
-    - default: k8s
-      description: The directory in source that contains yaml manifests
-      name: manifest_dir
-      type: string
+  - name: manifest_dir
+    description: The directory in source that contains yaml manifests
+    type: string
+    default: "k8s"
   steps:
-    - args:
+    - name: apply
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/source 
+      command: ["/bin/bash", "-c"]
+      args:
         - |-
           echo Applying manifests in $(inputs.params.manifest_dir) directory
           oc apply -f $(inputs.params.manifest_dir)
-      command:
-        - /bin/bash
-        - '-c'
-      computeResources: {}
-      image: 'quay.io/openshift/origin-cli:latest'
-      name: apply
-      workingDir: /workspace/source
-  workspaces:
-    - name: source
+          echo -----------------------------------
 ---
 
 apiVersion: tekton.dev/v1
