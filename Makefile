@@ -42,7 +42,7 @@ run: ## Run the service
 	honcho start
 
 .PHONY: cluster
-cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
+cluster: ## Create a K3D Kubernetes cluster with load balancer and registry 
 	$(info Creating Kubernetes cluster with a registry and 1 node...)
 	k3d cluster create --agents 1 --registry-create cluster-registry:0.0.0.0:32000 --port '8080:80@loadbalancer'
 
