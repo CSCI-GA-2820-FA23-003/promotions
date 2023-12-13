@@ -19,6 +19,7 @@ spec:
     If you define a secret with the key `database_uri`
     it will create an environment variable named DATABASE_URI
     that can be used to connect to a test database.
+    trigger test
   params:
     - name: ARGS
       description: The additional arguments to be used with green
