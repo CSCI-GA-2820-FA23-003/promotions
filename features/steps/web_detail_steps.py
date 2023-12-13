@@ -31,6 +31,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
 
 
 @when('I visit the "Detail Page" for "{promotion_id}"')
@@ -44,7 +45,9 @@ def visit_detail_page(context, promotion_id):
 @then('I should see the title "{message}" in detail page')
 def check_title(context, message):
     """Check the document title for a message"""
-    # print("Actual title:", context.driver.title)
+    # Wait until the title is as expected or timeout after 10 seconds
+    WebDriverWait(context.driver, 10).until(EC.title_is(message))
+    # Now assert that the title is as expected
     assert message == context.driver.title
 
 
